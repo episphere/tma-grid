@@ -222,7 +222,7 @@ const getInputParameters = () => {
 };
 
 // Event handler for load image from URL
-const handleLoadImageUrlClick = (state) => {
+const handleLoadImageUrlClick = async (state) => {
   resetApplication();
 
   // Show loading spinner
@@ -231,57 +231,62 @@ const handleLoadImageUrlClick = (state) => {
   const imageUrl = getInputValue("imageUrlInput");
 
   if (imageUrl) {
-    fetch(imageUrl)
-      .then((response) => {
-        if (response.ok) {
-          return response.blob();
-        } else {
-          updateStatusMessage(
-            "imageLoadStatus",
-            "Invalid image URL.",
-            "error-message"
-          );
-          throw new Error("Network response was not ok.");
-        }
-      })
-      .then((blob) => {
-        let objectURL = URL.createObjectURL(blob);
-        originalImageContainer.crossOrigin = "anonymous";
-        originalImageContainer.src = objectURL;
-
-        originalImageContainer.onload = async () => {
-          // If the image's width or height is greater than 1024, then alert an error and exit
-          if (
-            originalImageContainer.width > 1024 ||
-            originalImageContainer.height > 1024
-          ) {
-            alert(
-              "Image dimensions are too large. Please select an image that is less than 1024 x 1024."
-            );
-            return;
-          }
-
-          window.loadedImg = originalImageContainer;
-
-          updateStatusMessage(
-            "imageLoadStatus",
-            "Image loaded successfully.",
-            "success-message"
-          );
-          await segmentImage();
-        };
-      })
-      .catch((error) => {
+    let imageResp = undefined
+    if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
+      imageResp = fetch(imageUrl)
+    } else {
+      imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION)
+    }
+    imageResp.then((response) => {
+      if (response.ok) {
+        return response.blob();
+      } else {
         updateStatusMessage(
           "imageLoadStatus",
           "Invalid image URL.",
           "error-message"
         );
-        console.error(
-          "There has been a problem with your fetch operation: ",
-          error
+        throw new Error("Network response was not ok.");
+      }
+    })
+    .then((blob) => {
+      let objectURL = URL.createObjectURL(blob);
+      originalImageContainer.crossOrigin = "anonymous";
+      originalImageContainer.src = objectURL;
+
+      originalImageContainer.onload = async () => {
+        // If the image's width or height is greater than 1024, then alert an error and exit
+        if (
+          originalImageContainer.width > 1024 ||
+          originalImageContainer.height > 1024
+        ) {
+          alert(
+            "Image dimensions are too large. Please select an image that is less than 1024 x 1024."
+          );
+          return;
+        }
+
+        window.loadedImg = originalImageContainer;
+
+        updateStatusMessage(
+          "imageLoadStatus",
+          "Image loaded successfully.",
+          "success-message"
         );
-      });
+        await segmentImage();
+      };
+    })
+    .catch((error) => {
+      updateStatusMessage(
+        "imageLoadStatus",
+        "Invalid image URL.",
+        "error-message"
+      );
+      console.error(
+        "There has been a problem with your fetch operation: ",
+        error
+      );
+    });
   } else {
     updateStatusMessage("imageLoadStatus", "Invalid Image.", "error-message");
     console.error("Please enter a valid image URL");
