@@ -692,7 +692,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           currentMode + "ImaginaryInput"
         ).checked;
 
-        if (document.getElementById("addAutoUpdateColumnsCheckbox").checked) {
+        if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
           updateColumnsInRowAfterModification(core.row);
           updateColumnsInRowAfterModification(oldRow);
         }
