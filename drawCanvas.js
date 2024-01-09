@@ -293,7 +293,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   let isDraggingTempCore = false;
 
   img.onload = () => {
-    canvas.height = img.height;
+    // canvas.height = img.height;
 
     imageNeedsUpdate = false;
     drawCores();
