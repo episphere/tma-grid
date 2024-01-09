@@ -768,7 +768,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 
         window.sortedCoresData.push(tempCore);
 
-        if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
+        if (document.getElementById("addAutoUpdateColumnsCheckbox").checked) {
           updateColumnsInRowAfterModification(tempCore.row);
         }
         tempCore = null;
