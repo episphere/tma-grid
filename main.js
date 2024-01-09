@@ -310,7 +310,6 @@ async function segmentImage() {
 
       window.preprocessedCores = preprocessCores(window.properties);
 
-      // preprocessForTravelingAlgorithm(originalImageContainer);
     } catch (error) {
       console.error("Error processing image:", error);
     } finally {
@@ -520,7 +519,6 @@ const initSegmentation = async () => {
 
       window.actionHistory = [];
       await segmentImage();
-      // preprocessForTravelingAlgorithm(originalImageContainer);
     });
 
   document
@@ -532,7 +530,7 @@ const initSegmentation = async () => {
         return;
       }
 
-      preprocessForTravelingAlgorithm(originalImageContainer);
+      preprocessForTravelingAlgorithm();
     });
 };
 

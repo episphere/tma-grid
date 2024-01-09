@@ -278,7 +278,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   let imageNeedsUpdate = true;
 
   const canvas = document.getElementById("coreCanvas");
-  canvas.height = img.height;
   const ctx = canvas.getContext("2d");
   let selectedCore = null;
   let isAltDown = false; // Track the state of the Alt key
@@ -296,6 +295,8 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   img.onload = () => {
     imageNeedsUpdate = false;
     drawCores();
+    canvas.height = img.height;
+
   };
 
   function updateImageSource() {
