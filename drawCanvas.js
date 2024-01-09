@@ -207,7 +207,7 @@ function findNearestCoreIndex(x, y) {
   return nearestIndex;
 }
 
-let neuralNetworkResult = null;
+window.neuralNetworkResult = null;
 
 async function visualizeSegmentationResults(
   originalImage,
@@ -220,6 +220,7 @@ async function visualizeSegmentationResults(
     originalImage.naturalWidth,
     originalImage.naturalHeight,
   ];
+  
   const canvas = document.getElementById(canvasID);
   const ctx = canvas.getContext("2d");
   canvas.width = width;
@@ -227,10 +228,10 @@ async function visualizeSegmentationResults(
 
   ctx.drawImage(originalImage, 0, 0, width, height);
 
-  if (!neuralNetworkResult) {
-    neuralNetworkResult = await processPredictions(predictions);
+  if (!window.neuralNetworkResult) {
+    window.neuralNetworkResult = await processPredictions(predictions);
   }
-  drawMask(ctx, neuralNetworkResult, alpha, width, height);
+  drawMask(ctx, window.neuralNetworkResult, alpha, width, height);
   drawProperties(ctx, properties);
 
   addSegmentationCanvasEventListeners(canvas);

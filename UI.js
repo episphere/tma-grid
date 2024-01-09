@@ -253,6 +253,7 @@ function resetApplication() {
   window.sortedCoresData = [];
   window.loadedImg = null;
   window.preprocessingData = null;
+  window.neuralNetworkResult = null;
 
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();
