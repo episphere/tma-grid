@@ -1,0 +1,811 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+/* Apply a primary color for the main elements and a secondary for accents */
+:root {
+  --primary-color: #0056b3; /* Original blue color */
+  --secondary-color: #4CAF50; /* Green for success messages and accents */
+  --error-color: #F44336; /* Red for error messages */
+  --hover-color: #003d82; /* Darker Blue */
+  --background-color: #f7f7f7; /* Light Grey */
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  justify-content: center;
+  color: #333;
+  background-color: var(--background-color);
+}
+
+/* Apply the primary color to the header and active tabs for better contrast */
+button, .tab button.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+button:hover, .tab button.active:hover {
+  background-color: var(--hover-color);
+  /* Avoid changing the text color on hover to maintain readability */
+}
+
+/* Use a different font weight or style for headings */
+h1, h2, .tab button {
+  font-weight: 600; /* Makes the font bolder */
+}
+
+header {
+  background: #0056b3; /* Updated color for contrast */
+  color: white; /* White text on blue background */
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header .logo h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  margin-left: 20px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: white; /* White links for contrast */
+  transition: color 0.3s;
+}
+
+nav ul li a:hover {
+  color: #d9d9d9; /* Lighter color on hover */
+}
+
+
+.app-container {
+  display: flex;
+  min-height: calc(100vh - 60px); /* Adjust based on header height */
+}
+
+.sidebar {
+  width: 20%;
+  /* Fixed width for consistency */
+  background-color: #ffffff;
+  padding: 20px;
+  max-height: 100vh;
+  /* 100% of the viewport height */
+  overflow-y: auto;
+  /* Enables scrolling */
+  position: sticky;
+  top: 0;
+  /* Stick to the top of the viewport */
+  border-right: 1px solid #eaeaea;
+}
+
+
+.content {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+/* Consistent design elements */
+.file-upload-container, .hyperparameters, .tabcontent, .instructions-container {
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.file-upload-container,
+.hyperparameters {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.hyperparameters h2,
+.file-upload-container h2 {
+  margin-top: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.hyperparameters label,
+.file-upload-container label {
+  display: block;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+/* Style improvements for form elements */
+.hyperparameters input[type=range] {
+  -webkit-appearance: none; /* Override default appearance */
+  width: 100%; /* Full width */
+  height: 8px; /* Specified height */
+  border-radius: 5px; /* Rounded corners */
+  background: #d3d3d3; /* Light grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Partial transparency */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+.hyperparameters input[type=range]:hover {
+  opacity: 1; /* Fully opaque on hover */
+}
+
+
+.hyperparameters input[type=number],
+.hyperparameters input[type=text],
+.file-upload-container input[type=file],
+.file-upload-container input[type=text] {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  color: #555;
+}
+/* Spacing around sections */
+.hyperparameters, .file-upload-container, .tabcontent, .instructions-container {
+  margin-bottom: 20px; /* Consistent bottom spacing */
+  padding: 20px;
+}
+/* Spacing within form groups */
+.field-group {
+  margin-bottom: 15px; /* Consistent spacing between fields */
+}
+
+button {
+  background-color: #0056b3;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 12px 20px; /* Increased padding for a larger clickable area */
+  font-size: 1rem; /* Increased font size for readability */
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+  margin: 5px 0;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #00407a;
+  transform: scale(1.05); /* Slightly increase size on hover */
+}
+
+/* Primary Action Button Style */
+.primary-action-button {
+  background-color: #4CAF50; /* Green color to indicate primary action */
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s;
+  font-weight: 600; /* Make the font a bit bolder */
+  margin: 5px;
+}
+
+.primary-action-button:hover {
+  background-color: #367B35; /* Darker green on hover */
+  transform: scale(1.05); /* Slightly increase size on hover */
+}
+
+/* Secondary Action Button Style */
+.secondary-action-button {
+  background-color: #f0f0f0; /* Light grey to indicate secondary action */
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin: 5px;
+}
+
+.secondary-action-button:hover {
+  background-color: #e0e0e0; /* Slightly darker grey on hover */
+}
+
+
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #e9e9e9;
+}
+
+.tab button:hover {
+  background-color: var(--hover-color);
+  color: white;
+}
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+  color: #0056b3;
+  transition: background-color 0.3s ease;
+}
+
+
+.tab button.active {
+  background-color: #0056b3; /* Same color as header for consistency */
+  color: white; /* White text for visibility */
+}
+
+.tabcontent {
+  position: relative; /* Added relative positioning */
+  display: none;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-top: none;
+  background: #fff;
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  header .logo h1 {
+    font-size: 20px; /* Smaller text for smaller screens */
+  }
+
+  .sidebar,
+  .content {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .sidebar {
+    border-right: none;
+  }
+
+  .tab button {
+    padding: 10px 12px; /* Smaller padding for smaller screens */
+    font-size: 15px; /* Smaller font size for smaller screens */
+  }
+}
+
+.file-dropzone {
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  padding: 20px;
+  text-align: center;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.file-dropzone:hover {
+  border-color: #a8a8a8;
+}
+
+.file-input-btn {
+  background-color: #f7f7f7;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  padding: 5px 10px;
+  display: inline-block;
+  margin-bottom: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.file-dropzone p {
+  margin: 10px 0 0;
+}
+
+#toggle-advanced-settings {
+  background-color: #f0f0f0;
+  color: #0056b3;
+  border: 1px solid #d0d0d0;
+  padding: 8px 16px;
+  font-size: 0.9em;
+  text-align: center;
+  display: block;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 20px;
+}
+
+#toggle-advanced-settings:hover {
+  background-color: #e0e0e0;
+}
+
+#toggle-advanced-settings:active {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.load-status {
+  margin-top: 10px;
+  padding: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease-in-out;
+}
+
+.success-message {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.error-message {
+  background-color: var(--error-color);
+  color: white;
+}
+
+/* Optional: Add icons through pseudo-elements */
+.success-message::before {
+  content: "\2713";
+  /* Unicode checkmark */
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.error-message::before {
+  content: "\26A0";
+  /* Unicode warning sign */
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.neutral-message {
+  color: #333;
+  background-color: #f5f5f5;
+  /* A light grey background */
+  border: 1px dashed #ccc;
+  /* A dashed border for emphasis */
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  transition: opacity 0.3s ease-in-out;
+}
+
+
+/* Spinner styles */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+  margin: auto;
+}
+
+#buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  /* Adjust as needed */
+}
+
+.actionButton {
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  transition-duration: 0.4s;
+}
+
+.core-edit-container {
+  position: relative; /* This ensures that child elements with absolute positioning are relative to this container */
+  display: flex; /* Enable Flexbox */
+  justify-content: space-between; /* Space between items */
+  align-items: start; /* Align items to the top */
+}
+
+
+#coreCanvas, #virtualGridCanvas, #segmentationResultsCanvas{
+  /* Set a max width and height while maintaining aspect ratio */
+  max-width: 100%;
+  max-height: 1024px; /* Adjust this to the desired fixed size */
+  width: auto;
+  height: auto;
+  /* Add a border for a clean, framed look */
+  border: 1px solid #e1e1e1; /* Light grey border for a soft look */
+
+  /* Implement a shadow for depth, creating a layered interface */
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.05);
+
+  /* Center the canvas in the middle of the page or container */
+  display: block;
+  margin: 20px auto;
+
+  /* Add a background to handle transparency in uploaded images */
+  background-color: #fff; /* White or a light neutral color is professional */
+
+  /* Maintain the aspect ratio of the content within the canvas */
+  object-fit: contain;
+
+  /* Round the corners for a modern, softer aesthetic */
+  border-radius: 4px;
+
+  /* Transition for smooth resizing, if the container's size changes */
+  transition: width 0.5s ease-in-out, height 0.5s ease-in-out;
+}
+
+/* Sidebar Header Styles */
+.sidebar-header {
+  background-color: #f9f9f9; /* Updated to a slightly warmer shade of light grey */
+  padding: 15px; /* Padding only on the top and bottom */
+  width: 100%; /* Ensure the header takes the full width */
+  margin: 0; /* Remove any default margins */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
+  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; /* Modern font-family */
+  transition: all 0.3s ease; /* Smooth transition for interactive elements */
+  position: absolute; /* Positioning it absolutely relative to its parent */
+  top: 0; /* Align the top edge with the parent's top */
+  left: 0; /* Align the left edge with the parent's left */
+}
+/* Add padding to the main content area to prevent overlap */
+.main-content {
+  padding-top: 60px; /* Adjust the value based on the actual height of your header */
+}
+
+/* Close Button Styles */
+.window-controls .close-button {
+  position: absolute; /* Position the close button absolutely within the header */
+  top: 15px; /* Adjust as necessary for vertical alignment */
+  right: 35px; /* Adjust as necessary for horizontal alignment */
+  background: none; /* Optional: removes any default background */
+  border: none; /* Optional: removes any default border */
+  cursor: pointer; /* Changes the cursor to indicate interactiveness */
+}
+
+/* Title Styles */
+.sidebar-header .title {
+  font-size: 16px; /* Slightly larger font for the title */
+  font-weight: 600; /* Increased weight for emphasis */
+  color: #4d4d4d; /* Softer shade of grey */
+  font-family: 'Helvetica Neue', Arial, sans-serif; /* Clean, professional typeface */
+  text-shadow: 1px 1px 0px #f6f6f6; /* Subtle shadow for depth */
+  letter-spacing: 0.5px; /* Improve readability and elegance */
+  margin: 0; /* Ensure no margins are affecting positioning */
+  padding: 5px 0; /* Vertical padding for breathing room */
+}
+
+/* Window Controls */
+.window-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  margin-left: 5px;
+  padding: 0;
+}
+
+/* Hover effect for all buttons */
+.window-controls button:hover {
+  color: white; /* White text for all buttons on hover for better contrast */
+}
+
+/* Hover color for the close button */
+.window-controls .close-button:hover {
+  background-color: #dc3545; /* Red color for an alert, 'stop' signal hover state */
+}
+
+#addSidebar {
+  position: relative; 
+  left: 0px; /* Align to the left edge of canvas */
+  top: 0; /* Align to the top of .tabcontent */
+  width: 20%; /* Set a fixed width, adjust as needed */
+  height: 80%; /* Set a fixed height, adjust as needed */
+  overflow-y: auto; /* Enable scrolling if the content overflows */
+  display: block; /* Change to block to make it visible by default, or use JavaScript to toggle display */
+}
+
+
+.edit-sidebar {
+  overflow: auto;
+  width: 300px; /* Adjust width as needed */
+  min-width: 200px; /* Minimum width so content doesn't get too squished */
+  background-color: #ffffff;
+  padding: 20px;
+  height: 400px; /* Or use max-height */
+  max-height: 100vh;
+  overflow-y: auto;
+  box-shadow: -1px 0px 4px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+  margin-left: 20px; /* Add some space between the canvas and sidebar */
+  position: absolute; /* Make the sidebar positionable */
+  display: none; /* Initially hide the sidebar */
+  z-index: 10; /* Ensure it's above other elements */
+  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transition for visual feedback */
+}
+
+/* Styles to apply when dragging */
+.edit-sidebar.dragging {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2); /* Larger shadow for lifted effect */
+  transform: scale(1.05); /* Slightly larger to indicate that it's being moved */
+  cursor: grabbing; /* Cursor indicates a grab action */
+  opacity: 0.9; /* Optional: slight transparency */
+}
+
+.edit-sidebar h2 {
+  color: #333;
+  font-weight: 600;
+}
+
+.edit-sidebar label {
+  display: block;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.edit-sidebar input[type=number],
+.edit-sidebar textarea {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  color: #555;
+}
+/* Styles for button group */
+.edit-sidebar .button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Styling for the buttons */
+.edit-sidebar button {
+  flex: 1; /* Allows buttons to take equal width */
+  padding: 10px;
+  margin: 0 5px; /* Add some space between buttons */
+  border-radius: 4px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+/* Specific styling for the Cancel button */
+.edit-sidebar .cancel-button {
+  background-color: #F44336; /* Red color for cancel button */
+  color: white;
+}
+
+/* Hover effect for buttons */
+.edit-sidebar button:hover {
+  opacity: 0.9;
+}
+
+.checkbox-group {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group label {
+  margin-left: 5px;
+}
+
+/* Improved input fields styling */
+input[type='text'], input[type='file'], textarea {
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+input::placeholder {
+  color: #aaa;
+}
+.radio-group {
+  display: flex;
+  margin-bottom: 10px; /* spacing between form elements */
+}
+
+.radio-group input[type="radio"] {
+  display: none; /* hide the default radio button */
+}
+
+.radio-group label.radio-button {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 20px; /* rounded corners for pill shape */
+  background-color: #f0f0f0;
+  margin-right: 10px; /* spacing between buttons */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Change background color when radio button is selected */
+.radio-group input[type="radio"]:checked + label.radio-button {
+  background-color: #007BFF;
+  color: white;
+  border-color: #007BFF;
+}
+
+
+
+/* Improve spacing and alignment of the Save button */
+#saveCoreEdits {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+
+  color: white;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  transition: background-color 0.3s ease;
+}
+
+#removeCoreButton{
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  background-color: #F44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  transition: background-color 0.3s ease;
+}
+
+.mode-button {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.mode-button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.mode-button:not(.active):hover {
+  background-color: #e7e7e7;
+}
+
+/* Style for disabled input fields */
+input:disabled,
+textarea:disabled,
+button:disabled,
+select:disabled {
+  background-color: #e9ecef; /* Light grey background */
+  color: #6c757d; /* Dark grey text */
+  cursor: not-allowed; /* Cursor to indicate the field is not interactive */
+  border: 1px solid #ced4da; /* Slightly darker border to match */
+}
+
+/* Optionally, style the labels for disabled fields */
+label:disabled {
+  color: #6c757d; /* Dark grey text to match the input fields */
+}
+
+/* Cursor style for add mode */
+.add-mode {
+  cursor: crosshair; /* Crosshair cursor resembles an addition sign */
+}
+
+/* You can also define a class for edit mode if you need a specific cursor style */
+.edit-mode {
+  cursor: default; /* Default cursor for edit mode */
+}
+
+.instructions-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    border-left: 4px solid #5cb85c; /* Bootstrap green */
+    background-color: #fdfdfd;
+    padding: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    padding-right: 40px; /* Give some space for the close button */
+}
+
+.instructions-container h2 {
+  font-size: 1.2em;
+  color: #333;
+  margin-top: 0;
+}
+
+.instructions-container p {
+  font-size: 1em;
+  color: #666;
+}
+
+.instructions-container kbd {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #fff;
+  background-color: #333;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+.close-instructions {
+  position: absolute;
+  top: 10px; /* Adjust as needed */
+  right: 25px; /* Adjust as needed */
+  border: none;
+  background: #faf7f7;
+  border-radius: 50%; /* Circular shape for the button */
+  padding: 5px 8px;
+  font-size: 1rem;
+  color: #e14949;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1; /* Aligns the close icon vertically */
+}
+
+.close-instructions:hover, .close-instructions:focus {
+  background-color: #e14949; /* Color change on hover/focus for feedback */
+  color: white;
+  outline: none; /* Removes the outline to maintain the style on focus */
+}
+
+#undoButton, #redoButton {
+  background-color: var(--secondary-color); /* Your chosen highlight color */
+  color: white; /* Text color */
+  /* ... other styles ... */
+}
+
+#saveResults {
+  font-weight: bold;
+  background-color: var(--secondary-color);
+}
