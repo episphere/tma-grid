@@ -27,6 +27,8 @@ import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
 
 import { getPNGFromWSI, getRegionFromWSI } from "./wsi.js"
 
+const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024
+
 // Initialize image elements
 const originalImageContainer = document.getElementById("originalImage");
 const processedImageCanvasID = "segmentationResultsCanvas";
@@ -237,7 +239,7 @@ const handleLoadImageUrlClick = async (state) => {
     if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
       imageResp = fetch(imageUrl)
     } else {
-      imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION)
+      imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING)
     }
     imageResp.then((response) => {
       if (response.ok) {
