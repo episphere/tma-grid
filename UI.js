@@ -41,6 +41,18 @@ function getHyperparametersFromUI() {
     imageWidth,
   };
 }
+
+// Function to show the popup
+function showPopup(id) {
+  document.getElementById(id).style.display = "block";
+}
+
+// Function to close the popup
+function closePopup(id) {
+  document.getElementById(id).style.display = "none";
+}
+
+
 function makeElementDraggable(element) {
   let isDragging = false;
   let initialMouseX, initialMouseY, initialElementX, initialElementY;
@@ -287,4 +299,6 @@ export {
   positionSidebarNextToCore,
   hideSidebar,
   makeElementDraggable,
+  showPopup,
+  closePopup,
 };

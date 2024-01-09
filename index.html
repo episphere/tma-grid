@@ -69,8 +69,7 @@
                     <p style="text-align: center;">OR</p>
                     <br>
                     <label for="metadataUrlInput">Paste in .csv/.xls URL:</label>
-                    <input type="text" id="metadataUrlInput" placeholder="Enter metadata URL"
-                        value="https://aaronge-2020.github.io/Microarray-Dearraying/hpv%20rnascope%20cores%20R1.xlsx" />
+                    <input type="text" id="metadataUrlInput" placeholder="Enter metadata URL" value="" />
                     <button id="loadMetadataUrlBtn" type="button" class="load-img-btn">Load .xls/.csv</button>
                     <br>
                 </div>
@@ -268,10 +267,10 @@
 
             <!-- Tab Links -->
             <div class="tab">
-                <button class="tablinks" onclick="openTab(event, 'ImageSegmentation')"
+                <button class="tablinks" 
                     id="imageSegmentationTabButton">Image Segmentation</button>
-                <button class="tablinks" onclick="openTab(event, 'RawData')" id="rawDataTabButton">Gridding</button>
-                <button class="tablinks" onclick="openTab(event, 'VirtualGrid')" id="virtualGridTabButton">Virtual
+                <button class="tablinks" id="rawDataTabButton">Gridding</button>
+                <button class="tablinks" id="virtualGridTabButton">Virtual
                     Grid</button>
             </div>
 
@@ -283,15 +282,19 @@
                     <button class="close-instructions">✕</button>
                     <h2>Completing Core Segmentation</h2>
                     <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm detects most of the
-                        cores. Make any manual adjustments if needed to capture all cores accurately. Once you're
-                        satisfied with the segmentation, click the "Finalize Segmentation" button. You can then proceed
+                        cores. Make any manual adjustments if needed to capture all cores accurately. </p>
+                    <p>
+                        Once you're satisfied with the segmentation, click the "Finalize Segmentation" button. You can
+                        then proceed
                         to the Gridding tab to continue.</p>
                 </div>
 
                 <div class="instructions-container">
                     <button class="close-instructions">✕</button>
                     <h2>Interactive Core Editing</h2>
-                    <p>To add a core, simply click on the desired location within the image. If you wish to remove a
+                    <p>To add a core, simply click on the desired location within the image.
+                    </p>
+                    <p> If you wish to remove a
                         core, hold the <kbd>Shift</kbd> key and click on the core you want to remove.</p>
                 </div>
 
@@ -316,8 +319,28 @@
                     <button class="close-instructions">×</button> <!-- This is the close button -->
                     <h2>Gridding Instructions</h2>
                     <p>First, ensure that the image is rotated correctly. If not, adjust the image rotation parameter.
-                        To adjust the size of each core, hold the <kbd>Alt</kbd> key and move the cursor. To edit the
-                        properties of a core, double-click on the core to open the edit menu. </p>
+                    </p>
+                    <p> To adjust the size of each core, hold the <kbd>Alt</kbd> key and move the cursor.
+                    </p>
+
+                    <p> To edit the
+                        properties of a core, double-click on the core to open the edit menu. By default, manual edits
+                        of the column value is disabled. To enable manual edits of the column value, uncheck the "Auto
+                        Update Columns" checkbox. </p>
+                </div>
+
+                <div class="instructions-container">
+                    <button class="close-instructions">×</button> <!-- This is the close button -->
+                    <h2>Adding Cores</h2>
+                    <p>To add a core, click on the desired location within the image. Your first click will set the
+                        center of the core, and your second click will set the radius. </p>
+                    To adjust the size of added cores, hold the <kbd>Alt</kbd> key and move the cursor.
+                    </p>
+                    <p> To edit the properties of a core, use the edit menu to the right. Make sure to set the correct
+                        row of added cores</p>
+
+
+
                 </div>
                 <div class="core-edit-container" id="main-container"> <!-- This is the new flex container -->
 
@@ -339,6 +362,13 @@
                             <label for="addColumnInput">Column:</label>
                             <input type="number" id="addColumnInput" name="addColumnInput" disabled>
 
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="addAutoUpdateColumnsCheckbox"
+                                    name="addAutoUpdateColumnsCheckbox" checked>
+                                <label for="addAutoUpdateColumnsCheckbox">Auto Update Columns</label>
+                            </div>
+
                             <label for="addXInput">X Position:</label>
                             <input type="number" id="addXInput" name="addXInput">
 
@@ -359,11 +389,6 @@
                                 <label for="addImaginaryInput" class="radio-button">Missing</label>
                             </div>
 
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="addAutoUpdateColumnsCheckbox"
-                                    name="addAutoUpdateColumnsCheckbox" checked>
-                                <label for="addAutoUpdateColumnsCheckbox">Auto Update Columns</label>
-                            </div>
 
                             <div class="button-group">
                                 <button type="button" id="addCoreButton">Add Core</button>
@@ -387,6 +412,13 @@
                             <label for="editColumnInput">Column:</label>
                             <input type="number" id="editColumnInput" name="editColumnInput" disabled>
 
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
+                                    name="editAutoUpdateColumnsCheckbox" checked>
+                                <label for="editAutoUpdateColumnsCheckbox">Auto Update Columns</label>
+                            </div>
+
                             <label for="editXInput">X Position:</label>
                             <input type="number" id="editXInput" name="editXInput">
 
@@ -408,11 +440,7 @@
                                 <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
                                 <label for="editImaginaryInput" class="radio-button">Missing</label>
                             </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
-                                    name="editAutoUpdateColumnsCheckbox" checked>
-                                <label for="editAutoUpdateColumnsCheckbox">Auto Update Columns</label>
-                            </div>
+
 
                             <div class="button-group">
                                 <button type="button" id="saveCoreEdits">Save Edits</button>
@@ -433,38 +461,38 @@
             </div>
 
         </div>
-        <script>
-            // Call this function to open the default tab
-            function openDefaultTab() {
-                // Get the element with id="defaultOpen" and click on it
-                document.getElementById("imageSegmentationTabButton").click();
-            }
 
-            // The openTab function as before
-            function openTab(evt, tabName) {
-                var i, tabcontent, tablinks;
-                tabcontent = document.getElementsByClassName("tabcontent");
-                for (i = 0; i < tabcontent.length; i++) {
-                    tabcontent[i].style.display = "none";
-                }
-                tablinks = document.getElementsByClassName("tablinks");
-                for (i = 0; i < tablinks.length; i++) {
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
-                }
-                document.getElementById(tabName).style.display = "block";
-                evt.currentTarget.className += " active";
-            }
-
-            // When the window loads, open the default tab
-            window.onload = openDefaultTab;
-
-
-        </script>
 
 
     </div>
 
+
+    <!-- Popup HTML -->
+    <div id="popupSegmentation" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Segmentation Finalized</h2>
+            <p>Segmentation is now finalized. You can proceed to gridding or continue editing.</p>
+            <button id="openGriddingButton">Open Gridding Tab</button>
+            <button id="segmentationClosePopupButton">Continue Editing</button>
+        </div>
+    </div>
+
+    <div id="popupGridding" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Gridding Finalized</h2>
+            <p>Gridding is now finalized. You can download the results, proceed to the virtual grid, or continue editing.</p>
+            <button id="openVirtualGridButton">Open Virtual Grid</button>
+            <button id="griddingClosePopupButton">Continue Editing</button>
+        </div>
+    </div>
+
+
     <script type="module" src="main.js"></script>
+    <script>
+        
+
+
+    </script>
 
 </body>
 

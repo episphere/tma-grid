@@ -3,7 +3,7 @@ import { runTravelingAlgorithm } from "./data_processing.js";
 
 import { preprocessCores } from "./delaunay_triangulation.js";
 
-import { positionSidebarNextToCore, hideSidebar } from "./UI.js";
+import { positionSidebarNextToCore, hideSidebar, showPopup } from "./UI.js";
 
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/+esm";
 
@@ -914,6 +914,8 @@ function obtainHyperparametersAndDrawVirtualGrid() {
     startingX,
     startingY
   );
+
+  showPopup("popupGridding");
 }
 
 function createVirtualGrid(

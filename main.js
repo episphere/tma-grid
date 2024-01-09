@@ -7,6 +7,8 @@ import {
   updateStatusMessage,
   resetApplication,
   makeElementDraggable,
+  showPopup,
+  closePopup,
 } from "./UI.js";
 
 import {
@@ -27,12 +29,52 @@ import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
 
 import { getPNGFromWSI, getRegionFromWSI } from "./wsi.js"
 
+
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024
 
 // Initialize image elements
 const originalImageContainer = document.getElementById("originalImage");
 const processedImageCanvasID = "segmentationResultsCanvas";
 
+
+
+  // Call this function to open the default tab
+  function openDefaultTab() {
+    // Get the element with id="defaultOpen" and click on it
+    document.getElementById("imageSegmentationTabButton").click();
+  }
+  
+  // The openTab function as before
+  function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
+  
+  // When the window loads, open the default tab
+  window.onload = openDefaultTab;
+  
+  // Function to switch to the gridding tab
+  function switchToGridding() {
+    closePopup("popupSegmentation");
+    document.getElementById("rawDataTabButton").click(); // Activate the gridding tab
+    // Deactivate the segmentation tab if needed
+  }
+  
+  function switchToVirtualGrid() {
+    closePopup("popupGridding");
+    document.getElementById("virtualGridTabButton").click(); // Activate the gridding tab
+    // Deactivate the segmentation tab if needed
+  }
+  
 // Load dependencies and return updated state
 const loadDependencies = async () => ({
   model: await loadModel("./tfjs_model/model.json"),
@@ -474,6 +516,32 @@ function bindEventListeners() {
       this.parentElement.style.display = 'none';
     });
   });
+  
+  document.getElementById("rawDataTabButton").addEventListener("click", function (event) {
+    openTab(event, 'RawData');
+  });
+  document.getElementById("imageSegmentationTabButton").addEventListener("click", function (event) {
+    openTab(event, 'ImageSegmentation');
+  });
+
+  document.getElementById("virtualGridTabButton").addEventListener("click", function (event) {
+    openTab(event, 'VirtualGrid');
+  });
+
+
+  document.getElementById("segmentationClosePopupButton").addEventListener("click", function(event){
+
+    closePopup("popupSegmentation");
+  } );
+  document.getElementById("griddingClosePopupButton").addEventListener("click", function (event){
+    closePopup("popupGridding");
+
+  });
+
+  document.getElementById("openGriddingButton").addEventListener("click", switchToGridding);
+  document.getElementById("openVirtualGridButton").addEventListener("click", switchToVirtualGrid);
+
+
 }
 
 // Initialize and bind events
@@ -540,6 +608,8 @@ const initSegmentation = async () => {
       }
 
       preprocessForTravelingAlgorithm();
+      showPopup("popupSegmentation");
+
     });
 };
 
