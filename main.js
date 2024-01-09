@@ -25,6 +25,8 @@ import {
 
 import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
 
+import { getPNGFromWSI, getRegionFromWSI } from "./wsi.js"
+
 // Initialize image elements
 const originalImageContainer = document.getElementById("originalImage");
 const processedImageCanvasID = "segmentationResultsCanvas";
