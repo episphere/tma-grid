@@ -530,6 +530,7 @@ button:hover {
   border-radius: 4px; /* Rounded corners */
   border: 1px solid #ccc; /* Subtle border */
   width: 80%;
+  float: center;
 }
 
 /* Adjustments for elements inside sidebar */
