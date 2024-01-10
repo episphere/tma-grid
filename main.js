@@ -95,32 +95,50 @@ const handleImageInputChange = async (e, processCallback) => {
   if (file && file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = async (event) => {
-      originalImageContainer.src = event.target.result;
-      originalImageContainer.onload = async () => {
-        // If the image's width or height is greater than 1024, then alert an error and exit
-        if (
-          originalImageContainer.width > 1024 ||
-          originalImageContainer.height > 1024
-        ) {
-          alert(
-            "Image dimensions are too large. Please select an image that is less than 1024 x 1024."
-          );
-        document.getElementById("loadingSpinner").style.display = "none";
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = async () => {
+        // Check if the image needs to be scaled down
+        if (img.width > 1024 || img.height > 1024) {
+          // Store the original image dimensions
+          window.originalImageWidth = img.width;
+          window.originalImageHeight = img.height;
 
-          return;
+          const scalingFactor = Math.min(1024 / img.width, 1024 / img.height);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width * scalingFactor;
+          canvas.height = img.height * scalingFactor;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          originalImageContainer.src = canvas.toDataURL();
+        } else {
+          originalImageContainer.src = img.src;
         }
 
-        updateStatusMessage(
-          "imageLoadStatus",
-          "Image loaded successfully.",
-          "success-message"
-        );
-        processCallback();
+        originalImageContainer.onload = () => {
+          updateStatusMessage(
+            "imageLoadStatus",
+            "Image loaded successfully.",
+            "success-message"
+          );
+          processCallback();
 
-        window.loadedImg = originalImageContainer;
+          window.loadedImg = originalImageContainer;
+          document.getElementById("loadingSpinner").style.display = "none";
+        };
+
+        originalImageContainer.onerror = () => {
+          updateStatusMessage(
+            "imageLoadStatus",
+            "Image failed to load.",
+            "error-message"
+          );
+
+          console.error("Image failed to load.");
+        };
       };
 
-      originalImageContainer.onerror = () => {
+      img.onerror = () => {
         updateStatusMessage(
           "imageLoadStatus",
           "Image failed to load.",
@@ -138,9 +156,10 @@ const handleImageInputChange = async (e, processCallback) => {
       "error-message"
     );
 
-    console.error("Image failed to load.");
+    console.error("File loaded is not an image.");
   }
 };
+
 
 function handleMetadataFileSelect(event) {
   const file = event.target.files[0];
@@ -303,15 +322,31 @@ const handleLoadImageUrlClick = async (state) => {
       originalImageContainer.src = objectURL;
 
       originalImageContainer.onload = async () => {
-        // If the image's width or height is greater than 1024, then alert an error and exit
-        if (
-          originalImageContainer.width > 1024 ||
-          originalImageContainer.height > 1024
-        ) {
-          alert(
-            "Image dimensions are too large. Please select an image that is less than 1024 x 1024."
-          );
-          return;
+        // Check and resize image if necessary
+        if (originalImageContainer.width > 1024 || originalImageContainer.height > 1024) {
+          // Store the original image dimensions
+          window.originalImageWidth = originalImageContainer.width;
+          window.originalImageHeight = originalImageContainer.height;
+
+
+          const aspectRatio = originalImageContainer.width / originalImageContainer.height;
+          let newWidth, newHeight;
+
+          if (originalImageContainer.width > originalImageContainer.height) {
+            newWidth = 1024;
+            newHeight = 1024 / aspectRatio;
+          } else {
+            newHeight = 1024;
+            newWidth = 1024 * aspectRatio;
+          }
+
+          // Create a canvas to draw resized image
+          let canvas = document.createElement('canvas');
+          canvas.width = newWidth;
+          canvas.height = newHeight;
+          let ctx = canvas.getContext('2d');
+          ctx.drawImage(originalImageContainer, 0, 0, newWidth, newHeight);
+          originalImageContainer.src = canvas.toDataURL();
         }
 
         window.loadedImg = originalImageContainer;
@@ -340,6 +375,7 @@ const handleLoadImageUrlClick = async (state) => {
     console.error("Please enter a valid image URL");
   }
 };
+
 
 async function segmentImage() {
   const { threshold, maskAlpha, minArea, maxArea, disTransformMultiplier } =
