@@ -157,7 +157,7 @@ const handleImageInputChange = async (e, processCallback) => {
     console.error("File loaded is not an image.");
   }
 
-  moveToCarouselItem('next');
+  moveToCarouselItem("next");
 };
 
 function handleMetadataFileSelect(event) {
@@ -195,7 +195,7 @@ function handleMetadataFileSelect(event) {
     processExcel(file);
   }
 
-  moveToCarouselItem('next');
+  moveToCarouselItem("next");
 }
 
 function processCSV(file) {
@@ -305,15 +305,11 @@ const handleLoadImageUrlClick = async (state) => {
     } else {
       const imageInfo = await getImageInfo(imageUrl);
       const { width, height } = imageInfo;
-      const scalingFactor = Math.min(
-        1024 / width,
-        1024 / height
-      );
+      const scalingFactor = Math.min(1024 / width, 1024 / height);
       // Store the scaling factor
       window.scalingFactor = scalingFactor;
-      console.log('scalingFactor', scalingFactor)
+      console.log("scalingFactor", scalingFactor);
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
-
     }
     imageResp
       .then((response) => {
@@ -391,8 +387,7 @@ const handleLoadImageUrlClick = async (state) => {
     console.error("Please enter a valid image URL");
   }
 
-  moveToCarouselItem('next');
-
+  moveToCarouselItem("next");
 };
 
 async function segmentImage() {
@@ -640,12 +635,12 @@ const initSegmentation = async () => {
       }
 
       // Create finalSaveData by mapping over sortedCoresData
-      const finalSaveData = window.properties.map(core => {
+      const finalSaveData = window.properties.map((core) => {
         return {
           ...core,
           x: core.x / window.scalingFactor,
           y: core.y / window.scalingFactor,
-          radius: core.radius / window.scalingFactor
+          radius: core.radius / window.scalingFactor,
         };
       });
 
@@ -685,61 +680,69 @@ const initSegmentation = async () => {
       showPopup("popupSegmentation");
     });
 
-    // Navigation buttons
-  var prevButton = document.querySelector('.carousel-control-prev');
-  var nextButton = document.querySelector('.carousel-control-next');
+  // Navigation buttons
+  var prevButton = document.querySelector(".carousel-control-prev");
+  var nextButton = document.querySelector(".carousel-control-next");
 
   // Event listener for 'Previous' button
-  prevButton.addEventListener('click', function() {
-      moveToCarouselItem('prev');
+  prevButton.addEventListener("click", function () {
+    moveToCarouselItem("prev");
   });
 
   // Event listener for 'Next' button
-  nextButton.addEventListener('click', function() {
-      moveToCarouselItem('next');
+  nextButton.addEventListener("click", function () {
+    moveToCarouselItem("next");
   });
 
-  document.getElementById('helpButton').addEventListener('click', function() {
+  document.getElementById("helpButton").addEventListener("click", function () {
     // Get all tabcontent elements
-    var tabContents = document.getElementsByClassName('tabcontent');
+    var tabContents = document.getElementsByClassName("tabcontent");
     // Loop through all tabcontent elements to find the active one
     for (var i = 0; i < tabContents.length; i++) {
-        // Check if the current tabcontent is displayed (active)
-        if (tabContents[i].style.display === 'block') {
-            // Find all instructions containers within the active tabcontent
-            var instructionElements = tabContents[i].getElementsByClassName('instructions-container');
-            // Loop through each instructions container and toggle its display
-            for (var j = 0; j < instructionElements.length; j++) {
-                if (instructionElements[j].style.display === 'none' || instructionElements[j].style.display === '') {
-                    instructionElements[j].style.display = 'block';
-                } else {
-                    instructionElements[j].style.display = 'none';
-                }
-            }
-            break; // Stop looping once the active tabcontent is found and handled
+      // Check if the current tabcontent is displayed (active)
+      if (tabContents[i].style.display === "block") {
+        // Find all instructions containers within the active tabcontent
+        var instructionElements = tabContents[i].getElementsByClassName(
+          "instructions-container"
+        );
+        // Loop through each instructions container and toggle its display
+        for (var j = 0; j < instructionElements.length; j++) {
+          if (
+            instructionElements[j].style.display === "none" ||
+            instructionElements[j].style.display === ""
+          ) {
+            instructionElements[j].style.display = "block";
+          } else {
+            instructionElements[j].style.display = "none";
+          }
         }
+        break; // Stop looping once the active tabcontent is found and handled
+      }
     }
-});
+  });
 
-
-
+  document
+    .getElementById("skipLoadMetadataUrlBtn")
+    .addEventListener("click", function () {
+      moveToCarouselItem("next");
+    });
 };
 
 function moveToCarouselItem(direction) {
-    var current = document.querySelector('.carousel-item.active');
-    var items = document.querySelectorAll('.carousel-item');
-    var currentIndex = Array.from(items).indexOf(current);
+  var current = document.querySelector(".carousel-item.active");
+  var items = document.querySelectorAll(".carousel-item");
+  var currentIndex = Array.from(items).indexOf(current);
 
-    if (direction === 'next') {
-        var nextIndex = (currentIndex + 1) % items.length;
-    } else {
-        var nextIndex = (currentIndex - 1 + items.length) % items.length;
-    }
+  if (direction === "next") {
+    var nextIndex = (currentIndex + 1) % items.length;
+  } else {
+    var nextIndex = (currentIndex - 1 + items.length) % items.length;
+  }
 
-    if (current) {
-        current.classList.remove('active');
-    }
-    items[nextIndex].classList.add('active');
+  if (current) {
+    current.classList.remove("active");
+  }
+  items[nextIndex].classList.add("active");
 }
 
 // Main function that runs the application
