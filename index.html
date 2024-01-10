@@ -78,9 +78,15 @@
                         <br>
                         <label for="metadataUrlInput">Paste in .csv/.xls URL:</label>
                         <input type="text" id="metadataUrlInput" placeholder="Enter metadata URL" value="" />
-                        <button id="loadMetadataUrlBtn" type="button" class="load-img-btn">Load .xls/.csv</button>
-                        <button id="skipLoadMetadataUrlBtn" type="button" class="secondary-action-button">Skip</button>
 
+                        <div class="button-group">
+                            
+                           
+                            <button id="loadMetadataUrlBtn" type="button" class="load-img-btn">Load .xls/.csv</button>
+                            <br>
+                            <button id="skipLoadMetadataUrlBtn" type="button"
+                            class="skip-button">Skip</button>
+                        </div>
                         <br>
                     </div>
                 </div>
@@ -306,7 +312,7 @@
             <!-- Tab content -->
 
             <div id="ImageSegmentation" class="tabcontent">
-                
+
                 <div class="instructions-container">
                     <button class="close-instructions">✕</button>
                     <h2>Completing Core Segmentation</h2>
