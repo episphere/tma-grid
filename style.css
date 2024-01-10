@@ -211,11 +211,37 @@ button:hover {
   background-color: #e0e0e0; /* Slightly darker grey on hover */
 }
 
+.help-button {
+  flex-grow: 0; /* Ensures that the help button does not grow */
+  margin-left: auto; /* Pushes the help button to the far right */
+  background-color: #f9f9f9; /* Example color, change as needed */
+  color: #333; /* Example color, change as needed */
+  font-size: 24px; /* Adjust size as needed */
+  border: none; /* Adjust styles as needed */
+  cursor: pointer;
+  padding: 10px 20px; /* Adjust padding as needed */
+  margin-right: 0; /* Adjust margin as needed */
+  border-radius: 50%; /* Gives a circular shape for the button */
+  width: 40px; /* Adjust width as needed */
+  height: 40px; /* Adjust height as needed */
+}
+
+/* Optional: Add some hover effect */
+.help-button:hover {
+  background-color: #e0e0e0; /* Example hover color, change as needed */
+}
 
 .tab {
   overflow: hidden;
   border: 1px solid #ccc;
   background-color: #e9e9e9;
+  display: flex;
+  justify-content: space-between; /* This will push your help button to the far right */
+  align-items: center; /* Ensures vertical alignment */
+}
+.tablinks {
+  flex-grow: 1;
+  text-align: center; /* This will center the text in each tab link */
 }
 
 .tab button:hover {
@@ -837,6 +863,7 @@ label:disabled {
     margin-bottom: 20px;
     position: relative;
     padding-right: 40px; /* Give some space for the close button */
+    display: none; /* Hide by default */
 }
 
 .instructions-container h2 {

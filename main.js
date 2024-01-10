@@ -699,7 +699,30 @@ const initSegmentation = async () => {
       moveToCarouselItem('next');
   });
 
-  
+  document.getElementById('helpButton').addEventListener('click', function() {
+    // Get all tabcontent elements
+    var tabContents = document.getElementsByClassName('tabcontent');
+    // Loop through all tabcontent elements to find the active one
+    for (var i = 0; i < tabContents.length; i++) {
+        // Check if the current tabcontent is displayed (active)
+        if (tabContents[i].style.display === 'block') {
+            // Find all instructions containers within the active tabcontent
+            var instructionElements = tabContents[i].getElementsByClassName('instructions-container');
+            // Loop through each instructions container and toggle its display
+            for (var j = 0; j < instructionElements.length; j++) {
+                if (instructionElements[j].style.display === 'none' || instructionElements[j].style.display === '') {
+                    instructionElements[j].style.display = 'block';
+                } else {
+                    instructionElements[j].style.display = 'none';
+                }
+            }
+            break; // Stop looping once the active tabcontent is found and handled
+        }
+    }
+});
+
+
+
 };
 
 function moveToCarouselItem(direction) {
