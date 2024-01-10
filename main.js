@@ -27,7 +27,7 @@ import {
 
 import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
 
-import { getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
+import { getPNGFromWSI, getRegionFromWSI, getImageInfo } from "./wsi.js";
 
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
 
@@ -156,6 +156,8 @@ const handleImageInputChange = async (e, processCallback) => {
 
     console.error("File loaded is not an image.");
   }
+
+  moveToCarouselItem('next');
 };
 
 function handleMetadataFileSelect(event) {
@@ -192,6 +194,8 @@ function handleMetadataFileSelect(event) {
   } else {
     processExcel(file);
   }
+
+  moveToCarouselItem('next');
 }
 
 function processCSV(file) {
@@ -299,7 +303,17 @@ const handleLoadImageUrlClick = async (state) => {
     if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
       imageResp = fetch(imageUrl);
     } else {
+      const imageInfo = await getImageInfo(imageUrl);
+      const { width, height } = imageInfo;
+      const scalingFactor = Math.min(
+        1024 / width,
+        1024 / height
+      );
+      // Store the scaling factor
+      window.scalingFactor = scalingFactor;
+      console.log('scalingFactor', scalingFactor)
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
+
     }
     imageResp
       .then((response) => {
@@ -346,7 +360,9 @@ const handleLoadImageUrlClick = async (state) => {
             );
             originalImageContainer.src = canvas.toDataURL();
           } else {
-            window.scalingFactor = 1;
+            if (imageUrl.endsWith(".png") && imageUrl.endsWith(".jpg")) {
+              window.scalingFactor = 1;
+            }
           }
 
           window.loadedImg = originalImageContainer;
@@ -374,6 +390,9 @@ const handleLoadImageUrlClick = async (state) => {
     updateStatusMessage("imageLoadStatus", "Invalid Image.", "error-message");
     console.error("Please enter a valid image URL");
   }
+
+  moveToCarouselItem('next');
+
 };
 
 async function segmentImage() {
@@ -665,7 +684,40 @@ const initSegmentation = async () => {
       preprocessForTravelingAlgorithm();
       showPopup("popupSegmentation");
     });
+
+    // Navigation buttons
+  var prevButton = document.querySelector('.carousel-control-prev');
+  var nextButton = document.querySelector('.carousel-control-next');
+
+  // Event listener for 'Previous' button
+  prevButton.addEventListener('click', function() {
+      moveToCarouselItem('prev');
+  });
+
+  // Event listener for 'Next' button
+  nextButton.addEventListener('click', function() {
+      moveToCarouselItem('next');
+  });
+
+  
 };
+
+function moveToCarouselItem(direction) {
+    var current = document.querySelector('.carousel-item.active');
+    var items = document.querySelectorAll('.carousel-item');
+    var currentIndex = Array.from(items).indexOf(current);
+
+    if (direction === 'next') {
+        var nextIndex = (currentIndex + 1) % items.length;
+    } else {
+        var nextIndex = (currentIndex - 1 + items.length) % items.length;
+    }
+
+    if (current) {
+        current.classList.remove('active');
+    }
+    items[nextIndex].classList.add('active');
+}
 
 // Main function that runs the application
 const run = async () => {

@@ -25,94 +25,121 @@
     </header>
 
     <div class="app-container">
+
+
         <div class="sidebar" id="imageSegmentationSidebar">
-            <!-- Form for hyperparameters -->
-            <form id="segmentation-hyperparameters-form">
+            <!-- Carousel Container -->
+            <div class="carousel-container">
 
-                <!-- Image file input section -->
-                <div class="file-upload-container">
-                    <h2>1) Load Image</h2>
-                    <div id="imageLoadStatus" class="load-status neutral-message">
-                        No image file uploaded.
+                <!-- Carousel Item for Image File Input -->
+                <div class="carousel-item active" id="imageInputSection">
+                    <!-- Image file input section -->
+                    <div class="file-upload-container">
+                        <h2>1) Load Image</h2>
+                        <div id="imageLoadStatus" class="load-status neutral-message">
+                            No image file uploaded.
+                        </div>
+
+                        <label for="fileInput" class="file-dropzone">
+                            <div class="file-input-btn">Select an Image File</div>
+                            <input type="file" id="fileInput" accept="image/*" hidden>
+                            <p>Drop image file here</p>
+                        </label>
+                        <br>
+                        <p style="text-align: center;">OR</p>
+                        <br>
+                        <label for="imageUrlInput">Paste in Image URL:</label>
+                        <input type="text" id="imageUrlInput" placeholder="Enter Image URL"
+                            value="https://corsproxy.io/?https%3A%2F%2Fwww.foxchase.org%2Fsites%2Fdefault%2Ffiles%2Fimages%2Fslide%2Fdigital-whole-slide-scan.jpg" />
+                        <button id="loadImageUrlBtn" type="button" class="load-img-btn">Load Image</button>
+                        <br>
                     </div>
-
-                    <label for="fileInput" class="file-dropzone">
-                        <div class="file-input-btn">Select an Image File</div>
-                        <input type="file" id="fileInput" accept="image/*" hidden>
-                        <p>Drop image file here</p>
-                    </label>
-                    <br>
-                    <p style="text-align: center;">OR</p>
-                    <br>
-                    <label for="imageUrlInput">Paste in Image URL:</label>
-                    <input type="text" id="imageUrlInput" placeholder="Enter Image URL"
-                        value="https://corsproxy.io/?https%3A%2F%2Fwww.foxchase.org%2Fsites%2Fdefault%2Ffiles%2Fimages%2Fslide%2Fdigital-whole-slide-scan.jpg" />
-                    <button id="loadImageUrlBtn" type="button" class="load-img-btn">Load Image</button>
-                    <br>
                 </div>
 
-                <!-- Metadata file input section -->
-                <div class="file-upload-container">
-                    <h2>2) Load Metadata (optional)</h2>
-                    <div id="metadataLoadStatus" class="load-status neutral-message">
-                        No metadata file uploaded.
+
+                <!-- Carousel Item for Metadata File Input -->
+                <div class="carousel-item" id="metadataInputSection">
+                    <!-- Metadata file input section -->
+                    <div class="file-upload-container">
+                        <h2>2) Load Metadata (optional)</h2>
+                        <div id="metadataLoadStatus" class="load-status neutral-message">
+                            No metadata file uploaded.
+                        </div>
+
+                        <label for="metadataFileInput" class="file-dropzone">
+                            <div class="file-input-btn">Select an .xls/.csv File</div>
+                            <input type="file" id="metadataFileInput"
+                                accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                hidden>
+                            <p>Drop .xls/.csv file here</p>
+                        </label>
+                        <br>
+                        <p style="text-align: center;">OR</p>
+                        <br>
+                        <label for="metadataUrlInput">Paste in .csv/.xls URL:</label>
+                        <input type="text" id="metadataUrlInput" placeholder="Enter metadata URL" value="" />
+                        <button id="loadMetadataUrlBtn" type="button" class="load-img-btn">Load .xls/.csv</button>
+                        <br>
                     </div>
-
-                    <label for="metadataFileInput" class="file-dropzone">
-                        <div class="file-input-btn">Select an .xls/.csv File</div>
-                        <input type="file" id="metadataFileInput"
-                            accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                            hidden>
-                        <p>Drop .xls/.csv file here</p>
-                    </label>
-                    <br>
-                    <p style="text-align: center;">OR</p>
-                    <br>
-                    <label for="metadataUrlInput">Paste in .csv/.xls URL:</label>
-                    <input type="text" id="metadataUrlInput" placeholder="Enter metadata URL" value="" />
-                    <button id="loadMetadataUrlBtn" type="button" class="load-img-btn">Load .xls/.csv</button>
-                    <br>
                 </div>
 
+                <!-- Form for hyperparameters (Note: Moved outside of the carousel items as a singular form) -->
+                <div class="carousel-item" id="hyperparameterSettingsSection">
+                    <!-- Form for hyperparameters -->
+                    <form id="segmentation-hyperparameters-form">
+                        <!-- Hyperparameter settings -->
+                        <div class="hyperparameters">
+                            <h2>3) Configure Parameters</h2>
 
-                <!-- Hyperparameter settings -->
-                <div class="hyperparameters">
-                    <h2>3) Configure Parameters</h2>
+                            <!-- Segmentation Parameters Section -->
+                            <fieldset>
+                                <legend>Segmentation Parameters</legend>
 
-                    <!-- Segmentation Parameters Section -->
-                    <fieldset>
-                        <legend>Segmentation Parameters</legend>
-
-                        <label for="maskAlphaSlider">Mask Alpha: <span id="maskAlphaValue">0.3</span></label>
-                        <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.3">
+                                <label for="maskAlphaSlider">Mask Alpha: <span id="maskAlphaValue">0.3</span></label>
+                                <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.3">
 
 
-                        <label for="thresholdSlider">Segmentation Threshold: <span
-                                id="thresholdValue">0.5</span></label>
-                        <input type="range" id="thresholdSlider" min="0" max="1" step="0.0025" value="0.5">
+                                <label for="thresholdSlider">Segmentation Threshold: <span
+                                        id="thresholdValue">0.5</span></label>
+                                <input type="range" id="thresholdSlider" min="0" max="1" step="0.0025" value="0.5">
 
-                        <label for="minAreaInput">Min Area:</label>
-                        <input type="number" id="minAreaInput" value="0" step="1" min="1" />
+                                <label for="minAreaInput">Min Area:</label>
+                                <input type="number" id="minAreaInput" value="0" step="1" min="1" />
 
-                        <label for="maxAreaInput">Max Area:</label>
-                        <input type="number" id="maxAreaInput" value="2000" step="1" min="1" />
+                                <label for="maxAreaInput">Max Area:</label>
+                                <input type="number" id="maxAreaInput" value="2000" step="1" min="1" />
 
-                        <label for="disTransformMultiplierInput">Distance Transform Multiplier:</label>
-                        <input type="number" id="disTransformMultiplierInput" value="0.625" step="0.025" min="0.1"
-                            max="1" />
-                    </fieldset>
+                                <label for="disTransformMultiplierInput">Distance Transform Multiplier:</label>
+                                <input type="number" id="disTransformMultiplierInput" value="0.625" step="0.025"
+                                    min="0.1" max="1" />
+                            </fieldset>
 
-                    <button type="button" class="secondary-action-button" id="applySegmentation">Apply
-                        Segmentation</button>
-                    <button type="button" id="finalizeSegmentation">Finalize Segmentation</button>
+                            <button type="button" class="secondary-action-button" id="applySegmentation">Apply
+                                Segmentation</button>
+                            <button type="button" id="finalizeSegmentation">Finalize Segmentation</button>
 
-                    <br>
+                            <br>
+                        </div>
+
+                        <button type="button" class="primary-action-button" id="downloadSegmentationResults">Download
+                            JSON</button>
+                    </form>
                 </div>
 
-                <button type="button" class="primary-action-button" id="downloadSegmentationResults">Download
-                    JSON</button>
-            </form>
+                <!-- Carousel Navigation -->
+                <div class="carousel-controls">
+                    <button type="button" class="carousel-control-prev">
+                        <span class="icon">&lt;</span> <!-- Replace with a proper icon if available -->
+                    </button>
+                    <button type="button" class="carousel-control-next">
+                        <span class="icon">&gt;</span> <!-- Replace with a proper icon if available -->
+                    </button>
+                </div>
+            </div>
+
         </div>
+
+
 
 
         <div class="sidebar" id="rawDataSidebar" style="display: none;">
@@ -267,8 +294,7 @@
 
             <!-- Tab Links -->
             <div class="tab">
-                <button class="tablinks" 
-                    id="imageSegmentationTabButton">Image Segmentation</button>
+                <button class="tablinks" id="imageSegmentationTabButton">Image Segmentation</button>
                 <button class="tablinks" id="rawDataTabButton">Gridding</button>
                 <button class="tablinks" id="virtualGridTabButton">Virtual
                     Grid</button>
@@ -480,7 +506,8 @@
     <div id="popupGridding" class="popup" style="display: none;">
         <div class="popup-content">
             <h2>Gridding Finalized</h2>
-            <p>Gridding is now finalized. You can download the results, proceed to the virtual grid, or continue editing.</p>
+            <p>Gridding is now finalized. You can download the results, proceed to the virtual grid, or continue
+                editing.</p>
             <button id="openVirtualGridButton">Open Virtual Grid</button>
             <button id="griddingClosePopupButton">Continue Editing</button>
         </div>
@@ -489,7 +516,7 @@
 
     <script type="module" src="main.js"></script>
     <script>
-        
+
 
 
     </script>

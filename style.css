@@ -77,20 +77,7 @@ nav ul li a:hover {
   min-height: calc(100vh - 60px); /* Adjust based on header height */
 }
 
-.sidebar {
-  width: 20%;
-  /* Fixed width for consistency */
-  background-color: #ffffff;
-  padding: 20px;
-  max-height: 100vh;
-  /* 100% of the viewport height */
-  overflow-y: auto;
-  /* Enables scrolling */
-  position: sticky;
-  top: 0;
-  /* Stick to the top of the viewport */
-  border-right: 1px solid #eaeaea;
-}
+
 
 
 .content {
@@ -261,28 +248,6 @@ button:hover {
   border: 1px solid #ccc;
   border-top: none;
   background: #fff;
-}
-
-/* Responsive design adjustments */
-@media (max-width: 768px) {
-  header .logo h1 {
-    font-size: 20px; /* Smaller text for smaller screens */
-  }
-
-  .sidebar,
-  .content {
-    width: 100%;
-    padding: 15px;
-  }
-
-  .sidebar {
-    border-right: none;
-  }
-
-  .tab button {
-    padding: 10px 12px; /* Smaller padding for smaller screens */
-    font-size: 15px; /* Smaller font size for smaller screens */
-  }
 }
 
 .file-dropzone {
@@ -463,6 +428,86 @@ button:hover {
   transition: width 0.5s ease-in-out, height 0.5s ease-in-out;
 }
 
+/* Sidebar specific styles */
+.sidebar {
+  width: 400px; /* Fixed width for consistency, adjust as needed */
+  background-color: #ffffff;
+  padding: 20px;
+  max-height: 100vh; /* 100% of the viewport height */
+  overflow-y: auto; /* Enables scrolling */
+  position: sticky;
+  top: 0; /* Stick to the top of the viewport */
+  border-right: 1px solid #eaeaea; /* Subtle border for separation */
+  transition: width 0.3s; /* Smooth transition for width changes */
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%; /* Full width on smaller screens */
+    padding: 15px; /* Adjust padding for smaller screens */
+  }
+}
+
+/* Improved readability for sidebar content */
+.sidebar h2, .sidebar label, .sidebar p {
+  color: #333; /* Darker text for better contrast */
+  line-height: 1.6; /* Improved line height for readability */
+}
+
+.sidebar a {
+  color: var(--primary-color);
+  text-decoration: none; /* Removes underline */
+  transition: color 0.2s; /* Smooth color transition */
+}
+
+.sidebar a:hover {
+  color: var(--hover-color); /* Subtle hover effect */
+}
+
+/* Input and button styling */
+.sidebar button {
+  padding: 10px;
+  margin-bottom: 10px; /* Space between elements */
+  border-radius: 4px; /* Rounded corners */
+  border: 1px solid #ccc; /* Subtle border */
+}
+
+.sidebar button {
+  cursor: pointer;
+  transition: background-color 0.2s; /* Smooth transition for background color */
+}
+
+.sidebar button:hover {
+  background-color: var(--hover-color); /* Hover state for buttons */
+}
+
+/* Adjustments for elements inside sidebar */
+.sidebar .file-dropzone, .sidebar .hyperparameters {
+  margin-bottom: 20px; /* Space at the bottom of sections */
+  background-color: #f8f8f8; /* Slightly different background for separation */
+  border: none; /* Removes border */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Subtle shadow for depth */
+}
+
+/* Responsive Design for side navigation */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px; /* Smaller sidebar for tablet sizes */
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    position: relative; /* Sidebar flows with the content on mobile */
+    width: 100%; /* Full width sidebar */
+    padding: 10px; /* Smaller padding on mobile */
+  }
+}
+
+
+
 /* Sidebar Header Styles */
 .sidebar-header {
   background-color: #f9f9f9; /* Updated to a slightly warmer shade of light grey */
@@ -505,6 +550,53 @@ button:hover {
   margin: 0; /* Ensure no margins are affecting positioning */
   padding: 5px 0; /* Vertical padding for breathing room */
 }
+
+/* Carousel Item Styling */
+
+.carousel-container {
+  position: relative;
+  max-width: 800px; /* Adjust as needed */
+  margin: auto;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+}
+
+.carousel-item {
+  display: none; /* Only active item will be shown */
+  padding: 20px;
+  text-align: center;
+}
+
+/* Carousel Controls - Next and Previous buttons */
+.carousel-controls {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+}
+
+.carousel-control-prev, .carousel-control-next {
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 24px;
+}
+
+/* Hover effect on buttons */
+.carousel-control-prev:hover, .carousel-control-next:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+/* Show the active carousel item */
+.carousel-item.active {
+  display: block;
+}
+
 
 /* Window Controls */
 .window-controls button {
@@ -802,7 +894,6 @@ label:disabled {
 #undoButton, #redoButton {
   background-color: var(--secondary-color); /* Your chosen highlight color */
   color: white; /* Text color */
-  /* ... other styles ... */
 }
 
 #saveResults {
