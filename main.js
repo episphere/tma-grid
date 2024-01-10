@@ -27,54 +27,51 @@ import {
 
 import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
 
-import { getPNGFromWSI, getRegionFromWSI } from "./wsi.js"
+import { getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
 
-
-const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024
+const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
 
 // Initialize image elements
 const originalImageContainer = document.getElementById("originalImage");
 const processedImageCanvasID = "segmentationResultsCanvas";
 
+// Call this function to open the default tab
+function openDefaultTab() {
+  // Get the element with id="defaultOpen" and click on it
+  document.getElementById("imageSegmentationTabButton").click();
+}
 
+// The openTab function as before
+function openTab(evt, tabName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
 
-  // Call this function to open the default tab
-  function openDefaultTab() {
-    // Get the element with id="defaultOpen" and click on it
-    document.getElementById("imageSegmentationTabButton").click();
-  }
-  
-  // The openTab function as before
-  function openTab(evt, tabName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-      tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
-  }
-  
-  // When the window loads, open the default tab
-  window.onload = openDefaultTab;
-  
-  // Function to switch to the gridding tab
-  function switchToGridding() {
-    closePopup("popupSegmentation");
-    document.getElementById("rawDataTabButton").click(); // Activate the gridding tab
-    // Deactivate the segmentation tab if needed
-  }
-  
-  function switchToVirtualGrid() {
-    closePopup("popupGridding");
-    document.getElementById("virtualGridTabButton").click(); // Activate the gridding tab
-    // Deactivate the segmentation tab if needed
-  }
-  
+// When the window loads, open the default tab
+window.onload = openDefaultTab;
+
+// Function to switch to the gridding tab
+function switchToGridding() {
+  closePopup("popupSegmentation");
+  document.getElementById("rawDataTabButton").click(); // Activate the gridding tab
+  // Deactivate the segmentation tab if needed
+}
+
+function switchToVirtualGrid() {
+  closePopup("popupGridding");
+  document.getElementById("virtualGridTabButton").click(); // Activate the gridding tab
+  // Deactivate the segmentation tab if needed
+}
+
 // Load dependencies and return updated state
 const loadDependencies = async () => ({
   model: await loadModel("./tfjs_model/model.json"),
@@ -100,19 +97,20 @@ const handleImageInputChange = async (e, processCallback) => {
       img.onload = async () => {
         // Check if the image needs to be scaled down
         if (img.width > 1024 || img.height > 1024) {
-          // Store the original image dimensions
-          window.originalImageWidth = img.width;
-          window.originalImageHeight = img.height;
-
           const scalingFactor = Math.min(1024 / img.width, 1024 / img.height);
-          const canvas = document.createElement('canvas');
+
+          // Store the scaling factor
+          window.scalingFactor = scalingFactor;
+
+          const canvas = document.createElement("canvas");
           canvas.width = img.width * scalingFactor;
           canvas.height = img.height * scalingFactor;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           originalImageContainer.src = canvas.toDataURL();
         } else {
           originalImageContainer.src = img.src;
+          window.scalingFactor = 1;
         }
 
         originalImageContainer.onload = () => {
@@ -159,7 +157,6 @@ const handleImageInputChange = async (e, processCallback) => {
     console.error("File loaded is not an image.");
   }
 };
-
 
 function handleMetadataFileSelect(event) {
   const file = event.target.files[0];
@@ -298,84 +295,86 @@ const handleLoadImageUrlClick = async (state) => {
   const imageUrl = getInputValue("imageUrlInput");
 
   if (imageUrl) {
-    let imageResp = undefined
+    let imageResp = undefined;
     if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
-      imageResp = fetch(imageUrl)
+      imageResp = fetch(imageUrl);
     } else {
-      imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING)
+      imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
     }
-    imageResp.then((response) => {
-      if (response.ok) {
-        return response.blob();
-      } else {
+    imageResp
+      .then((response) => {
+        if (response.ok) {
+          return response.blob();
+        } else {
+          updateStatusMessage(
+            "imageLoadStatus",
+            "Invalid image URL.",
+            "error-message"
+          );
+          throw new Error("Network response was not ok.");
+        }
+      })
+      .then((blob) => {
+        let objectURL = URL.createObjectURL(blob);
+        originalImageContainer.crossOrigin = "anonymous";
+        originalImageContainer.src = objectURL;
+
+        originalImageContainer.onload = async () => {
+          // Check if the image needs to be scaled down
+          if (
+            originalImageContainer.width > 1024 ||
+            originalImageContainer.height > 1024
+          ) {
+            const scalingFactor = Math.min(
+              1024 / originalImageContainer.width,
+              1024 / originalImageContainer.height
+            );
+
+            // Store the scaling factor
+            window.scalingFactor = scalingFactor;
+
+            const canvas = document.createElement("canvas");
+            canvas.width = originalImageContainer.width * scalingFactor;
+            canvas.height = originalImageContainer.height * scalingFactor;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(
+              originalImageContainer,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            originalImageContainer.src = canvas.toDataURL();
+          } else {
+            window.scalingFactor = 1;
+          }
+
+          window.loadedImg = originalImageContainer;
+
+          updateStatusMessage(
+            "imageLoadStatus",
+            "Image loaded successfully.",
+            "success-message"
+          );
+          await segmentImage();
+        };
+      })
+      .catch((error) => {
         updateStatusMessage(
           "imageLoadStatus",
           "Invalid image URL.",
           "error-message"
         );
-        throw new Error("Network response was not ok.");
-      }
-    })
-    .then((blob) => {
-      let objectURL = URL.createObjectURL(blob);
-      originalImageContainer.crossOrigin = "anonymous";
-      originalImageContainer.src = objectURL;
-
-      originalImageContainer.onload = async () => {
-        // Check and resize image if necessary
-        if (originalImageContainer.width > 1024 || originalImageContainer.height > 1024) {
-          // Store the original image dimensions
-          window.originalImageWidth = originalImageContainer.width;
-          window.originalImageHeight = originalImageContainer.height;
-
-
-          const aspectRatio = originalImageContainer.width / originalImageContainer.height;
-          let newWidth, newHeight;
-
-          if (originalImageContainer.width > originalImageContainer.height) {
-            newWidth = 1024;
-            newHeight = 1024 / aspectRatio;
-          } else {
-            newHeight = 1024;
-            newWidth = 1024 * aspectRatio;
-          }
-
-          // Create a canvas to draw resized image
-          let canvas = document.createElement('canvas');
-          canvas.width = newWidth;
-          canvas.height = newHeight;
-          let ctx = canvas.getContext('2d');
-          ctx.drawImage(originalImageContainer, 0, 0, newWidth, newHeight);
-          originalImageContainer.src = canvas.toDataURL();
-        }
-
-        window.loadedImg = originalImageContainer;
-
-        updateStatusMessage(
-          "imageLoadStatus",
-          "Image loaded successfully.",
-          "success-message"
+        console.error(
+          "There has been a problem with your fetch operation: ",
+          error
         );
-        await segmentImage();
-      };
-    })
-    .catch((error) => {
-      updateStatusMessage(
-        "imageLoadStatus",
-        "Invalid image URL.",
-        "error-message"
-      );
-      console.error(
-        "There has been a problem with your fetch operation: ",
-        error
-      );
-    });
+      });
   } else {
     updateStatusMessage("imageLoadStatus", "Invalid Image.", "error-message");
     console.error("Please enter a valid image URL");
   }
 };
-
 
 async function segmentImage() {
   const { threshold, maskAlpha, minArea, maxArea, disTransformMultiplier } =
@@ -398,7 +397,6 @@ async function segmentImage() {
       );
 
       window.preprocessedCores = preprocessCores(window.properties);
-
     } catch (error) {
       console.error("Error processing image:", error);
     } finally {
@@ -544,42 +542,51 @@ function bindEventListeners() {
     .getElementById("metadataFileInput")
     .addEventListener("change", handleMetadataFileSelect, false);
 
-    // Select all close buttons
-  const closeButtons = document.querySelectorAll('.close-instructions');
+  // Select all close buttons
+  const closeButtons = document.querySelectorAll(".close-instructions");
 
   // Add a click event listener to each close button
-  closeButtons.forEach(function(button) {
-    button.addEventListener('click', function() {
+  closeButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
       // Hide the parent element of the clicked button
-      this.parentElement.style.display = 'none';
+      this.parentElement.style.display = "none";
     });
   });
-  
-  document.getElementById("rawDataTabButton").addEventListener("click", function (event) {
-    openTab(event, 'RawData');
-  });
-  document.getElementById("imageSegmentationTabButton").addEventListener("click", function (event) {
-    openTab(event, 'ImageSegmentation');
-  });
 
-  document.getElementById("virtualGridTabButton").addEventListener("click", function (event) {
-    openTab(event, 'VirtualGrid');
-  });
+  document
+    .getElementById("rawDataTabButton")
+    .addEventListener("click", function (event) {
+      openTab(event, "RawData");
+    });
+  document
+    .getElementById("imageSegmentationTabButton")
+    .addEventListener("click", function (event) {
+      openTab(event, "ImageSegmentation");
+    });
 
+  document
+    .getElementById("virtualGridTabButton")
+    .addEventListener("click", function (event) {
+      openTab(event, "VirtualGrid");
+    });
 
-  document.getElementById("segmentationClosePopupButton").addEventListener("click", function(event){
+  document
+    .getElementById("segmentationClosePopupButton")
+    .addEventListener("click", function (event) {
+      closePopup("popupSegmentation");
+    });
+  document
+    .getElementById("griddingClosePopupButton")
+    .addEventListener("click", function (event) {
+      closePopup("popupGridding");
+    });
 
-    closePopup("popupSegmentation");
-  } );
-  document.getElementById("griddingClosePopupButton").addEventListener("click", function (event){
-    closePopup("popupGridding");
-
-  });
-
-  document.getElementById("openGriddingButton").addEventListener("click", switchToGridding);
-  document.getElementById("openVirtualGridButton").addEventListener("click", switchToVirtualGrid);
-
-
+  document
+    .getElementById("openGriddingButton")
+    .addEventListener("click", switchToGridding);
+  document
+    .getElementById("openVirtualGridButton")
+    .addEventListener("click", switchToVirtualGrid);
 }
 
 // Initialize and bind events
@@ -613,7 +620,17 @@ const initSegmentation = async () => {
         return;
       }
 
-      const propertiesJson = JSON.stringify(window.properties, null, 2);
+      // Create finalSaveData by mapping over sortedCoresData
+      const finalSaveData = window.properties.map(core => {
+        return {
+          ...core,
+          x: core.x / window.scalingFactor,
+          y: core.y / window.scalingFactor,
+          radius: core.radius / window.scalingFactor
+        };
+      });
+
+      const propertiesJson = JSON.stringify(finalSaveData, null, 2);
       const blob = new Blob([propertiesJson], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -647,7 +664,6 @@ const initSegmentation = async () => {
 
       preprocessForTravelingAlgorithm();
       showPopup("popupSegmentation");
-
     });
 };
 

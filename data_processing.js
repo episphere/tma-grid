@@ -255,6 +255,17 @@ function saveUpdatedCores() {
     return;
   }
 
+
+  // Create finalSaveData by mapping over sortedCoresData
+  const finalSaveData = window.sortedCoresData.map(core => {
+    return {
+      ...core,
+      x: core.x / window.scalingFactor,
+      y: core.y / window.scalingFactor,
+      currentRadius: core.currentRadius / window.scalingFactor
+    };
+  });
+
   // Check if there's uploaded metadata to update
   if (window.userUploadedMetadata && window.userUploadedMetadata.length > 0) {
     // Assuming the row and column names are stored in these variables
@@ -262,7 +273,7 @@ function saveUpdatedCores() {
     const metadataColName = window.metadataColName;
 
     // Update userUploadedMetadata with sortedCoresData information
-    window.sortedCoresData.forEach(core => {
+    finalSaveData.forEach(core => {
       // Finding the matching metadata entry by row and column values
       const metadataEntry = window.userUploadedMetadata.find(entry => {
         // Ensure both row and column values match
@@ -297,7 +308,7 @@ function saveUpdatedCores() {
   } else {
     // Download the sorted cores data as a JSON file if no metadata was uploaded
     const dataStr = "data:text/json;charset=utf-8," +
-                    encodeURIComponent(JSON.stringify(window.sortedCoresData));
+                    encodeURIComponent(JSON.stringify(finalSaveData));
     const downloadAnchorNode = document.createElement("a");
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "sorted_cores.json");
