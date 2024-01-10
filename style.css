@@ -474,15 +474,6 @@ button:hover {
   border: 1px solid #ccc; /* Subtle border */
 }
 
-.sidebar button {
-  cursor: pointer;
-  transition: background-color 0.2s; /* Smooth transition for background color */
-}
-
-.sidebar button:hover {
-  background-color: var(--hover-color); /* Hover state for buttons */
-}
-
 /* Adjustments for elements inside sidebar */
 .sidebar .file-dropzone, .sidebar .hyperparameters {
   margin-bottom: 20px; /* Space at the bottom of sections */
