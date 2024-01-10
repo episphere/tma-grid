@@ -105,6 +105,8 @@ const handleImageInputChange = async (e, processCallback) => {
           alert(
             "Image dimensions are too large. Please select an image that is less than 1024 x 1024."
           );
+        document.getElementById("loadingSpinner").style.display = "none";
+
           return;
         }
 
