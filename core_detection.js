@@ -119,22 +119,20 @@ function segmentationAlgorithm(
     2
   );
 
-  // Sure background area
-  let sureBg = new cv.Mat();
-  cv.dilate(opening, sureBg, kernel, new cv.Point(-1, -1), 3);
-
   // Finding sure foreground area
   let distTransform = new cv.Mat();
   cv.distanceTransform(opening, distTransform, cv.DIST_L2, 5);
   let sureFg = new cv.Mat();
   // Then use it in your threshold call
   let maxVal = getMaxValue(distTransform);
+
+  // The disTransformMultiplier is a factor that scales the threshold value used to decide which parts of the distance-transformed image are considered sure foreground.
+  // Typically, the maximum value in the distance transform image is identified. This value represents the furthest distance any pixel has from the background.
   cv.threshold(distTransform, sureFg, disTransformMultiplier * maxVal, 255, 0);
 
   // Finding unknown region
   sureFg.convertTo(sureFg, cv.CV_8U);
   let unknown = new cv.Mat();
-  cv.subtract(sureBg, sureFg, unknown);
 
   // Marker labelling
   let markers = new cv.Mat();
@@ -162,7 +160,6 @@ function segmentationAlgorithm(
 
   // Cleanup
   opening.delete();
-  sureBg.delete();
   distTransform.delete();
   sureFg.delete();
   unknown.delete();
