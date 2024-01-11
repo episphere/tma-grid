@@ -27,7 +27,7 @@ import {
 
 import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
 
-import { getPNGFromWSI, getRegionFromWSI, getImageInfo } from "./wsi.js";
+import { getImageInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
 
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
 
@@ -305,10 +305,13 @@ const handleLoadImageUrlClick = async (state) => {
     } else {
       const imageInfo = await getImageInfo(imageUrl);
       const { width, height } = imageInfo;
-      const scalingFactor = Math.min(1024 / width, 1024 / height);
+      const scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / width, MAX_DIMENSION_FOR_DOWNSAMPLING / height);
       // Store the scaling factor
       window.scalingFactor = scalingFactor;
       console.log("scalingFactor", scalingFactor);
+      const osdCanvasParent = document.getElementById("osdViewer")
+      osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`
+      osdCanvasParent.style.height = `${Math.ceil(height * scalingFactor)}px`
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
     }
     imageResp
@@ -675,9 +678,42 @@ const initSegmentation = async () => {
         alert("No image uploaded!");
         return;
       }
+      const imageUrl = getInputValue("imageUrlInput");
+      const tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(imageUrl, { logLatency: false, cache: true });
+      window.viewer = OpenSeadragon({
+        id: "osdViewer",
+        visibilityRatio: 1,
+        minZoomImageRatio: 1,
+        tileSources,
+        // prefixUrl: "https://episphere.github.io/svs/openseadragon/images/images_new/",
+        gestureSettingsMouse: {
+          clickToZoom: false,
+        },
+        crossOriginPolicy: "Anonymous",
+        showNavigator: false,
+        showZoomControl: false,
+        showHomeControl: false,
+        showFullPageControl: false,
+        // homeFillsViewer: true,
+        // defaultZoomLevel: 1,
+        // navigationControlAnchor: OpenSeadragon.ControlAnchor["TOP_RIGHT"],
+        // debugMode: true,
+        // immediateRender: false,
+        // imageLoaderLimit: 5,
+        timeout: 60*1000
+      });
+      // viewer.open(tileSources)
 
-      preprocessForTravelingAlgorithm();
-      showPopup("popupSegmentation");
+      window.viewer.addOnceHandler("open", () => {
+        window.viewer.world.getItemAt(0).addOnceHandler("fully-loaded-change", () => {
+          // showPopup("popupSegmentation");
+          document.getElementById("rawDataTabButton").click();
+          setTimeout(() => {
+            window.viewer.viewport.goHome(true);
+            setTimeout(preprocessForTravelingAlgorithm, 0)
+          }, 100)
+        })
+      })
     });
 
   // Navigation buttons

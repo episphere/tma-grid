@@ -230,6 +230,37 @@ button:hover {
 .help-button:hover {
   background-color: #e0e0e0; /* Example hover color, change as needed */
 }
+.skip-button {
+  /* Button Shape */
+  border-radius: 5px; /* Rounded corners */
+
+  /* Color Scheme */
+  background-color: #cbcccd; /* A professional blue; you can choose any color that fits your design */
+  color: white; /* Text color */
+
+  /* Typography */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern, sans-serif font */
+  font-size: 16px; /* Readable font size */
+  text-transform: uppercase; /* Capitalize text */
+
+  /* Shadows and Depth */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+
+  /* Padding and Borders */
+  padding: 10px 20px; /* Top/bottom, left/right padding */
+  border: none; /* No border for a modern look */
+
+  /* Transition for Hover Effects */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  width: 80%;
+}
+
+.skip-button:hover {
+  /* Hover Effects */
+  background-color: #909294; /* Darker shade when hovered */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Deeper shadow for interactive feedback */
+  cursor: pointer; /* Change cursor to pointer to indicate clickability */
+}
 
 .tab {
   overflow: hidden;
@@ -498,6 +529,7 @@ button:hover {
   margin-bottom: 10px; /* Space between elements */
   border-radius: 4px; /* Rounded corners */
   border: 1px solid #ccc; /* Subtle border */
+  width: 80%;
 }
 
 /* Adjustments for elements inside sidebar */
@@ -589,10 +621,15 @@ button:hover {
   position: absolute;
   width: 100%;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-100%);
   display: flex;
   justify-content: space-between;
 }
+.carousel-controls button{
+  width:15%;
+}
+
+
 
 .carousel-control-prev, .carousel-control-next {
   background: rgba(0,0,0,0.5);
@@ -602,6 +639,7 @@ button:hover {
   cursor: pointer;
   border-radius: 50%;
   font-size: 24px;
+  width:5%;
 }
 
 /* Hover effect on buttons */

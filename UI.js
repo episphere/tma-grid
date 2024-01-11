@@ -238,7 +238,8 @@ function resetSlidersAndOutputs() {
 }
 function resetApplication() {
   // Clear the canvases
-  const coreCanvas = document.getElementById("coreCanvas");
+  // const coreCanvas = document.getElementById("coreCanvas");
+  // const coreCanvas = document.getElementById("coreCanvas");
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
 
   // Clear the image element with the id processedImage
@@ -246,11 +247,11 @@ function resetApplication() {
     "segmentationResultsCanvas"
   );
 
-  const coreCtx = coreCanvas.getContext("2d");
+  // const coreCtx = coreCanvas.getContext("2d");
   const virtualCtx = virtualGridCanvas.getContext("2d");
   const segmentationResultsCtx = segmentationResultsCanvas.getContext("2d");
 
-  coreCtx.clearRect(0, 0, coreCanvas.width, coreCanvas.height);
+  // coreCtx.clearRect(0, 0, coreCanvas.width, coreCanvas.height);
   virtualCtx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
   segmentationResultsCtx.clearRect(
     0,

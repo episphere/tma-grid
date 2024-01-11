@@ -278,7 +278,10 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   img.src = window.loadedImg.src;
   let imageNeedsUpdate = true;
 
-  const canvas = document.getElementById("coreCanvas");
+  // const canvas = document.getElementById("coreCanvas");
+  // window.viewer.viewport.goHome()
+  const canvas = window.viewer.canvas.firstElementChild
+  // debugger
   const ctx = canvas.getContext("2d");
   let selectedCore = null;
   let isAltDown = false; // Track the state of the Alt key
@@ -359,16 +362,19 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       updateImageSource();
       return; // Exit the function and wait for the image to load
     }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (img.src !== window.loadedImg.src) {
       img.src = window.loadedImg.src;
     }
 
-    ctx.drawImage(img, 0, 0, img.width, img.height);
+    // ctx.drawImage(img, 0, 0, img.width, img.height);
     window.sortedCoresData.forEach((core, index) => {
-      drawCore(core, index === selectedIndex);
+      const overlayElement = document.createElement('div')
+      overlayElement.style.border = `1px solid blue`
+      overlayElement.style.borderRadius = `50%`
+      window.viewer.addOverlay(overlayElement, window.viewer.viewport.viewerElementToViewportRectangle(new OpenSeadragon.Rect(core.x-core.currentRadius, core.y-core.currentRadius, core.currentRadius*2, core.currentRadius*2)))
+      // drawCore(core, index === selectedIndex);
     });
 
     if (tempCore) {
