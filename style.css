@@ -530,6 +530,7 @@ button:hover {
   border-radius: 4px; /* Rounded corners */
   border: 1px solid #ccc; /* Subtle border */
   width: 80%;
+  float: center;
 }
 
 /* Adjustments for elements inside sidebar */
@@ -626,7 +627,7 @@ button:hover {
   justify-content: space-between;
 }
 .carousel-controls button{
-  width:15%;
+  width:10%;
 }
 
 
