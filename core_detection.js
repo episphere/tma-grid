@@ -132,7 +132,6 @@ function segmentationAlgorithm(
 
   // Finding unknown region
   sureFg.convertTo(sureFg, cv.CV_8U);
-  let unknown = new cv.Mat();
 
   // Marker labelling
   let markers = new cv.Mat();
