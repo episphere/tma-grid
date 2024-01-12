@@ -2,7 +2,6 @@ import * as d3 from "https://esm.sh/d3@7.8.5";
 
 import * as math from "https://esm.sh/mathjs@12.2.0";
 
-import * as Plotly from "https://cdn.jsdelivr.net/npm/plotly.js-dist/+esm";
 import { rotatePoint } from "./data_processing.js";
 
 
