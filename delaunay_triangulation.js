@@ -257,8 +257,8 @@ function traveling_algorithm(
           if (candidate) {
             row.push(candidate);
 
-          // Update the candidate's start point when the last endpoint was real. This ensures the last endpoint isn't overlooked.
-          // This update is only necessary for isolated points, where the start and end points are the same.
+            // Update the candidate's start point when the last endpoint was real. This ensures the last endpoint isn't overlooked.
+            // This update is only necessary for isolated points, where the start and end points are the same.
             if (isEndPointReal && calculateDistance(candidate.start[0], candidate.end[0]) < 1e-1) {
               candidate.start = endPoint; // Update the start point if the endpoint was real
             }

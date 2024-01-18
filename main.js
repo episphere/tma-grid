@@ -243,8 +243,8 @@ function validateMetadata(data) {
   }
 
   // Define possible names for 'row' and 'column' considering case and abbreviations
-  const possibleRowNames = ["row"];
-  const possibleColumnNames = ["column", "col"];
+  const possibleRowNames = ["row","Row"];
+  const possibleColumnNames = ["column", "col", "Column", "Col"];
 
   const rowName = findColumnName(data, possibleRowNames);
   const colName = findColumnName(data, possibleColumnNames);
