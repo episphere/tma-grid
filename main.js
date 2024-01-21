@@ -709,6 +709,11 @@ const initSegmentation = async () => {
           // showPopup("popupSegmentation");
           document.getElementById("rawDataTabButton").click();
           setTimeout(() => {
+            window.viewer.addHandler('canvas-click', () => {
+              window.viewer.currentOverlays.filter(overlay => overlay.element.classList.contains("selected")).forEach(selectedOverlay => {
+                selectedOverlay.element.classList.remove("selected")
+              })
+            })
             window.viewer.viewport.goHome(true);
             setTimeout(preprocessForTravelingAlgorithm, 0)
           }, 100)

@@ -977,3 +977,30 @@ label:disabled {
   border-radius: 5px;
   text-align: center;
 }
+
+.core-overlay-for-gridding {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 50%;
+  border-color: #0056b3;
+}
+
+.core-overlay-for-gridding:hover {
+  border-width: 2px;
+  border-color:#007bff;
+}
+
+.core-overlay-for-gridding.imaginary {
+  border-color: #FFA500;
+}
+
+.core-overlay-for-gridding.temporary {
+  border-style: dashed;
+  border-color: #808080;
+}
+
+.core-overlay-for-gridding.selected {
+  border-width: 3px;
+  border-color: #FFD700;
+  box-shadow:0px 0px 10px rgba(0, 0, 0, 0.5);
+}
