@@ -386,6 +386,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     // Add overlay element on the OSD viewer
     const overlayElement = document.createElement('div')
     overlayElement.className = "core-overlay-for-gridding"
+    
+    const overlayTitleDiv = document.createElement('div')
+    overlayTitleDiv.className = "core-overlay-title-div"
+    overlayTitleDiv.innerText = `${core.row+1},${core.col+1}`
+    overlayTitleDiv.style.top = `-${Math.floor(core.currentRadius/2)}px`
+    overlayElement.appendChild(overlayTitleDiv)
+
     if (core.isImaginary) {
       overlayElement.classList.add("imaginary")
     } else if (core.isTemporary) {
@@ -397,35 +404,59 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     
     new OpenSeadragon.MouseTracker({
       element: overlayElement,
+      
       clickTimeThreshold: 200,
       clickDistThreshold: 50,
+      
       preProcessEventHandler: (e) => {
-        e.stopPropagation = true;
-        e.preventDefault = true;
+        if (e.eventType === 'click' || e.eventType === 'drag' || e.eventType === 'dragEnd' || e.eventType.includes("key")) {
+          e.stopPropagation = true;
+          e.preventDefault = true;
+        }
       },
+      
+      enterHandler: (e) => {
+        overlayElement.style.cursor = ""
+      },
+      
       clickHandler: (e) => {
         if (e.quick) {
-          overlayElement.classList.add("selected")
+          if (!overlayElement.classList.contains("selected")) {
+            window.viewer.currentOverlays.filter(overlay => overlay.element.classList.contains("selected")).forEach(selectedOverlay => {
+              selectedOverlay.element.classList.remove("selected")
+            })
+            overlayElement.classList.add("selected")
+          } else {
+            overlayElement.classList.remove("selected")
+          }
         }
       },
+    
       dragHandler: (e) => {
+        const overlay = window.viewer.getOverlayById(overlayElement)
+        const delta = viewer.viewport.deltaPointsFromPixels(e.delta);
+        
         if (!e.shift) {
-          const overlay = window.viewer.getOverlayById(overlayElement)
-          const delta = viewer.viewport.deltaPointsFromPixels(e.delta);
-          overlay.update(overlay.location.plus(delta));
+          overlay.element.style.cursor = "hand"
+          overlay.update(overlay.location.plus(delta))
           overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
-        } else {
           
+        } else {
+          overlay.element.style.cursor = "nwse-resize"
+          let {width, height} = overlay.bounds
+          const factorToResizeBy = Math.max(delta.x, delta.y)
+          width += factorToResizeBy
+          height += factorToResizeBy
+          overlay.update(new OpenSeadragon.Rect(overlay.bounds.x, overlay.bounds.y, width, height))
+          overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
         }
       },
+      
       dragEndHandler: (e) => {
-        e.originalEvent.preventDefault()
-        e.originalEvent.stopImmediatePropagation()
-        console.log("DRAG END")
-        overlayElement.classList.remove("selected")
-        
-        
+        const overlay = window.viewer.getOverlayById(overlayElement)
+        overlay.element.style.cursor = "default"
       }
+    
     });
     // ctx.lineWidth = 2;
     // ctx.setLineDash([]); // Reset line dash for all cores
