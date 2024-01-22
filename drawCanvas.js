@@ -358,23 +358,19 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   }
 
   function drawCores() {
-    if (imageNeedsUpdate) {
-      updateImageSource();
-      return; // Exit the function and wait for the image to load
-    }
+    // if (imageNeedsUpdate) {
+    //   updateImageSource();
+    //   return; // Exit the function and wait for the image to load
+    // }
     // ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (img.src !== window.loadedImg.src) {
-      img.src = window.loadedImg.src;
-    }
-
+    // if (img.src !== window.loadedImg.src) {
+    //   img.src = window.loadedImg.src;
+    // }
+    window.viewer.clearOverlays()
     // ctx.drawImage(img, 0, 0, img.width, img.height);
     window.sortedCoresData.forEach((core, index) => {
-      const overlayElement = document.createElement('div')
-      overlayElement.style.border = `1px solid blue`
-      overlayElement.style.borderRadius = `50%`
-      window.viewer.addOverlay(overlayElement, window.viewer.viewport.viewerElementToViewportRectangle(new OpenSeadragon.Rect(core.x-core.currentRadius, core.y-core.currentRadius, core.currentRadius*2, core.currentRadius*2)))
-      // drawCore(core, index === selectedIndex);
+      drawCore(core, index === selectedIndex);
     });
 
     if (tempCore) {
@@ -382,49 +378,117 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     }
     // Draw lines to connect adjacent cores
     window.sortedCoresData.forEach((core, index) => {
-      connectAdjacentCores(core, core.currentRadius);
+      // connectAdjacentCores(core, core.currentRadius);
     });
   }
 
   function drawCore(core, isSelected) {
-    // Common settings for drawing
-    ctx.lineWidth = 2;
-    ctx.setLineDash([]); // Reset line dash for all cores
+    // Add overlay element on the OSD viewer
+    const overlayElement = document.createElement('div')
+    overlayElement.className = "core-overlay-for-gridding"
+    
+    const overlayTitleDiv = document.createElement('div')
+    overlayTitleDiv.className = "core-overlay-title-div"
+    overlayTitleDiv.innerText = `${core.row+1},${core.col+1}`
+    overlayTitleDiv.style.top = `-${Math.floor(core.currentRadius/2)}px`
+    overlayElement.appendChild(overlayTitleDiv)
 
-    // Core circle
-    ctx.beginPath();
-    ctx.arc(core.x, core.y, core.currentRadius, 0, Math.PI * 2);
+    if (core.isImaginary) {
+      overlayElement.classList.add("imaginary")
+    } else if (core.isTemporary) {
+      overlayElement.classList.add("temporary")
+    } else if (isSelected) {
+      overlayElement.classList.add("selected")
+    }
+    window.viewer.addOverlay(overlayElement, window.viewer.viewport.viewerElementToViewportRectangle(new OpenSeadragon.Rect(core.x - core.currentRadius, core.y - core.currentRadius, core.currentRadius*2, core.currentRadius*2)))
+    
+    new OpenSeadragon.MouseTracker({
+      element: overlayElement,
+      
+      clickTimeThreshold: 200,
+      clickDistThreshold: 50,
+      
+      preProcessEventHandler: (e) => {
+        if (e.eventType === 'click' || e.eventType === 'drag' || e.eventType === 'dragEnd' || e.eventType.includes("key")) {
+          e.stopPropagation = true;
+          e.preventDefault = true;
+        }
+      },
+      
+      enterHandler: (e) => {
+        overlayElement.style.cursor = ""
+      },
+      
+      clickHandler: (e) => {
+        if (e.quick) {
+          if (!overlayElement.classList.contains("selected")) {
+            window.viewer.currentOverlays.filter(overlay => overlay.element.classList.contains("selected")).forEach(selectedOverlay => {
+              selectedOverlay.element.classList.remove("selected")
+            })
+            overlayElement.classList.add("selected")
+          } else {
+            overlayElement.classList.remove("selected")
+          }
+        }
+      },
+    
+      dragHandler: (e) => {
+        const overlay = window.viewer.getOverlayById(overlayElement)
+        const delta = viewer.viewport.deltaPointsFromPixels(e.delta);
+        
+        if (!e.shift) {
+          overlay.element.style.cursor = "hand"
+          overlay.update(overlay.location.plus(delta))
+          overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
+          
+        } else {
+          overlay.element.style.cursor = "nwse-resize"
+          let {width, height} = overlay.bounds
+          const factorToResizeBy = Math.max(delta.x, delta.y)
+          width += factorToResizeBy
+          height += factorToResizeBy
+          overlay.update(new OpenSeadragon.Rect(overlay.bounds.x, overlay.bounds.y, width, height))
+          overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
+        }
+      },
+      
+      dragEndHandler: (e) => {
+        const overlay = window.viewer.getOverlayById(overlayElement)
+        overlay.element.style.cursor = "default"
+      }
+    
+    });
+    // ctx.lineWidth = 2;
+    // ctx.setLineDash([]); // Reset line dash for all cores
+
+    // // Core circle
+    // ctx.beginPath();
+    // ctx.arc(core.x, core.y, core.currentRadius, 0, Math.PI * 2);
 
     // Style settings for a selected core
-    if (isSelected) {
-      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-      ctx.shadowBlur = 30; // More pronounced shadow for a glow effect
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.strokeStyle = "#FFD700"; // Gold color for selection
-      ctx.lineWidth = 5; // Thicker line for selected core
-    } else if (core.isTemporary) {
-      ctx.strokeStyle = "#808080";
-      ctx.setLineDash([5, 5]); // Dashed line for temporary core
-    } else {
-      ctx.strokeStyle = core.isImaginary ? "#FFA500" : "#0056b3"; // Default color logic
-    }
-
-    // Stroke the core outline
-    ctx.stroke();
-
-    // Reset shadow for text to ensure clarity
-    ctx.shadowBlur = 0;
+    // if (isSelected) {
+    //   ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+    //   ctx.shadowBlur = 30; // More pronounced shadow for a glow effect
+    //   ctx.shadowOffsetX = 0;
+    //   ctx.shadowOffsetY = 0;
+    //   ctx.strokeStyle = "#FFD700"; // Gold color for selection
+    //   ctx.lineWidth = 5; // Thicker line for selected core
+    // } else if (core.isTemporary) {
+    //   ctx.strokeStyle = "#808080";
+    //   ctx.setLineDash([5, 5]); // Dashed line for temporary core
+    // } else {
+    //   ctx.strokeStyle = core.isImaginary ? ; // Default color logic
+    // }
 
     // Core labels
-    ctx.fillStyle = isSelected ? "#333" : "#333"; // Use the same gold color for selected core labels
-    ctx.font = isSelected ? "bold 14px Arial" : "12px Arial";
-    const textMetrics = ctx.measureText(`(${core.row + 1},${core.col + 1})`);
-    ctx.fillText(
-      `(${core.row + 1},${core.col + 1})`,
-      core.x - textMetrics.width / 2,
-      core.y - core.currentRadius - 10
-    );
+    // ctx.fillStyle = isSelected ? "#333" : "#333"; // Use the same gold color for selected core labels
+    // ctx.font = isSelected ? "bold 14px Arial" : "12px Arial";
+    // const textMetrics = ctx.measureText(`(${core.row + 1},${core.col + 1})`);
+    // ctx.fillText(
+    //   `(${core.row + 1},${core.col + 1})`,
+    //   core.x - textMetrics.width / 2,
+    //   core.y - core.currentRadius - 10
+    // );
   }
 
   // Function to switch modes
@@ -477,7 +541,9 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   let initialMouseX, initialMouseY;
   let initialCoreX, initialCoreY;
 
-  canvas.addEventListener("mousedown", (event) => {
+
+  window.viewer.canvas.firstElementChild.addEventListener("mousedown", (event) => {
+    console.log("here")
     mouseDown = true; // Set the mouseDown flag to true
 
     const [adjustedX, adjustedY] = getMousePosition(event);
@@ -809,7 +875,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     .getElementById("cancelCoreDrawing")
     .addEventListener("click", cancelCoreDrawing);
 
-  var coreCanvasElement = document.getElementById("coreCanvas");
+  var coreCanvasElement = window.viewer.canvas.firstElementChild;
 
   // Add event listeners for mode switching buttons (assumes buttons exist in your HTML)
   // Call clearTempCore when necessary, such as when switching modes
