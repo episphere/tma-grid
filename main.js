@@ -27,7 +27,7 @@ import {
 
 import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
 
-import { getImageInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
+import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
 
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
 
@@ -84,11 +84,12 @@ const getInputValue = (inputId) => document.getElementById(inputId).value;
 // Event handler for file input change
 const handleImageInputChange = async (e, processCallback) => {
   resetApplication();
-
+  document.getElementById("imageUrlInput").value = null
   // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
   const file = e.target.files[0];
+  console.log(file)
   if (file && file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -113,6 +114,10 @@ const handleImageInputChange = async (e, processCallback) => {
           window.scalingFactor = 1;
         }
 
+        const osdCanvasParent = document.getElementById("osdViewer")
+        osdCanvasParent.style.width = `${ Math.ceil(img.width * scalingFactor) }px`
+        osdCanvasParent.style.height = `${ Math.ceil(img.height * scalingFactor) }px`
+
         originalImageContainer.onload = () => {
           updateStatusMessage(
             "imageLoadStatus",
@@ -135,18 +140,45 @@ const handleImageInputChange = async (e, processCallback) => {
           console.error("Image failed to load.");
         };
       };
-
+      
       img.onerror = () => {
         updateStatusMessage(
           "imageLoadStatus",
           "Image failed to load.",
           "error-message"
         );
-
+          
         console.error("Image failed to load.");
       };
     };
     reader.readAsDataURL(file);
+  } else if (file && file.name.endsWith(".svs")) {
+    const imageInfo = await getWSIInfo(file);
+    const scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width, MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height);
+    window.scalingFactor = scalingFactor;
+
+    const wsiThumbnail = await getPNGFromWSI(URL.createObjectURL(file), MAX_DIMENSION_FOR_DOWNSAMPLING)
+    let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
+    
+    originalImageContainer.crossOrigin = "anonymous";
+    originalImageContainer.src = objectURL;
+    
+    originalImageContainer.onload = async () => {
+      const osdCanvasParent = document.getElementById("osdViewer")
+      osdCanvasParent.style.width = `${ Math.ceil(imageInfo.width * scalingFactor) }px`
+      osdCanvasParent.style.height = `${ Math.ceil(imageInfo.height * scalingFactor) }px`
+      
+      updateStatusMessage(
+        "imageLoadStatus",
+        "Image loaded successfully.",
+        "success-message"
+      );
+      
+      processCallback()
+      
+      window.loadedImg = originalImageContainer;
+      document.getElementById("loadingSpinner").style.display = "none";
+    };
   } else {
     updateStatusMessage(
       "imageLoadStatus",
@@ -292,7 +324,7 @@ const getInputParameters = () => {
 // Event handler for load image from URL
 const handleLoadImageUrlClick = async (state) => {
   resetApplication();
-
+  document.getElementById("fileInput").value = null
   // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
@@ -305,7 +337,7 @@ const handleLoadImageUrlClick = async (state) => {
       imageResp = fetch(imageUrl);
       window.scalingFactor = 1
     } else {
-      const imageInfo = await getImageInfo(imageUrl);
+      const imageInfo = await getWSIInfo(imageUrl);
       width = imageInfo.width
       height = imageInfo.height
       const scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / width, MAX_DIMENSION_FOR_DOWNSAMPLING / height);
@@ -590,6 +622,7 @@ function bindEventListeners() {
     .addEventListener("click", switchToVirtualGrid);
 }
 
+
 // Initialize and bind events
 const initSegmentation = async () => {
   const state = await loadDependencies();
@@ -662,18 +695,48 @@ const initSegmentation = async () => {
         alert("No image uploaded!");
         return;
       }
+      const getImageInfo = () => {
+        const checkExtension = (path) => path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".svs")
+        const imageInfo = {
+          url: "",
+          type: "",
+          isSimpleImage: undefined,
+          isOperable: false
+        }
+        if (document.getElementById("fileInput").files[0]) {
+          const localFile = document.getElementById("fileInput").files[0]
+          if (checkExtension(localFile.name)) {
+            imageInfo.type = localFile.name.split(".").slice(-1)[0]
+            imageInfo.isSimpleImage = !localFile.name.endsWith(".svs")
+            imageInfo.isOperable = true
+            imageInfo.url = imageInfo.isSimpleImage ? window.loadedImg.src : document.getElementById("fileInput").files[0]
+          }
+        } else if (getInputValue("imageUrlInput")) {
+          const url = getInputValue("imageUrlInput")
+          imageInfo.type = ""
+          imageInfo.isSimpleImage = url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".jpeg")
+          imageInfo.isOperable = true
+          imageInfo.url = url
+        }
+        
+        return imageInfo
+      } 
       document.getElementById("rawDataLoadingSpinner").style.display = "block";
       document.getElementById("rawDataTabButton").click();
-      const imageUrl = getInputValue("imageUrlInput");
-      let tileSources = {}
-      if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
+      let tileSources = {}      
+
+      const imageInfo = getImageInfo()
+      if (imageInfo.isSimpleImage) {
         tileSources = {
           type: 'image',
-          url: imageUrl
+          url: imageInfo.url
         }
       } else {
-        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(imageUrl, { logLatency: false, cache: true });
+        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(imageInfo.url, { logLatency: false, cache: true });
       }
+      document.getElementById("osdViewer").style.width = `${window.loadedImg.getAttribute("width")}px`
+      document.getElementById("osdViewer").style.height = `${window.loadedImg.getAttribute("height")}px`
+
       window.viewer = OpenSeadragon({
         id: "osdViewer",
         visibilityRatio: 1,

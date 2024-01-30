@@ -1,6 +1,6 @@
 let image = {}
 
-export const getImageInfo = async (imageURL) => {
+export const getWSIInfo = async (imageURL) => {
   const { default: imagebox3 } = await import("https://episphere.github.io/imagebox3/imagebox3.mjs")
   return await (await imagebox3.getImageInfo(imageURL)).json()
 }
