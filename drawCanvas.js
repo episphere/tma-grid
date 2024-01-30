@@ -434,7 +434,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           const overlay = window.viewer.getOverlayById(overlayElement)
           const deleteBtnHandler = (e)=>{
             if (e.key === 'Delete' || e.key === 'Backspace') {
-              removeCore(core)
+              removeCoreFromGrid(core)
             }
           }
           if (!overlayElement.classList.contains("selected")) {
@@ -806,13 +806,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       ) - 1;
     core.x = parseFloat(
       document.getElementById(currentMode + "XInput").value
-    );
+    ) * window.scalingFactor;
     core.y = parseFloat(
       document.getElementById(currentMode + "YInput").value
-    );
+    ) * window.scalingFactor;
     core.currentRadius = parseFloat(
       document.getElementById(currentMode + "RadiusInput").value
-    );
+    ) * window.scalingFactor;
     core.annotations = document.getElementById(
       currentMode + "AnnotationsInput"
     ).value;
