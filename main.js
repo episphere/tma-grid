@@ -100,8 +100,6 @@ const handleImageInputChange = async (e, processCallback) => {
         if (img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
           scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height);
 
-
-
           const canvas = document.createElement("canvas");
           canvas.width = img.width * scalingFactor;
           canvas.height = img.height * scalingFactor;
@@ -169,6 +167,9 @@ const handleImageInputChange = async (e, processCallback) => {
   }
 
   moveToCarouselItem("next");
+
+  window.imageSource = "local";
+
 };
 
 function handleMetadataFileSelect(event) {
@@ -388,6 +389,7 @@ const handleLoadImageUrlClick = async (state) => {
   }
 
   moveToCarouselItem("next");
+  window.imageSource = "URL";
 };
 
 async function segmentImage() {
@@ -677,19 +679,29 @@ const initSegmentation = async () => {
       }
       document.getElementById("rawDataLoadingSpinner").style.display = "block";
       document.getElementById("rawDataTabButton").click();
-      const imageUrl = getInputValue("imageUrlInput");
+      
       let tileSources = {};
-      if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
-        tileSources = {
-          type: "image",
-          url: imageUrl,
-        };
-      } else {
-        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(
-          imageUrl,
-          { logLatency: false, cache: true }
-        );
+
+      if (window.imageSource == "URL"){
+        const imageUrl = getInputValue("imageUrlInput");
+        if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
+          tileSources = {
+            type: "image",
+            url: imageUrl,
+          };
+        } else {
+          tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(
+            imageUrl,
+            { logLatency: false, cache: true }
+          );
+        }
+      }else if (window.imageSource == "local"){
+
+      // Please update Praful...
+
+
       }
+      
       window.viewer = OpenSeadragon({
         id: "osdViewer",
         visibilityRatio: 1,
