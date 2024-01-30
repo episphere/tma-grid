@@ -172,8 +172,8 @@ async function runTravelingAlgorithm(normalizedCores, params) {
 
       // Add the core or imaginary point to sortedData
       sortedData.push({
-        x: core.point[0] + window.preprocessingData.minX,
-        y: core.point[1] + window.preprocessingData.minY,
+        x: (core.point[0] + window.preprocessingData.minX),
+        y: (core.point[1] + window.preprocessingData.minY),
         row: rowIndex,
         col: colIndex,
         currentRadius: parseInt(userRadius),
@@ -183,9 +183,10 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     });
   });
 
-  window.sortedCoresData = sortedData;
-
+  
   updateSpacingInVirtualGrid(params.gridWidth);
+  
+  return sortedData;
 
 }
 

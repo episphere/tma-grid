@@ -346,8 +346,8 @@
             </div>
 
             <div id="RawData" class="tabcontent">
-                <button id="switchToEditMode" class="mode-button active">Edit Mode</button>
-                <button id="switchToAddMode" class="mode-button">Add Mode</button>
+                <!-- <button id="switchToEditMode" class="mode-button active">Edit Mode</button>
+                <button id="switchToAddMode" class="mode-button">Add Mode</button> -->
                 <div class="instructions-container">
                     <button class="close-instructions">×</button> <!-- This is the close button -->
                     <h2>Gridding Instructions</h2>
@@ -382,18 +382,22 @@
                     <!-- <canvas id="coreCanvas" width="1024" height="1024" style="border:none;"></canvas> -->
 
                     <!-- Sidebar for adding cores -->
-                    <div class="edit-sidebar" id="addSidebar" style="display:none;">
+                    <!-- <div class="edit-sidebar" id="addSidebar" style="visibility:hidden;">
                         <div class="sidebar-header draggable-area">
                             <h2 class="title">Add Core</h2>
                             <div class="window-controls">
                             </div>
                         </div>
                         <form id="addCoreForm" class="main-content">
-                            <label for="addRowInput">Row:</label>
-                            <input type="number" id="addRowInput" name="addRowInput">
+                            <span>
+                                <label for="addRowInput">Row:</label>
+                                <input type="number" id="addRowInput" name="addRowInput">
+                            </span>
 
-                            <label for="addColumnInput">Column:</label>
-                            <input type="number" id="addColumnInput" name="addColumnInput" disabled>
+                            <span>
+                                <label for="addColumnInput">Column:</label>
+                                <input type="number" id="addColumnInput" name="addColumnInput" disabled>
+                            </span>
 
 
                             <div class="checkbox-group">
@@ -401,18 +405,26 @@
                                     name="addAutoUpdateColumnsCheckbox" checked>
                                 <label for="addAutoUpdateColumnsCheckbox">Auto Update Columns</label>
                             </div>
+                            
+                            <div>
+                                <label for="addXInput">X Position:</label>
+                                <input type="number" id="addXInput" name="addXInput">
+                            </div>
 
-                            <label for="addXInput">X Position:</label>
-                            <input type="number" id="addXInput" name="addXInput">
+                            <div>
+                                <label for="addYInput">Y Position:</label>
+                                <input type="number" id="addYInput" name="addYInput">
+                            </div>
 
-                            <label for="addYInput">Y Position:</label>
-                            <input type="number" id="addYInput" name="addYInput">
+                            <div>
+                                <label for="addRadiusInput">Radius:</label>
+                                <input type="number" id="addRadiusInput" name="addRadiusInput" step="0.1">
+                            </div>
 
-                            <label for="addRadiusInput">Radius:</label>
-                            <input type="number" id="addRadiusInput" name="addRadiusInput" step="0.1">
-
-                            <label for="addAnnotationsInput">Annotations:</label>
-                            <textarea id="addAnnotationsInput" name="addAnnotationsInput"></textarea>
+                            <div>
+                                <label for="addAnnotationsInput">Annotations:</label>
+                                <textarea id="addAnnotationsInput" name="addAnnotationsInput"></textarea>
+                            </div>
 
                             <div class="radio-group">
                                 <input type="radio" id="addRealInput" name="addCoreType" value="real" checked>
@@ -428,7 +440,7 @@
                                 <button type="button" id="cancelCoreDrawing" class="cancel-button">Cancel</button>
                             </div>
                         </form>
-                    </div>
+                    </div> -->
 
 
                     <div class="edit-sidebar" id="editSidebar">
@@ -476,7 +488,7 @@
 
 
                             <div class="button-group">
-                                <button type="button" id="saveCoreEdits">Save Edits</button>
+                                <button type="button" id="saveCoreEdits">Save</button>
 
                                 <button type="button" id="removeCoreButton">Remove</button>
 
@@ -528,6 +540,7 @@
 
     </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.js" crossorigin="anonymous" referrerpolicy="no-referrer" ></script>
+<script src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js" crossorigin="anonymous" referrerpolicy="no-referrer" ></script>
 <script src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k/GeoTIFFTileSource.js" type="module" crossorigin="anonymous" ></script>
 
 </body>

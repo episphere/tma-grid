@@ -301,7 +301,7 @@ function traveling_algorithm(
 }
 
 function sortRowByRotatedX(row, originAngle) {
-  const angleRad = originAngle * Math.PI / 180;
+  const angleRad = originAngle * Math.PI / 180 * -1;
   return row.sort((a, b) => {
     let rotatedAX = a.start[0] * Math.cos(angleRad) - a.start[1] * Math.sin(angleRad);
     let rotatedBX = b.start[0] * Math.cos(angleRad) - b.start[1] * Math.sin(angleRad);

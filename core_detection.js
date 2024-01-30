@@ -282,7 +282,10 @@ async function runPipeline(
   maskAlpha = 0.3
 ) {
   // Preprocess the image and predict
-  const predictions = await preprocessAndPredict(imageElement, model);
+  if (!window.neuralNetworkResult) {
+    window.neuralNetworkResult = await preprocessAndPredict(imageElement, model);
+  }
+  const predictions = window.neuralNetworkResult
   // Apply the threshold to the predictions
   const thresholdedPredictions = applyThreshold(predictions, threshold);
   // Convert the tensor to a format that OpenCV.js can work with

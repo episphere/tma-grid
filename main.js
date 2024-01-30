@@ -22,7 +22,7 @@ import {
   applyAndVisualizeTravelingAlgorithm,
   updateVirtualGridSpacing,
   redrawCoresForTravelingAlgorithm,
-  obtainHyperparametersAndDrawVirtualGrid,
+  obtainHyperparametersAndDrawVirtualGrid
 } from "./drawCanvas.js";
 
 import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
@@ -300,20 +300,21 @@ const handleLoadImageUrlClick = async (state) => {
 
   if (imageUrl) {
     let imageResp = undefined;
+    let width, height 
     if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
       imageResp = fetch(imageUrl);
+      window.scalingFactor = 1
     } else {
       const imageInfo = await getImageInfo(imageUrl);
-      const { width, height } = imageInfo;
+      width = imageInfo.width
+      height = imageInfo.height
       const scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / width, MAX_DIMENSION_FOR_DOWNSAMPLING / height);
       // Store the scaling factor
       window.scalingFactor = scalingFactor;
-      console.log("scalingFactor", scalingFactor);
-      const osdCanvasParent = document.getElementById("osdViewer")
-      osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`
-      osdCanvasParent.style.height = `${Math.ceil(height * scalingFactor)}px`
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
     }
+    console.log("scalingFactor", scalingFactor);
+    
     imageResp
       .then((response) => {
         if (response.ok) {
@@ -331,38 +332,18 @@ const handleLoadImageUrlClick = async (state) => {
         let objectURL = URL.createObjectURL(blob);
         originalImageContainer.crossOrigin = "anonymous";
         originalImageContainer.src = objectURL;
-
         originalImageContainer.onload = async () => {
           // Check if the image needs to be scaled down
-          if (
-            originalImageContainer.width > 1024 ||
-            originalImageContainer.height > 1024
-          ) {
-            const scalingFactor = Math.min(
-              1024 / originalImageContainer.width,
-              1024 / originalImageContainer.height
-            );
-
-            // Store the scaling factor
-            window.scalingFactor = scalingFactor;
-
-            const canvas = document.createElement("canvas");
-            canvas.width = originalImageContainer.width * scalingFactor;
-            canvas.height = originalImageContainer.height * scalingFactor;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(
-              originalImageContainer,
-              0,
-              0,
-              canvas.width,
-              canvas.height
-            );
-            originalImageContainer.src = canvas.toDataURL();
-          } else {
-            if (imageUrl.endsWith(".png") && imageUrl.endsWith(".jpg")) {
-              window.scalingFactor = 1;
-            }
+          if (!width) {
+            width = originalImageContainer.width
           }
+          if (!height) {
+            height = originalImageContainer.height
+          }
+          
+          const osdCanvasParent = document.getElementById("osdViewer")
+          osdCanvasParent.style.width = `${ Math.ceil(width * scalingFactor) }px`
+          osdCanvasParent.style.height = `${ Math.ceil(height * scalingFactor) }px`
 
           window.loadedImg = originalImageContainer;
 
@@ -414,6 +395,9 @@ async function segmentImage() {
       );
 
       window.preprocessedCores = preprocessCores(window.properties);
+      window.preprocessedCores.forEach(core => {
+        
+      })
     } catch (error) {
       console.error("Error processing image:", error);
     } finally {
@@ -532,19 +516,19 @@ function bindEventListeners() {
 
     const imageFile = document.getElementById("fileInput").files[0];
     if ((imageFile || window.loadedImg) && window.preprocessedCores) {
+      // Change the defaultRadius value of each core in window.sortedCores to the new radius
+      window.sortedCoresData.forEach((core) => {
+        core.currentRadius = parseInt(userRadius) / window.scalingFactor;
+      });
       // If there's an image and cores data, draw the cores with the new radius
       redrawCoresForTravelingAlgorithm();
 
-      // Change the defaultRadius value of each core in window.sortedCores to the new radius
-      window.sortedCoresData.forEach((core) => {
-        core.currentRadius = parseInt(userRadius);
-      });
     } else {
       alert("Please load an image and JSON file first.");
     }
   });
 
-  makeElementDraggable(document.getElementById("addSidebar"));
+  // makeElementDraggable(document.getElementById("addSidebar"));
   makeElementDraggable(document.getElementById("editSidebar"));
 
   // Close the sidebar
@@ -679,7 +663,15 @@ const initSegmentation = async () => {
         return;
       }
       const imageUrl = getInputValue("imageUrlInput");
-      const tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(imageUrl, { logLatency: false, cache: true });
+      let tileSources = {}
+      if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
+        tileSources = {
+          type: 'image',
+          url: imageUrl
+        }
+      } else {
+        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(imageUrl, { logLatency: false, cache: true });
+      }
       window.viewer = OpenSeadragon({
         id: "osdViewer",
         visibilityRatio: 1,
@@ -704,23 +696,38 @@ const initSegmentation = async () => {
       });
       // viewer.open(tileSources)
 
+      const addCoreDiv = document.createElement("div")
+      addCoreDiv.className = "osdViewerControlsParent"
+      const addCoreBtn = document.createElement("button")
+      addCoreBtn.className = "osdViewerControl"
+      addCoreBtn.id = "osdViewerAddCoreBtn"
+      addCoreBtn.innerText = "+ Add Core"
+      addCoreDiv.appendChild(addCoreBtn)
+      
+      window.viewer.addControl(addCoreDiv, {
+        anchor: OpenSeadragon.ControlAnchor["TOP_RIGHT"]
+      }, window.viewer.controls.topRight)
+      
+      document.getElementById("rawDataTabButton").click();
       window.viewer.addOnceHandler("open", () => {
         window.viewer.world.getItemAt(0).addOnceHandler("fully-loaded-change", () => {
-          // showPopup("popupSegmentation");
-          document.getElementById("rawDataTabButton").click();
-          setTimeout(() => {
-            window.viewer.addHandler('canvas-click', (e) => {
-              if (e.quick) {
-                window.viewer.currentOverlays.filter(overlay => overlay.element.classList.contains("selected")).forEach(selectedOverlay => {
-                  selectedOverlay.element.classList.remove("selected")
-                })
-              }
-            })
-            window.viewer.viewport.goHome(true);
-            setTimeout(preprocessForTravelingAlgorithm, 0)
-          }, 100)
+          preprocessForTravelingAlgorithm()
+      //     // showPopup("popupSegmentation");
+      //     document.getElementById("rawDataTabButton").click();
+      //     setTimeout(() => {
+          window.viewer.addHandler('canvas-click', (e) => {
+            if (e.quick) {
+              window.viewer.currentOverlays.filter(overlay => overlay.element.classList.contains("selected")).forEach(selectedOverlay => {
+                selectedOverlay.element.classList.remove("selected")
+              })
+            }
+          })
+      //       window.viewer.viewport.goHome(true);
+      //       setTimeout(preprocessForTravelingAlgorithm, 0)
+      //     }, 100)
         })
       })
+
     });
 
   // Navigation buttons

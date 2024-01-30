@@ -692,7 +692,6 @@ button:hover {
   display: block; /* Change to block to make it visible by default, or use JavaScript to toggle display */
 }
 
-
 .edit-sidebar {
   overflow: auto;
   width: 300px; /* Adjust width as needed */
@@ -727,13 +726,14 @@ button:hover {
   display: block;
   margin: 10px 0;
   font-size: 14px;
+  width: fit-content;
 }
 
 .edit-sidebar input[type=number],
 .edit-sidebar textarea {
   width: calc(100% - 20px);
   padding: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   border-radius: 4px;
   border: 1px solid #ccc;
   background-color: #f9f9f9;
@@ -769,10 +769,40 @@ button:hover {
   opacity: 0.9;
 }
 
+#addCoreForm>span:first-of-type {
+  margin-right: 15px;
+}
+
+#addCoreForm>span>label {
+  display:inline;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+#addCoreForm>span>input[type=number] {
+  width: 20px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  color: #555;
+}
+
+#addCoreForm>div {
+  width: fit-content;
+}
+
 .checkbox-group {
   margin: 10px 0;
   display: flex;
   align-items: center;
+}
+
+#addCoreForm>.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-top: 0px;
 }
 
 .checkbox-group label {
@@ -978,11 +1008,41 @@ label:disabled {
   text-align: center;
 }
 
+.osdViewerControlsParent {
+  display: flex;
+  flex-direction: row;
+}
+
+.osdViewerControl {
+  margin-top: 0px;
+  background-color: black;
+  border-radius: 0px;
+  color: white;
+  text-transform: none;
+  padding: 10px;
+  font-size: 1rem;
+  opacity: 0.5;
+  transition: none;
+}
+
+.osdViewerControl:hover {
+  background-color: black;
+  opacity: 0.65;
+  transform: none;
+}
+
+.osdViewerControl.active {
+  background-color: royalblue;
+  opacity: 0.65;
+  transform: none;
+}
+
 .core-overlay-for-gridding {
   border-style: solid;
   border-width: 1px;
   border-radius: 50%;
   border-color: #0056b3;
+  cursor: grab;
 }
 
 .core-overlay-for-gridding:hover {
@@ -1007,14 +1067,18 @@ label:disabled {
 
 .core-overlay-title-div {
   display: flex;
-  position: absolute;
-  width: 100%;
-  justify-content: center;
+  position: relative;
+  width: fit-content;
   font-size: 12px;
+  margin: 0 auto;
 }
 
 .core-overlay-for-gridding.selected>.core-overlay-title-div {
   font-size: 16px;
   text-decoration: underline;
   color: maroon;
+}
+
+svg {
+  pointer-events: none;
 }
