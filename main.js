@@ -22,7 +22,7 @@ import {
   applyAndVisualizeTravelingAlgorithm,
   updateVirtualGridSpacing,
   redrawCoresForTravelingAlgorithm,
-  obtainHyperparametersAndDrawVirtualGrid
+  obtainHyperparametersAndDrawVirtualGrid,
 } from "./drawCanvas.js";
 
 import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
@@ -96,11 +96,11 @@ const handleImageInputChange = async (e, processCallback) => {
       img.src = event.target.result;
       img.onload = async () => {
         // Check if the image needs to be scaled down
-        if (img.width > 1024 || img.height > 1024) {
-          const scalingFactor = Math.min(1024 / img.width, 1024 / img.height);
+        let scalingFactor = 1;
+        if (img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
+          scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height);
 
-          // Store the scaling factor
-          window.scalingFactor = scalingFactor;
+
 
           const canvas = document.createElement("canvas");
           canvas.width = img.width * scalingFactor;
@@ -110,8 +110,11 @@ const handleImageInputChange = async (e, processCallback) => {
           originalImageContainer.src = canvas.toDataURL();
         } else {
           originalImageContainer.src = img.src;
-          window.scalingFactor = 1;
+          scalingFactor = 1;
         }
+
+        // Store the scaling factor
+        window.scalingFactor = scalingFactor;
 
         originalImageContainer.onload = () => {
           updateStatusMessage(
@@ -123,6 +126,12 @@ const handleImageInputChange = async (e, processCallback) => {
 
           window.loadedImg = originalImageContainer;
           document.getElementById("loadingSpinner").style.display = "none";
+
+        // Update OSD Viewer
+        const osdCanvasParent = document.getElementById("osdViewer");
+        osdCanvasParent.style.width = `${Math.ceil(originalImageContainer.width * scalingFactor)}px`;
+        osdCanvasParent.style.height = `${Math.ceil(originalImageContainer.height * scalingFactor)}px`;
+
         };
 
         originalImageContainer.onerror = () => {
@@ -134,6 +143,8 @@ const handleImageInputChange = async (e, processCallback) => {
 
           console.error("Image failed to load.");
         };
+
+
       };
 
       img.onerror = () => {
@@ -243,7 +254,7 @@ function validateMetadata(data) {
   }
 
   // Define possible names for 'row' and 'column' considering case and abbreviations
-  const possibleRowNames = ["row","Row"];
+  const possibleRowNames = ["row", "Row"];
   const possibleColumnNames = ["column", "col", "Column", "Col"];
 
   const rowName = findColumnName(data, possibleRowNames);
@@ -300,21 +311,24 @@ const handleLoadImageUrlClick = async (state) => {
 
   if (imageUrl) {
     let imageResp = undefined;
-    let width, height 
+    let width, height;
     if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
       imageResp = fetch(imageUrl);
-      window.scalingFactor = 1
+      window.scalingFactor = 1;
     } else {
       const imageInfo = await getImageInfo(imageUrl);
-      width = imageInfo.width
-      height = imageInfo.height
-      const scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / width, MAX_DIMENSION_FOR_DOWNSAMPLING / height);
+      width = imageInfo.width;
+      height = imageInfo.height;
+      const scalingFactor = Math.min(
+        MAX_DIMENSION_FOR_DOWNSAMPLING / width,
+        MAX_DIMENSION_FOR_DOWNSAMPLING / height
+      );
       // Store the scaling factor
       window.scalingFactor = scalingFactor;
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
     }
     console.log("scalingFactor", scalingFactor);
-    
+
     imageResp
       .then((response) => {
         if (response.ok) {
@@ -335,15 +349,17 @@ const handleLoadImageUrlClick = async (state) => {
         originalImageContainer.onload = async () => {
           // Check if the image needs to be scaled down
           if (!width) {
-            width = originalImageContainer.width
+            width = originalImageContainer.width;
           }
           if (!height) {
-            height = originalImageContainer.height
+            height = originalImageContainer.height;
           }
-          
-          const osdCanvasParent = document.getElementById("osdViewer")
-          osdCanvasParent.style.width = `${ Math.ceil(width * scalingFactor) }px`
-          osdCanvasParent.style.height = `${ Math.ceil(height * scalingFactor) }px`
+
+          const osdCanvasParent = document.getElementById("osdViewer");
+          osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
+          osdCanvasParent.style.height = `${Math.ceil(
+            height * scalingFactor
+          )}px`;
 
           window.loadedImg = originalImageContainer;
 
@@ -395,9 +411,7 @@ async function segmentImage() {
       );
 
       window.preprocessedCores = preprocessCores(window.properties);
-      window.preprocessedCores.forEach(core => {
-        
-      })
+      window.preprocessedCores.forEach((core) => {});
     } catch (error) {
       console.error("Error processing image:", error);
     } finally {
@@ -522,7 +536,6 @@ function bindEventListeners() {
       });
       // If there's an image and cores data, draw the cores with the new radius
       redrawCoresForTravelingAlgorithm();
-
     } else {
       alert("Please load an image and JSON file first.");
     }
@@ -665,14 +678,17 @@ const initSegmentation = async () => {
       document.getElementById("rawDataLoadingSpinner").style.display = "block";
       document.getElementById("rawDataTabButton").click();
       const imageUrl = getInputValue("imageUrlInput");
-      let tileSources = {}
+      let tileSources = {};
       if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
         tileSources = {
-          type: 'image',
-          url: imageUrl
-        }
+          type: "image",
+          url: imageUrl,
+        };
       } else {
-        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(imageUrl, { logLatency: false, cache: true });
+        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(
+          imageUrl,
+          { logLatency: false, cache: true }
+        );
       }
       window.viewer = OpenSeadragon({
         id: "osdViewer",
@@ -694,42 +710,51 @@ const initSegmentation = async () => {
         // debugMode: true,
         // immediateRender: false,
         // imageLoaderLimit: 5,
-        timeout: 60*1000
+        timeout: 60 * 1000,
       });
       // viewer.open(tileSources)
 
-      const addCoreDiv = document.createElement("div")
-      addCoreDiv.className = "osdViewerControlsParent"
-      const addCoreBtn = document.createElement("button")
-      addCoreBtn.className = "osdViewerControl"
-      addCoreBtn.id = "osdViewerAddCoreBtn"
-      addCoreBtn.innerText = "+ Add Core"
-      addCoreDiv.appendChild(addCoreBtn)
-      
-      window.viewer.addControl(addCoreDiv, {
-        anchor: OpenSeadragon.ControlAnchor["TOP_RIGHT"]
-      }, window.viewer.controls.topRight)
-      
+      const addCoreDiv = document.createElement("div");
+      addCoreDiv.className = "osdViewerControlsParent";
+      const addCoreBtn = document.createElement("button");
+      addCoreBtn.className = "osdViewerControl";
+      addCoreBtn.id = "osdViewerAddCoreBtn";
+      addCoreBtn.innerText = "+ Add Core";
+      addCoreDiv.appendChild(addCoreBtn);
+
+      window.viewer.addControl(
+        addCoreDiv,
+        {
+          anchor: OpenSeadragon.ControlAnchor["TOP_RIGHT"],
+        },
+        window.viewer.controls.topRight
+      );
+
       window.viewer.addOnceHandler("open", () => {
         document.getElementById("rawDataLoadingSpinner").style.display = "none";
-        window.viewer.world.getItemAt(0).addOnceHandler("fully-loaded-change", () => {
-          preprocessForTravelingAlgorithm()
-      //     // showPopup("popupSegmentation");
-      //     document.getElementById("rawDataTabButton").click();
-      //     setTimeout(() => {
-          window.viewer.addHandler('canvas-click', (e) => {
-            if (e.quick) {
-              window.viewer.currentOverlays.filter(overlay => overlay.element.classList.contains("selected")).forEach(selectedOverlay => {
-                selectedOverlay.element.classList.remove("selected")
-              })
-            }
-          })
-      //       window.viewer.viewport.goHome(true);
-      //       setTimeout(preprocessForTravelingAlgorithm, 0)
-      //     }, 100)
-        })
-      })
-
+        window.viewer.world
+          .getItemAt(0)
+          .addOnceHandler("fully-loaded-change", () => {
+            preprocessForTravelingAlgorithm();
+            //     // showPopup("popupSegmentation");
+            //     document.getElementById("rawDataTabButton").click();
+            //     setTimeout(() => {
+            window.viewer.addHandler("canvas-click", (e) => {
+              if (e.quick) {
+                window.viewer.currentOverlays
+                  .filter((overlay) =>
+                    overlay.element.classList.contains("selected")
+                  )
+                  .forEach((selectedOverlay) => {
+                    selectedOverlay.element.classList.remove("selected");
+                  });
+              }
+            });
+            //       window.viewer.viewport.goHome(true);
+            //       setTimeout(preprocessForTravelingAlgorithm, 0)
+            //     }, 100)
+          });
+      });
     });
 
   // Navigation buttons
