@@ -662,6 +662,7 @@ const initSegmentation = async () => {
         alert("No image uploaded!");
         return;
       }
+      document.getElementById("rawDataTabButton").click();
       const imageUrl = getInputValue("imageUrlInput");
       let tileSources = {}
       if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
@@ -708,7 +709,6 @@ const initSegmentation = async () => {
         anchor: OpenSeadragon.ControlAnchor["TOP_RIGHT"]
       }, window.viewer.controls.topRight)
       
-      document.getElementById("rawDataTabButton").click();
       window.viewer.addOnceHandler("open", () => {
         window.viewer.world.getItemAt(0).addOnceHandler("fully-loaded-change", () => {
           preprocessForTravelingAlgorithm()
