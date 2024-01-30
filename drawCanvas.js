@@ -806,13 +806,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       ) - 1;
     core.x = parseFloat(
       document.getElementById(currentMode + "XInput").value
-    ) * window.scalingFactor;
+    ) / window.scalingFactor;
     core.y = parseFloat(
       document.getElementById(currentMode + "YInput").value
-    ) * window.scalingFactor;
+    ) / window.scalingFactor;
     core.currentRadius = parseFloat(
       document.getElementById(currentMode + "RadiusInput").value
-    ) * window.scalingFactor;
+    ) / window.scalingFactor;
     core.annotations = document.getElementById(
       currentMode + "AnnotationsInput"
     ).value;
