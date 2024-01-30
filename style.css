@@ -428,6 +428,11 @@ button:hover {
   margin: auto;
 }
 
+#rawDataLoadingSpinner {
+  width: fit-content;
+  margin: auto;
+}
+
 #buttonContainer {
   display: flex;
   justify-content: center;

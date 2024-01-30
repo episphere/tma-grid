@@ -662,6 +662,7 @@ const initSegmentation = async () => {
         alert("No image uploaded!");
         return;
       }
+      document.getElementById("rawDataLoadingSpinner").style.display = "block";
       document.getElementById("rawDataTabButton").click();
       const imageUrl = getInputValue("imageUrlInput");
       let tileSources = {}
@@ -710,6 +711,7 @@ const initSegmentation = async () => {
       }, window.viewer.controls.topRight)
       
       window.viewer.addOnceHandler("open", () => {
+        document.getElementById("rawDataLoadingSpinner").style.display = "none";
         window.viewer.world.getItemAt(0).addOnceHandler("fully-loaded-change", () => {
           preprocessForTravelingAlgorithm()
       //     // showPopup("popupSegmentation");
