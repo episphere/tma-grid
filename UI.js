@@ -269,6 +269,7 @@ function resetApplication() {
   window.neuralNetworkResult = null;
   window.viewer?.destroy()
   window.viewer = null
+  window.imageSource = "";
 
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();
