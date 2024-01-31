@@ -577,6 +577,9 @@ function bindEventListeners() {
     button.addEventListener("click", function () {
       const sidebar = this.closest(".edit-sidebar");
       sidebar.style.display = "none"; // You can toggle visibility or minimize the sidebar as required
+      window.viewer.currentOverlays.forEach(o => {
+        o.element.classList.remove("selected")
+      })
     });
   });
 
@@ -745,7 +748,7 @@ const initSegmentation = async () => {
       }
       document.getElementById("osdViewer").style.width = `${window.loadedImg.getAttribute("width")}px`
       document.getElementById("osdViewer").style.height = `${window.loadedImg.getAttribute("height")}px`
-
+      window.viewer?.destroy()
       window.viewer = OpenSeadragon({
         id: "osdViewer",
         visibilityRatio: 1,
@@ -860,6 +863,12 @@ const initSegmentation = async () => {
       moveToCarouselItem("next");
     });
 };
+
+document.querySelectorAll("input[type='number']").forEach(e => {
+  e.onwheel = (e) => {
+    e.preventDefault()
+  }
+})
 
 function moveToCarouselItem(direction) {
   var current = document.querySelector(".carousel-item.active");

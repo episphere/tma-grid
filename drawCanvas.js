@@ -468,7 +468,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         if (!e.shift) {
           overlay.element.style.cursor = "grabbing"
           overlay.update(overlay.location.plus(delta))
-
         } else {
           overlay.element.style.cursor = "nwse-resize"
           let {width, height} = overlay.bounds
@@ -479,11 +478,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         }
         
         overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
-
+        
         const deltaPosInImageCoords = window.viewer.viewport.viewportToImageCoordinates(delta)
         if (index !== -1) {
           window.sortedCoresData[index].x += deltaPosInImageCoords.x
           window.sortedCoresData[index].y += deltaPosInImageCoords.y
+          document.getElementById("editXInput").value = window.sortedCoresData[index].x
+          document.getElementById("editYInput").value =  window.sortedCoresData[index].y
         
           connectAdjacentCores(window.sortedCoresData[index], true)
         }
@@ -930,10 +931,21 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     });
   }
 
-  document
-    .getElementById("osdViewerAddCoreBtn")
-    .addEventListener("click", function (e) {
-      const addCoreBtn = document.getElementById("osdViewerAddCoreBtn")
+  const addCoreHandler = (e) => {
+
+    const addCoreBtn = document.getElementById("osdViewerAddCoreBtn")
+    if (addCoreBtn.classList.contains("active")) {
+      addCoreBtn.classList.remove("active")
+      window.viewer.canvas.style.cursor = "auto"
+      window.viewer.removeAllHandlers("canvas-drag")
+      window.viewer.removeAllHandlers("canvas-drag-end")
+    } else {
+      document.addEventListener("keydown", (e) => {
+        e.preventDefault()
+        if (e.key === 'Escape') {
+          addCoreHandler()
+        }
+      })
       addCoreBtn.classList.add("active")
       window.viewer.canvas.style.cursor = "crosshair"
 
@@ -980,8 +992,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         updateSidebar(core);
         positionSidebarNextToCore(e.originalEvent);
       })
+    }
     
-    });
+  }
+
+  document
+    .getElementById("osdViewerAddCoreBtn")
+    .addEventListener("click", addCoreHandler)
  
   // document
   //   .getElementById("addCoreButton")

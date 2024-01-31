@@ -145,6 +145,7 @@ nav ul li a:hover {
   background-color: #f9f9f9;
   color: #555;
 }
+
 /* Spacing around sections */
 .hyperparameters, .file-upload-container, .tabcontent, .instructions-container {
   margin-bottom: 20px; /* Consistent bottom spacing */
