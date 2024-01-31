@@ -941,11 +941,11 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       window.viewer.removeAllHandlers("canvas-drag-end")
     } else {
       document.addEventListener("keydown", (e) => {
-        e.preventDefault()
         if (e.key === 'Escape') {
+          e.preventDefault()
           addCoreHandler()
         }
-      })
+      }, {once: true})
       addCoreBtn.classList.add("active")
       window.viewer.canvas.style.cursor = "crosshair"
 
