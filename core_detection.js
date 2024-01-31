@@ -2,7 +2,6 @@
 
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/+esm";
 
-
 import { visualizeSegmentationResults } from "./drawCanvas.js";
 
 function loadOpenCV() {
@@ -89,6 +88,51 @@ function getMaxValue(mat) {
   return maxVal;
 }
 
+function visualizeMarkers(distTransform, imgElementId) {
+  // Normalize the distance transform image to be in the range of 0-255 for visualization
+  let normalized = new cv.Mat();
+  cv.normalize(distTransform, normalized, 0, 255, cv.NORM_MINMAX, cv.CV_8UC1);
+
+  // Convert the normalized image to BGR for display purposes
+  let colored = new cv.Mat();
+  cv.cvtColor(normalized, colored, cv.COLOR_GRAY2BGR);
+
+  // Now, we don't need to assign colors since it's a gradient image
+  // The rest of the code can remain the same
+
+  // Display the image in the browser
+  displayImage(colored, imgElementId);
+
+  // Cleanup
+  normalized.delete();
+  colored.delete();
+}
+
+function displayImage(image, filename) {
+  // Create a canvas element
+  let canvas = document.createElement("canvas");
+
+  // Ensure the canvas size matches the OpenCV image
+  canvas.width = 1024;
+  canvas.height = 1024;
+
+  // Draw the image onto the canvas using OpenCV
+  cv.imshow(canvas, image);
+
+  // Convert the canvas to a data URL
+  let dataURL = canvas.toDataURL();
+
+  // Create a temporary link element for downloading the image
+  let downloadLink = document.createElement("a");
+  downloadLink.href = dataURL;
+  downloadLink.download = filename;
+
+  // Append the link to the document, trigger the download, and then remove the link
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
 // https://docs.opencv.org/4.x/d3/db4/tutorial_py_watershed.html
 function segmentationAlgorithm(
   data,
@@ -104,15 +148,11 @@ function segmentationAlgorithm(
     gray = src.clone();
   }
 
- // Use morphological closing to fill the gaps
-  let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
-  let closing = new cv.Mat();
-  cv.morphologyEx(gray, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 3);
 
- // Convert to binary image using the closed image
- let binary = new cv.Mat();
- cv.threshold(closing, binary, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
 
+  // Convert to binary image using the closed image
+  let binary = new cv.Mat();
+  cv.threshold(gray, binary, 0, 255, cv.THRESH_BINAR_INV | cv.THRESH_OTSU);
 
   // Noise removal with opening
   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
@@ -126,13 +166,20 @@ function segmentationAlgorithm(
     2
   );
 
+  // Use morphological closing to fill the gaps
+  let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
+  let closing = new cv.Mat();
+  cv.morphologyEx(opening, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 1);
+
+
   // Sure background area
   let sureBg = new cv.Mat();
-  cv.dilate(opening, sureBg, kernel, new cv.Point(-1, -1), 3);
+  cv.dilate(closing, sureBg, kernel, new cv.Point(-1, -1), 3);
 
   // Finding sure foreground area
   let distTransform = new cv.Mat();
-  cv.distanceTransform(opening, distTransform, cv.DIST_L2, 5);
+  cv.distanceTransform(closing, distTransform, cv.DIST_L2, 5);
+
   let sureFg = new cv.Mat();
   // Then use it in your threshold call
   let maxVal = getMaxValue(distTransform);
@@ -145,6 +192,7 @@ function segmentationAlgorithm(
   sureFg.convertTo(sureFg, cv.CV_8U);
   let unknown = new cv.Mat();
   cv.subtract(sureBg, sureFg, unknown);
+
 
   // Marker labelling
   let markers = new cv.Mat();
@@ -167,8 +215,23 @@ function segmentationAlgorithm(
     }
   }
 
+  visualizeMarkers(markersAdjusted, "watershedInput07.png");
   // Watershed algorithm
   cv.watershed(data, markersAdjusted);
+  visualizeMarkers(markersAdjusted, "watershedResults08.png");
+
+  visualizeMarkers(gray, "grayScaleInput01.png");
+  if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing02.png");
+  visualizeMarkers(opening, "opening03.png");
+
+
+  
+  visualizeMarkers(sureBg, "sureBg04.png");
+
+  visualizeMarkers(sureFg, "sureFg05.png");
+  visualizeMarkers(unknown, "unknown06.png");
+
+  visualizeMarkers(distTransform, "distTransform04.png");
 
   // Calculate properties for each region
   let properties = calculateCentroids(markersAdjusted, minArea, maxArea);
@@ -184,7 +247,6 @@ function segmentationAlgorithm(
 
   return properties;
 }
-
 
 async function preprocessAndPredict(imageElement, model) {
   // Function to crop the image if it's larger than 1024x1024
@@ -205,7 +267,17 @@ async function preprocessAndPredict(imageElement, model) {
     canvasCrop.width = cropWidth;
     canvasCrop.height = cropHeight;
     const ctxCrop = canvasCrop.getContext("2d");
-    ctxCrop.drawImage(imgElement, startX, startY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    ctxCrop.drawImage(
+      imgElement,
+      startX,
+      startY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      cropWidth,
+      cropHeight
+    );
 
     return canvasCrop;
   }
@@ -253,7 +325,6 @@ async function preprocessAndPredict(imageElement, model) {
   return predictions;
 }
 
-
 // Function to apply the threshold to the predictions
 function applyThreshold(predictions, threshold) {
   return predictions.greaterEqual(tf.scalar(threshold)).toFloat();
@@ -293,9 +364,12 @@ async function runPipeline(
 ) {
   // Preprocess the image and predict
   if (!window.neuralNetworkResult) {
-    window.neuralNetworkResult = await preprocessAndPredict(imageElement, model);
+    window.neuralNetworkResult = await preprocessAndPredict(
+      imageElement,
+      model
+    );
   }
-  const predictions = window.neuralNetworkResult
+  const predictions = window.neuralNetworkResult;
   // Apply the threshold to the predictions
   const thresholdedPredictions = applyThreshold(predictions, threshold);
   // Convert the tensor to a format that OpenCV.js can work with
@@ -314,8 +388,8 @@ async function runPipeline(
   const originalHeight = imageElement.height;
 
   // Scale centroids back to the original image size
-  const scaleX = originalWidth / 512 * 1024 / originalWidth;
-  const scaleY = originalHeight / 512 * 1024 / originalHeight;
+  const scaleX = ((originalWidth / 512) * 1024) / originalWidth;
+  const scaleY = ((originalHeight / 512) * 1024) / originalHeight;
   for (const prop in properties) {
     properties[prop].x *= scaleX;
     properties[prop].y *= scaleY;
