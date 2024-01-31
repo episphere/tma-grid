@@ -89,7 +89,7 @@ const handleImageInputChange = async (e, processCallback) => {
   document.getElementById("loadingSpinner").style.display = "block";
 
   const file = e.target.files[0];
-  console.log(file)
+  
   if (file && file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = async (event) => {
