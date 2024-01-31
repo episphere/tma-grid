@@ -1135,7 +1135,7 @@ function obtainHyperparametersAndDrawVirtualGrid() {
     startingY
   );
 
-  // showPopup("popupGridding");
+  showPopup("popupGridding");
 }
 
 function createVirtualGrid(
