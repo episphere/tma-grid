@@ -89,7 +89,9 @@ const handleImageInputChange = async (e, processCallback) => {
   document.getElementById("loadingSpinner").style.display = "block";
 
   const file = e.target.files[0];
-  console.log(file)
+  
+  let scalingFactor = 1
+  
   if (file && file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -97,7 +99,6 @@ const handleImageInputChange = async (e, processCallback) => {
       img.src = event.target.result;
       img.onload = async () => {
         // Check if the image needs to be scaled down
-        let scalingFactor = 1;
         if (img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
           scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height);
 
@@ -160,8 +161,7 @@ const handleImageInputChange = async (e, processCallback) => {
     reader.readAsDataURL(file);
   } else if (file && file.name.endsWith(".svs")) {
     const imageInfo = await getWSIInfo(file);
-    const scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width, MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height);
-    window.scalingFactor = scalingFactor;
+    scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width, MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height);
 
     const wsiThumbnail = await getPNGFromWSI(URL.createObjectURL(file), MAX_DIMENSION_FOR_DOWNSAMPLING)
     let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
@@ -169,7 +169,7 @@ const handleImageInputChange = async (e, processCallback) => {
     originalImageContainer.crossOrigin = "anonymous";
     originalImageContainer.src = objectURL;
     
-    originalImageContainer.onload = async () => {
+    originalImageContainer.onload = () => {
       const osdCanvasParent = document.getElementById("osdViewer")
       osdCanvasParent.style.width = `${ Math.ceil(imageInfo.width * scalingFactor) }px`
       osdCanvasParent.style.height = `${ Math.ceil(imageInfo.height * scalingFactor) }px`
@@ -193,11 +193,11 @@ const handleImageInputChange = async (e, processCallback) => {
     );
 
     console.error("File loaded is not an image.");
+    return
   }
+  window.scalingFactor = scalingFactor
 
   moveToCarouselItem("next");
-
-  window.imageSource = "local";
 
 };
 
