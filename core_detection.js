@@ -104,9 +104,15 @@ function segmentationAlgorithm(
     gray = src.clone();
   }
 
-  // Convert to binary image
-  let binary = new cv.Mat();
-  cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+ // Use morphological closing to fill the gaps
+  let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
+  let closing = new cv.Mat();
+  cv.morphologyEx(gray, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 3);
+
+ // Convert to binary image using the closed image
+ let binary = new cv.Mat();
+ cv.threshold(closing, binary, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+
 
   // Noise removal with opening
   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
@@ -161,6 +167,9 @@ function segmentationAlgorithm(
     }
   }
 
+  // Watershed algorithm
+  cv.watershed(data, markersAdjusted);
+
   // Calculate properties for each region
   let properties = calculateCentroids(markersAdjusted, minArea, maxArea);
 
@@ -175,6 +184,7 @@ function segmentationAlgorithm(
 
   return properties;
 }
+
 
 async function preprocessAndPredict(imageElement, model) {
   // Function to crop the image if it's larger than 1024x1024
