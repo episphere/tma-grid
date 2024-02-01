@@ -7,7 +7,7 @@ import { visualizeSegmentationResults } from "./drawCanvas.js";
 function loadOpenCV() {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/opencv.js@1.2.1/opencv.min.js";
+    script.src = "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js";
     script.async = true;
     script.defer = true;
 
@@ -16,7 +16,8 @@ function loadOpenCV() {
         console.log("OpenCV.js is ready.");
         resolve("OpenCV Loaded");
       } else {
-        reject("OpenCV.js is loaded but not ready to use.");
+        // debugger
+        // reject("OpenCV.js is loaded but not ready to use.");
       }
     };
 
@@ -133,63 +134,234 @@ function displayImage(image, filename) {
   document.body.removeChild(downloadLink);
 }
 
-// https://docs.opencv.org/4.x/d3/db4/tutorial_py_watershed.html
-function segmentationAlgorithm(
-  data,
-  minArea,
-  maxArea,
-  disTransformMultiplier = 0.6
-) {
-  // Convert to grayscale if the image is not already
+// // https://docs.opencv.org/4.x/d3/db4/tutorial_py_watershed.html
+// function segmentationAlgorithm(
+//   data,
+//   minArea,
+//   maxArea,
+//   disTransformMultiplier = 0.6
+// ) {
+//   // Convert to grayscale if the image is not already
+//   let gray = new cv.Mat();
+//   if (data.channels() === 3 || data.channels() === 4) {
+//     cv.cvtColor(data, gray, cv.COLOR_RGBA2GRAY, 0);
+//   } else {
+//     gray = src.clone();
+//   }
+
+//   // Convert to binary image using the closed image
+//   let binary = new cv.Mat();
+//   cv.threshold(gray, binary, 0, 255, cv.THRESH_BINAR_INV | cv.THRESH_OTSU);
+
+//   // Noise removal with opening
+//   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
+//   let opening = new cv.Mat();
+//   cv.morphologyEx(
+//     binary,
+//     opening,
+//     cv.MORPH_OPEN,
+//     kernel,
+//     new cv.Point(-1, -1),
+//     3
+//   );
+
+//   // Use morphological closing to fill the gaps
+//   let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
+//   let closing = new cv.Mat();
+//   cv.morphologyEx(opening, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 1);
+    
+
+//   // Sure background area
+//   let sureBg = new cv.Mat();
+//   cv.dilate(closing, sureBg, kernel, new cv.Point(-1, -1), 3);
+
+//   // Finding sure foreground area
+//   let distTransform = new cv.Mat();
+//   cv.distanceTransform(closing, distTransform, cv.DIST_L2, 5);
+
+//   let sureFg = new cv.Mat();
+//   // Then use it in your threshold call
+//   let maxVal = getMaxValue(distTransform);
+
+//   // The disTransformMultiplier is a factor that scales the threshold value used to decide which parts of the distance-transformed image are considered sure foreground.
+//   // Typically, the maximum value in the distance transform image is identified. This value represents the furthest distance any pixel has from the background.
+//   cv.threshold(distTransform, sureFg, disTransformMultiplier * maxVal, 255, 0);
+
+//   // Finding unknown region
+//   sureFg.convertTo(sureFg, cv.CV_8U);
+//   let unknown = new cv.Mat();
+//   cv.subtract(sureBg, sureFg, unknown);
+
+
+//   // Marker labelling
+//   let markers = new cv.Mat();
+//   cv.connectedComponents(sureFg, markers);
+
+//   // Add one to all labels so that sure background is not 0, but 1
+//   let markersAdjusted = new cv.Mat();
+//   cv.add(
+//     markers,
+//     new cv.Mat(markers.rows, markers.cols, markers.type(), new cv.Scalar(1)),
+//     markersAdjusted
+//   );
+
+//   // Now, mark the region of unknown with zero
+//   for (let i = 0; i < markersAdjusted.rows; i++) {
+//     for (let j = 0; j < markersAdjusted.cols; j++) {
+//       if (unknown.ucharAt(i, j) === 255) {
+//         markersAdjusted.ucharPtr(i, j)[0] = 0;
+//       }
+//     }
+//   }
+
+//   visualizeMarkers(markersAdjusted, "watershedInput07.png");
+//   // Watershed algorithm
+//   cv.watershed(data, markersAdjusted);
+//   visualizeMarkers(markersAdjusted, "watershedResults08.png");
+
+//   visualizeMarkers(gray, "grayScaleInput01.png");
+//   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
+
+//   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
+
+
+//   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
+
+//   visualizeMarkers(opening, "opening02.png");
+
+
+  
+//   visualizeMarkers(sureBg, "sureBg04.png");
+
+//   visualizeMarkers(sureFg, "sureFg05.png");
+//   visualizeMarkers(unknown, "unknown06.png");
+
+//   visualizeMarkers(distTransform, "distTransform04.png");
+
+//   // Calculate properties for each region
+//   let properties = calculateCentroids(markersAdjusted, minArea, maxArea);
+
+//   // Cleanup
+//   opening.delete();
+//   sureBg.delete();
+//   distTransform.delete();
+//   sureFg.delete();
+//   unknown.delete();
+//   markers.delete();
+//   markersAdjusted.delete();
+//   // contours?.delete(); 
+//   // hierarchy?.delete();
+//   return properties;
+// }
+
+// Convert to grayscale if the image is not already
+const toGrayscale = (data) => {
   let gray = new cv.Mat();
   if (data.channels() === 3 || data.channels() === 4) {
     cv.cvtColor(data, gray, cv.COLOR_RGBA2GRAY, 0);
   } else {
-    gray = src.clone();
+    gray = data.clone();
   }
+  return gray;
+};
 
-  // Convert to binary image using the closed image
+// Convert to binary image using threshold
+const toBinary = (gray) => {
   let binary = new cv.Mat();
-  cv.threshold(gray, binary, 0, 255, cv.THRESH_BINAR_INV | cv.THRESH_OTSU);
+  cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+  return binary;
+};
 
-  // Noise removal with opening
+// Noise removal with opening
+const applyOpening = (binary) => {
   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
   let opening = new cv.Mat();
-  cv.morphologyEx(
-    binary,
-    opening,
-    cv.MORPH_OPEN,
-    kernel,
-    new cv.Point(-1, -1),
-    3
-  );
+  cv.morphologyEx(binary, opening, cv.MORPH_OPEN, kernel);
+  return opening;
+};
 
-  // Use morphological closing to fill the gaps
-  let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
-  let closing = new cv.Mat();
-  cv.morphologyEx(opening, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 1);
+// Dilate to identify all potential holes
+const applyDilation = (opening) => {
+  let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
+  let dilated = new cv.Mat();
+  cv.dilate(opening, dilated, kernel, new cv.Point(-1, -1), 1);
+  return dilated;
+};
 
-  // // Find contours in the opening image
-  // let contours = new cv.MatVector();
-  // let hierarchy = new cv.Mat();
-  // cv.findContours(opening, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+// Find and fill small holes
+const fillSmallHoles = (opening, dilated) => {
+  let holes = new cv.Mat();
+  cv.subtract(dilated, opening, holes);
+  let labels = new cv.Mat();
+  let stats = new cv.Mat();
+  let centroids = new cv.Mat();
+  cv.connectedComponentsWithStats(holes, labels, stats, centroids);
 
-  // // Filter and fill the contours based on the area
-  // for (let i = 0; i < contours.size(); ++i) {
-  //   let cnt = contours.get(i);
-  //   let area = cv.contourArea(cnt);
-  //   if (area > minArea && area < maxArea) {
-  //     cv.drawContours(opening, contours, i, new cv.Scalar(255, 255, 255, 255), -1);
-  //   }
-  // }
+  // Assuming a threshold calculation step here, similar to the original logic
+  let smallHolesMask = cv.Mat.zeros(holes.rows, holes.cols, cv.CV_8UC1);
 
-  // Sure background area
-  let sureBg = new cv.Mat();
-  cv.dilate(closing, sureBg, kernel, new cv.Point(-1, -1), 3);
+  // This step was missing from the original correction, so it's reintroduced here
+  for (let i = 1; i < stats.rows; i++) {
+    let area = stats.intAt(i, cv.CC_STAT_AREA);
+    // Define your smallHoleThreshold based on the median area or another criterion
+    let smallHoleThreshold = 100; // Example threshold, adjust as necessary
+    if (area < smallHoleThreshold) {
+      let blobLabel = i;
+      for (let r = 0; r < labels.rows; r++) {
+        for (let c = 0; c < labels.cols; c++) {
+          if (labels.intAt(r, c) === blobLabel) {
+            smallHolesMask.ucharPtr(r, c)[0] = 255;
+          }
+        }
+      }
+    }
+  }
 
-  // Finding sure foreground area
+  let contours = new cv.MatVector();
+  let hierarchy = new cv.Mat();
+  cv.findContours(smallHolesMask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+  cv.drawContours(opening, contours, -1, new cv.Scalar(255, 255, 255, 255), cv.FILLED);
+
+  holes.delete();
+  labels.delete();
+  stats.delete();
+  centroids.delete();
+  smallHolesMask.delete();
+  contours.delete();
+  hierarchy.delete();
+
+  return opening;
+};
+
+// Calculate properties for each region
+const calculateRegionProperties = (image, minArea, maxArea) => {
+  let labels = new cv.Mat();
+  let stats = new cv.Mat();
+  let centroids = new cv.Mat();
+  cv.connectedComponentsWithStats(image, labels, stats, centroids);
+
+  let centroidsFinal = [];
+  for (let i = 1; i < stats.rows; i++) {
+    let area = stats.intAt(i, cv.CC_STAT_AREA);
+    if (area >= minArea && area <= maxArea) {
+      let x = centroids.data64F[i * 2];     // X coordinate
+      let y = centroids.data64F[i * 2 + 1]; // Y coordinate
+      centroidsFinal.push({ x, y, area });
+    }
+  }
+
+  labels.delete();
+  stats.delete();
+  centroids.delete();
+
+  return centroidsFinal;
+};
+
+function getSureFg(matrix, disTransformMultiplier) {
+
+  //   // Finding sure foreground area
   let distTransform = new cv.Mat();
-  cv.distanceTransform(closing, distTransform, cv.DIST_L2, 5);
+  cv.distanceTransform(matrix, distTransform, cv.DIST_L2, 5);
 
   let sureFg = new cv.Mat();
   // Then use it in your threshold call
@@ -201,64 +373,45 @@ function segmentationAlgorithm(
 
   // Finding unknown region
   sureFg.convertTo(sureFg, cv.CV_8U);
-  let unknown = new cv.Mat();
-  cv.subtract(sureBg, sureFg, unknown);
+
+  return sureFg;
+}
+
+// Main segmentation function
+function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 0.6) {
+  const gray = toGrayscale(data);
+  const binary = toBinary(gray);
+  const opening = applyOpening(binary);
+  const dilated = applyDilation(opening);
+  const filledOpening = fillSmallHoles(opening, dilated);
+  const sureFg = getSureFg(filledOpening, disTransformMultiplier);
+  const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
 
 
-  // Marker labelling
-  let markers = new cv.Mat();
-  cv.connectedComponents(sureFg, markers);
 
-  // Add one to all labels so that sure background is not 0, but 1
-  let markersAdjusted = new cv.Mat();
-  cv.add(
-    markers,
-    new cv.Mat(markers.rows, markers.cols, markers.type(), new cv.Scalar(1)),
-    markersAdjusted
-  );
 
-  // Now, mark the region of unknown with zero
-  for (let i = 0; i < markersAdjusted.rows; i++) {
-    for (let j = 0; j < markersAdjusted.cols; j++) {
-      if (unknown.ucharAt(i, j) === 255) {
-        markersAdjusted.ucharPtr(i, j)[0] = 0;
-      }
-    }
-  }
 
-  visualizeMarkers(markersAdjusted, "watershedInput07.png");
-  // Watershed algorithm
-  cv.watershed(data, markersAdjusted);
-  visualizeMarkers(markersAdjusted, "watershedResults08.png");
-
+  // Visualize each step
   visualizeMarkers(gray, "grayScaleInput01.png");
-  if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
-  visualizeMarkers(opening, "opening02.png");
-
-
-  
-  visualizeMarkers(sureBg, "sureBg04.png");
-
-  visualizeMarkers(sureFg, "sureFg05.png");
-  visualizeMarkers(unknown, "unknown06.png");
-
-  visualizeMarkers(distTransform, "distTransform04.png");
-
-  // Calculate properties for each region
-  let properties = calculateCentroids(markersAdjusted, minArea, maxArea);
+  visualizeMarkers(binary, "binary02.png");
+  visualizeMarkers(opening, "opening03.png");
+  visualizeMarkers(dilated, "dilated04.png");
+  visualizeMarkers(filledOpening, "filledOpening05.png");
+  visualizeMarkers(sureFg, "sureFg06.png");
 
   // Cleanup
+  gray.delete();
+  binary.delete();
   opening.delete();
-  sureBg.delete();
-  distTransform.delete();
-  sureFg.delete();
-  unknown.delete();
-  markers.delete();
-  markersAdjusted.delete();
-  // contours?.delete(); 
-  // hierarchy?.delete();
-  return properties;
+  dilated.delete();
+  // filledOpening.delete(); // Ensure this is correct; may need to adjust based on actual use
+
+
+
+  return centroidsFinal;
 }
+
+
 
 async function preprocessAndPredict(imageElement, model) {
   // Function to crop the image if it's larger than 1024x1024

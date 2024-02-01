@@ -75,7 +75,7 @@ function switchToVirtualGrid() {
 // Load dependencies and return updated state
 const loadDependencies = async () => ({
   model: await loadModel("./tfjs_model/model.json"),
-  openCVLoaded: await loadOpenCV(),
+  // openCVLoaded: await loadOpenCV(),
 });
 
 // Pure function to get input values
