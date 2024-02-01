@@ -300,11 +300,28 @@ const fillSmallHoles = (opening, dilated) => {
   // Assuming a threshold calculation step here, similar to the original logic
   let smallHolesMask = cv.Mat.zeros(holes.rows, holes.cols, cv.CV_8UC1);
 
+  // Collect all hole areas
+  let areas = [];
+  for (let i = 1; i < stats.rows; i++) {
+    let area = stats.intAt(i, cv.CC_STAT_AREA);
+    areas.push(area);
+  }
+
+  // Calculate the median area
+  areas.sort((a, b) => a - b);
+  let medianArea = areas.length % 2 === 1
+    ? areas[Math.floor(areas.length / 2)]
+    : (areas[areas.length / 2 - 1] + areas[areas.length / 2]) / 2;
+  
+  // Determine the small hole size threshold as 50% of the median area
+  let smallHoleThreshold = medianArea * 0.5;
+
   // This step was missing from the original correction, so it's reintroduced here
   for (let i = 1; i < stats.rows; i++) {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
     // Define your smallHoleThreshold based on the median area or another criterion
-    let smallHoleThreshold = 100; // Example threshold, adjust as necessary
+    
+
     if (area < smallHoleThreshold) {
       let blobLabel = i;
       for (let r = 0; r < labels.rows; r++) {
