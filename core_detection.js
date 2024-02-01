@@ -148,8 +148,6 @@ function segmentationAlgorithm(
     gray = src.clone();
   }
 
-
-
   // Convert to binary image using the closed image
   let binary = new cv.Mat();
   cv.threshold(gray, binary, 0, 255, cv.THRESH_BINAR_INV | cv.THRESH_OTSU);
@@ -163,22 +161,35 @@ function segmentationAlgorithm(
     cv.MORPH_OPEN,
     kernel,
     new cv.Point(-1, -1),
-    2
+    3
   );
 
-  // Use morphological closing to fill the gaps
-  let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
-  let closing = new cv.Mat();
-  cv.morphologyEx(opening, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 1);
+  // // Use morphological closing to fill the gaps
+  // let kernelCLose = cv.Mat.ones(4, 4, cv.CV_8U);
+  // let closing = new cv.Mat();
+  // cv.morphologyEx(opening, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 1);
 
+  // Find contours in the opening image
+  let contours = new cv.MatVector();
+  let hierarchy = new cv.Mat();
+  cv.findContours(opening, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+
+  // Filter and fill the contours based on the area
+  for (let i = 0; i < contours.size(); ++i) {
+    let cnt = contours.get(i);
+    let area = cv.contourArea(cnt);
+    if (area > minArea && area < maxArea) {
+      cv.drawContours(opening, contours, i, new cv.Scalar(255, 255, 255, 255), -1);
+    }
+  }
 
   // Sure background area
   let sureBg = new cv.Mat();
-  cv.dilate(closing, sureBg, kernel, new cv.Point(-1, -1), 3);
+  cv.dilate(opening, sureBg, kernel, new cv.Point(-1, -1), 3);
 
   // Finding sure foreground area
   let distTransform = new cv.Mat();
-  cv.distanceTransform(closing, distTransform, cv.DIST_L2, 5);
+  cv.distanceTransform(opening, distTransform, cv.DIST_L2, 5);
 
   let sureFg = new cv.Mat();
   // Then use it in your threshold call
@@ -221,8 +232,8 @@ function segmentationAlgorithm(
   visualizeMarkers(markersAdjusted, "watershedResults08.png");
 
   visualizeMarkers(gray, "grayScaleInput01.png");
-  if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing02.png");
-  visualizeMarkers(opening, "opening03.png");
+  if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
+  visualizeMarkers(opening, "opening02.png");
 
 
   
@@ -244,7 +255,8 @@ function segmentationAlgorithm(
   unknown.delete();
   markers.delete();
   markersAdjusted.delete();
-
+  contours.delete(); 
+  hierarchy.delete();
   return properties;
 }
 
