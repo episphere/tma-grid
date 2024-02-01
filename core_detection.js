@@ -90,6 +90,9 @@ function getMaxValue(mat) {
 }
 
 function visualizeMarkers(distTransform, imgElementId) {
+
+  return;
+  
   // Normalize the distance transform image to be in the range of 0-255 for visualization
   let normalized = new cv.Mat();
   cv.normalize(distTransform, normalized, 0, 255, cv.NORM_MINMAX, cv.CV_8UC1);
@@ -313,8 +316,8 @@ const fillSmallHoles = (opening, dilated) => {
     ? areas[Math.floor(areas.length / 2)]
     : (areas[areas.length / 2 - 1] + areas[areas.length / 2]) / 2;
   
-  // Determine the small hole size threshold as 50% of the median area
-  let smallHoleThreshold = medianArea * 0.5;
+  // Determine the small hole size threshold as 25% of the median area
+  let smallHoleThreshold = medianArea * 0.25;
 
   // This step was missing from the original correction, so it's reintroduced here
   for (let i = 1; i < stats.rows; i++) {
@@ -333,6 +336,8 @@ const fillSmallHoles = (opening, dilated) => {
       }
     }
   }
+
+  visualizeMarkers(smallHolesMask, "smallHolesMask04.png");
 
   let contours = new cv.MatVector();
   let hierarchy = new cv.Mat();
@@ -374,7 +379,7 @@ const calculateRegionProperties = (image, minArea, maxArea) => {
   return centroidsFinal;
 };
 
-function getSureFg(matrix, disTransformMultiplier) {
+function thresholdDistanceTransform(matrix, disTransformMultiplier) {
 
   //   // Finding sure foreground area
   let distTransform = new cv.Mat();
@@ -401,18 +406,14 @@ function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 
   const opening = applyOpening(binary);
   const dilated = applyDilation(opening);
   const filledOpening = fillSmallHoles(opening, dilated);
-  const sureFg = getSureFg(filledOpening, disTransformMultiplier);
+  const sureFg = thresholdDistanceTransform(filledOpening, disTransformMultiplier);
   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
-
-
-
 
 
   // Visualize each step
   visualizeMarkers(gray, "grayScaleInput01.png");
   visualizeMarkers(binary, "binary02.png");
   visualizeMarkers(opening, "opening03.png");
-  visualizeMarkers(dilated, "dilated04.png");
   visualizeMarkers(filledOpening, "filledOpening05.png");
   visualizeMarkers(sureFg, "sureFg06.png");
 
@@ -422,7 +423,6 @@ function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 
   opening.delete();
   dilated.delete();
   // filledOpening.delete(); // Ensure this is correct; may need to adjust based on actual use
-
 
 
   return centroidsFinal;
@@ -591,33 +591,6 @@ async function runPipeline(
   );
 }
 
-// Function to visualize centers
-function visualizeCenters(properties, imageElement) {
-  // Create a temporary canvas
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  // Set canvas dimensions to match the image
-  canvas.width = imageElement.width;
-  canvas.height = imageElement.height;
-
-  // Draw the image onto the canvas
-  ctx.drawImage(imageElement, 0, 0, imageElement.width, imageElement.height);
-
-  // Draw a red dot at each center
-  Object.values(properties).forEach((prop) => {
-    ctx.beginPath();
-    ctx.arc(prop.x, prop.y, 5, 0, 2 * Math.PI);
-    ctx.fillStyle = "red";
-    ctx.fill();
-  });
-
-  // Update the original image element if needed
-  imageElement.src = canvas.toDataURL();
-
-  // If you don't need to update the original img element, you could append the canvas to the DOM
-  // document.body.appendChild(canvas); // Or append it to another element
-}
 
 export {
   loadModel,
@@ -625,6 +598,5 @@ export {
   preprocessAndPredict,
   visualizeSegmentationResults,
   runPipeline,
-  visualizeCenters,
   loadOpenCV,
 };
