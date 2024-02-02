@@ -1217,7 +1217,6 @@ async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgori
     : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 
 
-    debugger
   // If the median angle is within the targeted range, return it as the optimal angle
   if (minImaginaryCorePercentage < 0.3) {
     return medianAngle;

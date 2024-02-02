@@ -69,11 +69,16 @@ function normalizeRowsByAddingImaginaryPoints(
     // Calculate the offset from the median
     let offsetX = rotatedFirstPoint[0] - medianX;
 
+    if (offsetX < 0) {
+      offsetX = 0;
+    }
     // Determine the number of imaginary points to add
     let imaginaryPointsCount = Math.max(
       0,
       Math.floor(offsetX / gridWidth + thresholdForImaginaryPoints)
     );
+
+
 
     // Generate imaginary points
     let imaginaryPoints = [];
