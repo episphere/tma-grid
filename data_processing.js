@@ -15,16 +15,28 @@ import { applyAndVisualizeTravelingAlgorithm } from "./drawCanvas.js";
 import { getHyperparametersFromUI } from "./UI.js";
 
 function rotatePoint(point, angle) {
-  const x = point[0];
-  const y = point[1];
+  const pivotX = window.loadedImg.width/2;
+  const pivotY = window.loadedImg.height/2;
+
+  // Translate point to origin (pivot point becomes the new origin)
+  const translatedX = point[0] - pivotX;
+  const translatedY = point[1] - pivotY;
+
+  // Convert angle to radians
   const radians = (angle * Math.PI) / 180;
+
+  // Perform rotation around origin
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
-  const newX = x * cos - y * sin;
-  const newY = x * sin + y * cos;
+  const rotatedX = translatedX * cos - translatedY * sin;
+  const rotatedY = translatedX * sin + translatedY * cos;
+
+  // Translate point back
+  const newX = rotatedX + pivotX;
+  const newY = rotatedY + pivotY;
+
   return [newX, newY];
 }
-
 
 async function preprocessForTravelingAlgorithm() {
   await loadDataAndDetermineParams(
@@ -41,6 +53,7 @@ function calculateMedianX(sortedRows, originAngle) {
   let firstColumnXValues = sortedRows.map(
     (row) => rotatePoint(row[0].point, -originAngle)[0]
   );
+
   firstColumnXValues.sort((a, b) => a - b);
   let middleIndex = Math.floor(firstColumnXValues.length / 2);
   // Calculate median
@@ -77,7 +90,6 @@ function normalizeRowsByAddingImaginaryPoints(
       0,
       Math.floor(offsetX / gridWidth + thresholdForImaginaryPoints)
     );
-
 
 
     // Generate imaginary points
