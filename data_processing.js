@@ -145,6 +145,7 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.thresholdAngle,
     params.originAngle
   );
+
   bestEdgeSet = limitConnections(bestEdgeSet, normalizedCores);
   bestEdgeSet = sortEdgesAndAddIsolatedPoints(bestEdgeSet, normalizedCores);
 
@@ -248,15 +249,7 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
     params.thresholdMultiplier
   );
 
-  const [bestEdgeSet, bestEdgeSetLength, originAngle] =
-    await determineImageRotation(
-      normalizedCores,
-      lengthFilteredEdges,
-      params.minAngle,
-      params.maxAngle,
-      params.angleStepSize,
-      params.angleThreshold
-    );
+  const bestEdgeSet = filterEdgesByAngle(lengthFilteredEdges, normalizedCores, params.thresholdAngle, params.originAngle);
 
   let coordinatesInput = bestEdgeSet.map(([start, end]) => {
     return [
@@ -271,13 +264,11 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
 
   console.log(d);
   // Update the form values with the new calculations
-  document.getElementById("originAngle").value = originAngle.toFixed(2);
   document.getElementById("gridWidth").value = d.toFixed(2);
   document.getElementById("imageWidth").value = imageWidth.toFixed(2);
   document.getElementById("gamma").value = d.toFixed(2);
 
   // Update the params object with the new calculations
-  params.originAngle = originAngle;
   params.gridWidth = d;
   params.imageWidth = imageWidth;
   params.gamma = d;

@@ -322,6 +322,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     //     },
     //   };
     // }
+
+    if (!document.getElementById("connectCoresCheckbox").checked) {
+      // If the checkbox is checked, draw lines between adjacent cores
+      return;
+
+    }
+    
     if (
       isNaN(parseInt(core.row)) ||
       isNaN(parseInt(core.col)) ||
@@ -350,7 +357,9 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
             ? core
             : adjacentCore;
         const endCore = startCore === adjacentCore ? core : adjacentCore;
+
         const svgOverlay = window.viewer.svgOverlay();
+
         const point1 = window.viewer.viewport.imageToViewportCoordinates(
           new OpenSeadragon.Point(
             startCore.x +
@@ -1257,6 +1266,9 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
 
     // Update UI with the optimal angle
     hyperparameters = updateUIAndHyperparameters(optimalAngle);
+
+
+
   } else {
     hyperparameters = getHyperparametersFromUI();
   }

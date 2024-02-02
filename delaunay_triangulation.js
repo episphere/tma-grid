@@ -241,7 +241,7 @@ function traveling_algorithm(
   segments = initializeSegments(segments);
 
   while (segments.length > 0) {
-    let { startPoint, row } = findStartVectorAndRow(segments);
+    let { startPoint, row } = findStartVectorAndRow(segments, originAngle);
     let endPoint = startPoint.end;
     let isEndPointReal = true;
     segments = segments.filter(segment => segment.index !== startPoint.index);
@@ -322,10 +322,12 @@ function initializeSegments(segments) {
     isImaginary: false,
   }));
 }
-function findStartVectorAndRow(segments) {
+function findStartVectorAndRow(segments, originAngle) {
+
   let startVector = segments.reduce((prev, curr) => 
-    prev.start[0] < curr.start[0] ? prev : curr
+    rotatePoint(prev.start,-originAngle)[0] < rotatePoint(curr.start,-originAngle)[0] ? prev : curr
   );
+
   let row = [startVector];
   return { startPoint: startVector, row: row };
 }
