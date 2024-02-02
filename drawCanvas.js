@@ -1194,15 +1194,17 @@ async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgori
     updateUI(angle);
     const hyperparameters = getHyperparameters(angle);
     const sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
-    return sortedCoresData.filter((core) => core.isImaginary).length;
+    return [sortedCoresData.filter((core) => core.isImaginary).length, sortedCoresData.length];
   };
 
   // Perform the initial targeted search and collect imaginary cores count
   let minImaginaryCores = Infinity;
+  let minImaginaryCorePercentage = Infinity;
   for (let angle = targetRange.start; angle <= targetRange.end; angle += searchIncrement) {
-    const imaginaryCoresCount = await countImaginaryCores(angle);
+    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(angle);
     if (imaginaryCoresCount < minImaginaryCores) {
       minImaginaryCores = imaginaryCoresCount;
+      minImaginaryCorePercentage = imaginaryCoresCount / totalCoresCount;
       anglesWithMinCores = [angle]; // Reset the array as this is the new minimum
     } else if (imaginaryCoresCount === minImaginaryCores) {
       anglesWithMinCores.push(angle); // Add this angle to the list of optimal angles
@@ -1214,16 +1216,18 @@ async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgori
     ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] + anglesWithMinCores[anglesWithMinCores.length / 2]) / 2
     : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 
+
+    debugger
   // If the median angle is within the targeted range, return it as the optimal angle
-  if (medianAngle >= targetRange.start && medianAngle <= targetRange.end) {
+  if (minImaginaryCorePercentage < 0.3) {
     return medianAngle;
   }
 
   // Otherwise, perform a broader search
   searchIncrement = 2; // Coarser increment for broad search
-  for (let angle = -90; angle <= 90; angle += searchIncrement) {
+  for (let angle = -50; angle <= 50; angle += searchIncrement) {
     if (angle >= targetRange.start && angle <= targetRange.end) continue; // Skip the targeted range
-    const imaginaryCoresCount = await countImaginaryCores(angle);
+    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(angle);
     if (imaginaryCoresCount < minImaginaryCores) {
       minImaginaryCores = imaginaryCoresCount;
       anglesWithMinCores = [angle]; // Reset the array as this is the new minimum
