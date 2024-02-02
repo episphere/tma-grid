@@ -1005,13 +1005,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       window.viewer.removeAllHandlers("canvas-drag-end");
     } else {
       document.addEventListener("keydown", (e) => {
-        e.preventDefault();
-        if (e.key === "Escape") {
-          addCoreHandler();
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          addCoreHandler()
         }
-      });
-      addCoreBtn.classList.add("active");
-      window.viewer.canvas.style.cursor = "crosshair";
+      })
+      addCoreBtn.classList.add("active")
+      window.viewer.canvas.style.cursor = "crosshair"
 
       const core = {
         x: -1,
