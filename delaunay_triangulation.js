@@ -391,7 +391,7 @@ function pointInSector(V_prime, Vj, radius, phi, originAngle) {
 
 function isCloseToImageWidth(point, imageWidth, gamma, originAngle) {
 
-  return imageWidth - point[0] < gamma;
+  return imageWidth - rotatePoint(point, -originAngle)[0] < gamma;
 }
 function checkImaginaryPointsLimit(row) {
   let consecutiveImaginaryPoints = row.reduce((count, vec) => {
