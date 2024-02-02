@@ -291,6 +291,42 @@ const applyDilation = (opening) => {
   return dilated;
 };
 
+function getSmallHoleThreshold(areas, percentAreaTolerance = 0.1, percentThreshold = 0.8){
+  // Step 1: Sort the areas to facilitate clustering
+  areas.sort((a, b) => a - b);
+
+  // Step 2: Cluster areas that are within 10% of each other
+  let clusters = [];
+  let tolerance = percentAreaTolerance
+
+  for (let area of areas) {
+      let added = false;
+      for (let cluster of clusters) {
+          // Check if the area is within 10% of any cluster's range
+          if (cluster.some(a => Math.abs(a - area) / area <= tolerance)) {
+              cluster.push(area);
+              added = true;
+              break;
+          }
+      }
+      // If the area doesn't fit into any cluster, create a new one
+      if (!added) clusters.push([area]);
+  }
+
+  // Step 3: Find the cluster with the highest frequency (mode)
+  let modeCluster = clusters.reduce((prev, current) => (prev.length > current.length) ? prev : current);
+
+  // Calculate the mode area within the most frequent cluster
+  // Since areas within a cluster are considered the same, just pick the first one
+  let modeArea = modeCluster[0];
+
+  // Step 4: Determine the small hole size threshold as percentThreshold times the mode area
+  let smallHoleThreshold = modeArea * percentThreshold;
+
+  // Output the threshold
+  console.log(smallHoleThreshold);
+  return smallHoleThreshold;
+}
 // Find and fill small holes
 const fillSmallHoles = (opening, dilated) => {
   let holes = new cv.Mat();
@@ -300,6 +336,7 @@ const fillSmallHoles = (opening, dilated) => {
   let centroids = new cv.Mat();
   cv.connectedComponentsWithStats(holes, labels, stats, centroids);
 
+  visualizeMarkers(holes, "holes03.png");
   // Assuming a threshold calculation step here, similar to the original logic
   let smallHolesMask = cv.Mat.zeros(holes.rows, holes.cols, cv.CV_8UC1);
 
@@ -309,15 +346,7 @@ const fillSmallHoles = (opening, dilated) => {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
     areas.push(area);
   }
-
-  // Calculate the median area
-  areas.sort((a, b) => a - b);
-  let medianArea = areas.length % 2 === 1
-    ? areas[Math.floor(areas.length / 2)]
-    : (areas[areas.length / 2 - 1] + areas[areas.length / 2]) / 2;
-  
-  // Determine the small hole size threshold as 25% of the median area
-  let smallHoleThreshold = medianArea * 0.25;
+  const smallHoleThreshold = getSmallHoleThreshold(areas, 0.1, 0.5);
 
   // This step was missing from the original correction, so it's reintroduced here
   for (let i = 1; i < stats.rows; i++) {
@@ -404,6 +433,8 @@ function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 
   const gray = toGrayscale(data);
   const binary = toBinary(gray);
   const opening = applyOpening(binary);
+  visualizeMarkers(opening, "opening03.png");
+
   const dilated = applyDilation(opening);
   const filledOpening = fillSmallHoles(opening, dilated);
   const sureFg = thresholdDistanceTransform(filledOpening, disTransformMultiplier);
@@ -413,7 +444,6 @@ function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 
   // Visualize each step
   visualizeMarkers(gray, "grayScaleInput01.png");
   visualizeMarkers(binary, "binary02.png");
-  visualizeMarkers(opening, "opening03.png");
   visualizeMarkers(filledOpening, "filledOpening05.png");
   visualizeMarkers(sureFg, "sureFg06.png");
 
@@ -565,6 +595,7 @@ async function runPipeline(
     disTransformMultiplier
   );
 
+  debugger
   // Original image dimensions
   const originalWidth = imageElement.width;
   const originalHeight = imageElement.height;
