@@ -7,7 +7,8 @@ import { visualizeSegmentationResults } from "./drawCanvas.js";
 function loadOpenCV() {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js";
+    script.src =
+      "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js";
     script.async = true;
     script.defer = true;
 
@@ -41,41 +42,6 @@ async function loadModel(modelUrl) {
   }
 }
 
-function calculateCentroids(markers, minArea, maxArea) {
-  let regions = {};
-
-  // Iterate through each pixel in the markers matrix
-  for (let i = 0; i < markers.rows; i++) {
-    for (let j = 0; j < markers.cols; j++) {
-      let label = markers.intPtr(i, j)[0];
-      if (label === 0) continue; // Skip the background
-
-      if (!(label in regions)) {
-        regions[label] = { xSum: 0, ySum: 0, count: 0 };
-      }
-
-      regions[label].xSum += j;
-      regions[label].ySum += i;
-      regions[label].count += 1;
-    }
-  }
-
-  let centroids = {};
-  for (let label in regions) {
-    let region = regions[label];
-    let area = region.count;
-    if (area >= minArea && area <= maxArea) {
-      centroids[label] = {
-        x: region.xSum / area,
-        y: region.ySum / area,
-        radius: Math.sqrt(area / Math.PI), // radius
-      };
-    }
-  }
-
-  return centroids;
-}
-
 function getMaxValue(mat) {
   let maxVal = 0;
   for (let i = 0; i < mat.rows; i++) {
@@ -90,9 +56,8 @@ function getMaxValue(mat) {
 }
 
 function visualizeMarkers(distTransform, imgElementId) {
-
   return;
-  
+
   // Normalize the distance transform image to be in the range of 0-255 for visualization
   let normalized = new cv.Mat();
   cv.normalize(distTransform, normalized, 0, 255, cv.NORM_MINMAX, cv.CV_8UC1);
@@ -172,7 +137,6 @@ function displayImage(image, filename) {
 //   let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
 //   let closing = new cv.Mat();
 //   cv.morphologyEx(opening, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 1);
-    
 
 //   // Sure background area
 //   let sureBg = new cv.Mat();
@@ -194,7 +158,6 @@ function displayImage(image, filename) {
 //   sureFg.convertTo(sureFg, cv.CV_8U);
 //   let unknown = new cv.Mat();
 //   cv.subtract(sureBg, sureFg, unknown);
-
 
 //   // Marker labelling
 //   let markers = new cv.Mat();
@@ -227,13 +190,10 @@ function displayImage(image, filename) {
 
 //   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
 
-
 //   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
 
 //   visualizeMarkers(opening, "opening02.png");
 
-
-  
 //   visualizeMarkers(sureBg, "sureBg04.png");
 
 //   visualizeMarkers(sureFg, "sureFg05.png");
@@ -252,7 +212,7 @@ function displayImage(image, filename) {
 //   unknown.delete();
 //   markers.delete();
 //   markersAdjusted.delete();
-//   // contours?.delete(); 
+//   // contours?.delete();
 //   // hierarchy?.delete();
 //   return properties;
 // }
@@ -291,30 +251,36 @@ const applyDilation = (opening) => {
   return dilated;
 };
 
-function getSmallHoleThreshold(areas, percentAreaTolerance = 0.1, percentThreshold = 0.8){
+function getSmallHoleThreshold(
+  areas,
+  percentAreaTolerance = 0.1,
+  percentThreshold = 0.8
+) {
   // Step 1: Sort the areas to facilitate clustering
   areas.sort((a, b) => a - b);
 
   // Step 2: Cluster areas that are within 10% of each other
   let clusters = [];
-  let tolerance = percentAreaTolerance
+  let tolerance = percentAreaTolerance;
 
   for (let area of areas) {
-      let added = false;
-      for (let cluster of clusters) {
-          // Check if the area is within 10% of any cluster's range
-          if (cluster.some(a => Math.abs(a - area) / area <= tolerance)) {
-              cluster.push(area);
-              added = true;
-              break;
-          }
+    let added = false;
+    for (let cluster of clusters) {
+      // Check if the area is within 10% of any cluster's range
+      if (cluster.some((a) => Math.abs(a - area) / area <= tolerance)) {
+        cluster.push(area);
+        added = true;
+        break;
       }
-      // If the area doesn't fit into any cluster, create a new one
-      if (!added) clusters.push([area]);
+    }
+    // If the area doesn't fit into any cluster, create a new one
+    if (!added) clusters.push([area]);
   }
 
   // Step 3: Find the cluster with the highest frequency (mode)
-  let modeCluster = clusters.reduce((prev, current) => (prev.length > current.length) ? prev : current);
+  let modeCluster = clusters.reduce((prev, current) =>
+    prev.length > current.length ? prev : current
+  );
 
   // Calculate the mode area within the most frequent cluster
   // Since areas within a cluster are considered the same, just pick the first one
@@ -324,7 +290,6 @@ function getSmallHoleThreshold(areas, percentAreaTolerance = 0.1, percentThresho
   let smallHoleThreshold = modeArea * percentThreshold;
 
   // Output the threshold
-  console.log(smallHoleThreshold);
   return smallHoleThreshold;
 }
 // Find and fill small holes
@@ -352,7 +317,6 @@ const fillSmallHoles = (opening, dilated) => {
   for (let i = 1; i < stats.rows; i++) {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
     // Define your smallHoleThreshold based on the median area or another criterion
-    
 
     if (area < smallHoleThreshold) {
       let blobLabel = i;
@@ -370,8 +334,20 @@ const fillSmallHoles = (opening, dilated) => {
 
   let contours = new cv.MatVector();
   let hierarchy = new cv.Mat();
-  cv.findContours(smallHolesMask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-  cv.drawContours(opening, contours, -1, new cv.Scalar(255, 255, 255, 255), cv.FILLED);
+  cv.findContours(
+    smallHolesMask,
+    contours,
+    hierarchy,
+    cv.RETR_EXTERNAL,
+    cv.CHAIN_APPROX_SIMPLE
+  );
+  cv.drawContours(
+    opening,
+    contours,
+    -1,
+    new cv.Scalar(255, 255, 255, 255),
+    cv.FILLED
+  );
 
   holes.delete();
   labels.delete();
@@ -395,7 +371,7 @@ const calculateRegionProperties = (image, minArea, maxArea) => {
   for (let i = 1; i < stats.rows; i++) {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
     if (area >= minArea && area <= maxArea) {
-      let x = centroids.data64F[i * 2];     // X coordinate
+      let x = centroids.data64F[i * 2]; // X coordinate
       let y = centroids.data64F[i * 2 + 1]; // Y coordinate
       centroidsFinal.push({ x, y, area });
     }
@@ -409,7 +385,6 @@ const calculateRegionProperties = (image, minArea, maxArea) => {
 };
 
 function thresholdDistanceTransform(matrix, disTransformMultiplier) {
-
   //   // Finding sure foreground area
   let distTransform = new cv.Mat();
   cv.distanceTransform(matrix, distTransform, cv.DIST_L2, 5);
@@ -429,7 +404,12 @@ function thresholdDistanceTransform(matrix, disTransformMultiplier) {
 }
 
 // Main segmentation function
-function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 0.6) {
+function segmentationAlgorithm(
+  data,
+  minArea,
+  maxArea,
+  disTransformMultiplier = 0.6
+) {
   const gray = toGrayscale(data);
   const binary = toBinary(gray);
   const opening = applyOpening(binary);
@@ -437,9 +417,11 @@ function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 
 
   const dilated = applyDilation(opening);
   const filledOpening = fillSmallHoles(opening, dilated);
-  const sureFg = thresholdDistanceTransform(filledOpening, disTransformMultiplier);
+  const sureFg = thresholdDistanceTransform(
+    filledOpening,
+    disTransformMultiplier
+  );
   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
-
 
   // Visualize each step
   visualizeMarkers(gray, "grayScaleInput01.png");
@@ -454,11 +436,8 @@ function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 
   dilated.delete();
   // filledOpening.delete(); // Ensure this is correct; may need to adjust based on actual use
 
-
   return centroidsFinal;
 }
-
-
 
 async function preprocessAndPredict(imageElement, model) {
   // Function to crop the image if it's larger than 1024x1024
@@ -542,6 +521,38 @@ function applyThreshold(predictions, threshold) {
   return predictions.greaterEqual(tf.scalar(threshold)).toFloat();
 }
 
+function calculateMedianSpacing(points) {
+  let distances = [];
+
+  // Get all the distances between points and store them in an array
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      let dx = points[i].x - points[j].x;
+      let dy = points[i].y - points[j].y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+      distances.push(distance);
+    }
+  }
+
+  // Sort the distances
+  distances.sort((a, b) => a - b);
+
+  // Calculate the median of the distances
+  let median;
+  const mid = Math.floor(distances.length / 2);
+  
+  if (distances.length % 2 === 0) {
+    // If even number of distances, median is average of two central numbers
+    median = (distances[mid - 1] + distances[mid]) / 2;
+  } else {
+    // If odd number of distances, median is the middle number
+    median = distances[mid];
+  }
+
+  return median;
+}
+
+
 function tensorToCvMat(tensor) {
   // Squeeze the tensor to remove dimensions of size 1
   const squeezed = tensor.squeeze();
@@ -572,7 +583,8 @@ async function runPipeline(
   maxArea,
   disTransformMultiplier,
   visualizationContainer,
-  maskAlpha = 0.3
+  maskAlpha = 0.3,
+  autoDetermineParameters = true
 ) {
   // Preprocess the image and predict
   if (!window.neuralNetworkResult) {
@@ -595,8 +607,12 @@ async function runPipeline(
     disTransformMultiplier
   );
 
-  debugger
-  // Original image dimensions
+  if (autoDetermineParameters) {
+    // const averageSpacing = calculateMedianSpacing(properties);
+    // console.log(averageSpacing);
+  }
+  // debugger;
+  // Original image dimensionsƒ
   const originalWidth = imageElement.width;
   const originalHeight = imageElement.height;
 
@@ -621,7 +637,6 @@ async function runPipeline(
     maskAlpha
   );
 }
-
 
 export {
   loadModel,

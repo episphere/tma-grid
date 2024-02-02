@@ -269,6 +269,7 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
   const d = calculateAverageDistance(coordinatesInput);
   const imageWidth = calculateGridWidth(normalizedCores, d, params.multiplier);
 
+  console.log(d);
   // Update the form values with the new calculations
   document.getElementById("originAngle").value = originAngle.toFixed(2);
   document.getElementById("gridWidth").value = d.toFixed(2);
