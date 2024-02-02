@@ -1176,7 +1176,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 }
 // Function to find the optimal angle that minimizes imaginary cores
 async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgorithm, updateUI) {
-  let targetRange = { start: -5, end: 5 };
+  let targetRange = { start: -10, end: 10 };
   let searchIncrement = 1; // Fine-grained for targeted search
   let anglesWithMinCores = []; // Store angles with the minimum imaginary cores
 
