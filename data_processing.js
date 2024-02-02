@@ -25,20 +25,22 @@ function rotatePoint(point, angle) {
   return [newX, newY];
 }
 
+
 async function preprocessForTravelingAlgorithm() {
   await loadDataAndDetermineParams(
     window.preprocessedCores,
     getHyperparametersFromUI()
   );
 
-  applyAndVisualizeTravelingAlgorithm();
+  applyAndVisualizeTravelingAlgorithm(null, true);
 }
 
 // Function to calculate the median x coordinate of the first column
 function calculateMedianX(sortedRows, originAngle) {
-
   // Extract the x coordinate of the first column from each row
-  let firstColumnXValues = sortedRows.map((row) => rotatePoint(row[0].point, -originAngle)[0]);
+  let firstColumnXValues = sortedRows.map(
+    (row) => rotatePoint(row[0].point, -originAngle)[0]
+  );
   firstColumnXValues.sort((a, b) => a - b);
   let middleIndex = Math.floor(firstColumnXValues.length / 2);
   // Calculate median
@@ -60,7 +62,6 @@ function normalizeRowsByAddingImaginaryPoints(
   originAngle,
   thresholdForImaginaryPoints = 0.6
 ) {
-
   return sortedRows.map((row, index) => {
     // Rotate first point to align with the x-axis
     let rotatedFirstPoint = rotatePoint(row[0].point, -originAngle);
@@ -69,20 +70,25 @@ function normalizeRowsByAddingImaginaryPoints(
     let offsetX = rotatedFirstPoint[0] - medianX;
 
     // Determine the number of imaginary points to add
-    let imaginaryPointsCount = Math.max(0, Math.floor((offsetX / gridWidth) + thresholdForImaginaryPoints));
+    let imaginaryPointsCount = Math.max(
+      0,
+      Math.floor(offsetX / gridWidth + thresholdForImaginaryPoints)
+    );
 
     // Generate imaginary points
     let imaginaryPoints = [];
     for (let i = imaginaryPointsCount - 1; i >= 0; i--) {
       imaginaryPoints.push({
-        point: rotatePoint([rotatedFirstPoint[0] - (i + 1) * gridWidth, rotatedFirstPoint[1]], originAngle),
+        point: rotatePoint(
+          [rotatedFirstPoint[0] - (i + 1) * gridWidth, rotatedFirstPoint[1]],
+          originAngle
+        ),
         row: index,
         col: imaginaryPointsCount - 1 - i,
         isImaginary: true,
         annotations: "",
       });
     }
-
 
     // Rotate back and combine with existing points
     let normalizedRow = imaginaryPoints.concat(
@@ -99,6 +105,30 @@ function normalizeRowsByAddingImaginaryPoints(
 
     return normalizedRow;
   });
+}
+
+// Helper function to transpose rows and columns without adding undefined values
+function transpose(matrix) {
+  // Check if the matrix is empty
+  if (matrix.length === 0 || matrix[0].length === 0) {
+    return [];
+  }
+
+  // Initialize the transposed array with empty arrays for each column based on the longest row
+  const maxLength = Math.max(...matrix.map((row) => row.length));
+  let transposed = Array.from({ length: maxLength }, () => []);
+
+  // Loop through each row and column to populate the transposed matrix, excluding undefined values
+  matrix.forEach((row, rowIndex) => {
+    row.forEach((item, colIndex) => {
+      // Only add the item to the transposed array if it exists
+      if (item !== undefined) {
+        transposed[colIndex].push(item);
+      }
+    });
+  });
+
+  return transposed;
 }
 
 async function runTravelingAlgorithm(normalizedCores, params) {
@@ -136,7 +166,6 @@ async function runTravelingAlgorithm(normalizedCores, params) {
   );
 
   function sortRowsByRotatedPoints(rows, originAngle) {
-
     // Temporarily rotate the first point of each row for sorting purposes
     let sortingHelper = rows.map((row) => {
       return {
@@ -163,17 +192,25 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.gridWidth,
     params.originAngle
   );
+  
+  // // Transpose rows to columns
+  // let columns = transpose(sortedRows);
+
+  // // Filter out columns where every cell is imaginary
+  // columns = columns.filter((column) => column.some((v) => !v.isImaginary));
+
+  // // Transpose back to rows
+  // sortedRows = transpose(columns);
 
   const userRadius = document.getElementById("userRadius").value;
 
   let sortedData = [];
   sortedRows.forEach((row, rowIndex) => {
     row.forEach((core, colIndex) => {
-
       // Add the core or imaginary point to sortedData
       sortedData.push({
-        x: (core.point[0] + window.preprocessingData.minX),
-        y: (core.point[1] + window.preprocessingData.minY),
+        x: core.point[0] + window.preprocessingData.minX,
+        y: core.point[1] + window.preprocessingData.minY,
         row: rowIndex,
         col: colIndex,
         currentRadius: parseInt(userRadius),
@@ -183,29 +220,24 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     });
   });
 
-  
   updateSpacingInVirtualGrid(params.gridWidth);
-  
-  return sortedData;
 
+  return sortedData;
 }
 
 // Function to update the horizontal and vertical spacing based on the calculated distance between cores
 
 function updateSpacingInVirtualGrid(distance) {
-
   document.getElementById("horizontalSpacing").value = distance.toFixed(2);
 
-  document.getElementById("horizontalSpacingValue").textContent = distance.toFixed(2);
+  document.getElementById("horizontalSpacingValue").textContent =
+    distance.toFixed(2);
 
   document.getElementById("verticalSpacing").value = distance.toFixed(2);
 
-  document.getElementById("verticalSpacingValue").textContent = distance.toFixed(2);
-
-
+  document.getElementById("verticalSpacingValue").textContent =
+    distance.toFixed(2);
 }
-
-
 
 // Updated function to accept hyperparameters and cores data
 async function loadDataAndDetermineParams(normalizedCores, params) {
@@ -256,14 +288,13 @@ function saveUpdatedCores() {
     return;
   }
 
-
   // Create finalSaveData by mapping over sortedCoresData
-  const finalSaveData = window.sortedCoresData.map(core => {
+  const finalSaveData = window.sortedCoresData.map((core) => {
     return {
       ...core,
       x: core.x / window.scalingFactor,
       y: core.y / window.scalingFactor,
-      currentRadius: core.currentRadius / window.scalingFactor
+      currentRadius: core.currentRadius / window.scalingFactor,
     };
   });
 
@@ -274,12 +305,15 @@ function saveUpdatedCores() {
     const metadataColName = window.metadataColName;
 
     // Update userUploadedMetadata with sortedCoresData information
-    finalSaveData.forEach(core => {
+    finalSaveData.forEach((core) => {
       // Finding the matching metadata entry by row and column values
-      const metadataEntry = window.userUploadedMetadata.find(entry => {
+      const metadataEntry = window.userUploadedMetadata.find((entry) => {
         // Ensure both row and column values match
         // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
-        return entry[metadataRowName] == core.row+1 && entry[metadataColName] == core.col+1;
+        return (
+          entry[metadataRowName] == core.row + 1 &&
+          entry[metadataColName] == core.col + 1
+        );
       });
 
       if (metadataEntry) {
@@ -297,26 +331,26 @@ function saveUpdatedCores() {
     // You can process or save this updated metadata as needed
 
     // For example, you might want to save it to a JSON file
-    const updatedMetadataStr = "data:text/json;charset=utf-8," +
-                               encodeURIComponent(JSON.stringify(window.userUploadedMetadata));
+    const updatedMetadataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(window.userUploadedMetadata));
     const downloadAnchorNode = document.createElement("a");
     downloadAnchorNode.setAttribute("href", updatedMetadataStr);
     downloadAnchorNode.setAttribute("download", "updated_metadata.json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-
   } else {
     // Download the sorted cores data as a JSON file if no metadata was uploaded
-    const dataStr = "data:text/json;charset=utf-8," +
-                    encodeURIComponent(JSON.stringify(finalSaveData));
+    const dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(finalSaveData));
     const downloadAnchorNode = document.createElement("a");
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "sorted_cores.json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-
   }
 }
 

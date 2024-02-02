@@ -222,6 +222,9 @@ function normalizeAngleDegrees(angle) {
   return angle % 360;
 }
 
+
+
+
 function traveling_algorithm(
   segments,
   imageWidth,

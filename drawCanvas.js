@@ -19,7 +19,7 @@ const getInputValue = (inputId) => document.getElementById(inputId).value;
 window.actionHistory = [];
 let currentActionIndex = -1;
 
-function getMousePosition(event, canvasID ="coreCanvas") {
+function getMousePosition(event, canvasID = "coreCanvas") {
   const canvas = document.getElementById(canvasID);
   // Calculate scale factors based on the actual size of the canvas
   const rect = canvas.getBoundingClientRect();
@@ -33,8 +33,10 @@ function getMousePosition(event, canvasID ="coreCanvas") {
 }
 
 function handleCanvasClick(event) {
-  const [ offsetX, offsetY ] = getMousePosition(event, "segmentationResultsCanvas");
-
+  const [offsetX, offsetY] = getMousePosition(
+    event,
+    "segmentationResultsCanvas"
+  );
 
   if (event.shiftKey) {
     // If the shift key is pressed, remove a core
@@ -44,8 +46,6 @@ function handleCanvasClick(event) {
     addCore(offsetX, offsetY);
   }
 }
-
-
 
 // Function to add a core
 function addCore(x, y) {
@@ -126,14 +126,13 @@ function drawProperties(ctx, properties) {
     properties = Object.values(properties);
   }
 
-  properties.forEach(prop => {
+  properties.forEach((prop) => {
     ctx.beginPath();
     ctx.arc(prop.x, prop.y, 5, 0, 2 * Math.PI);
     ctx.fillStyle = "blue";
     ctx.fill();
   });
 }
-
 
 async function processPredictions(predictions) {
   return await tf.tidy(() => {
@@ -147,20 +146,19 @@ async function processPredictions(predictions) {
   });
 }
 
-
 function drawMask(ctx, mask, alpha, width, height) {
   // Create a temporary canvas to draw the mask
-  const maskCanvas = document.createElement('canvas');
-  const maskCtx = maskCanvas.getContext('2d');
-  
+  const maskCanvas = document.createElement("canvas");
+  const maskCtx = maskCanvas.getContext("2d");
+
   // Set the dimensions of the mask canvas
   maskCanvas.width = width;
   maskCanvas.height = height;
-  
+
   // Create ImageData to store mask pixels
   const maskImageData = maskCtx.createImageData(width, height);
   const maskData = maskImageData.data;
-  
+
   // Iterate over the mask array to set pixels on the mask canvas
   mask.forEach((row, i) => {
     row.forEach((maskValue, j) => {
@@ -171,10 +169,10 @@ function drawMask(ctx, mask, alpha, width, height) {
       maskData[index + 3] = maskValue * 255; // Alpha channel
     });
   });
-  
+
   // Put the mask ImageData onto the mask canvas
   maskCtx.putImageData(maskImageData, 0, 0);
-  
+
   // Now draw the mask canvas onto the main canvas with the specified alpha
   ctx.globalAlpha = alpha;
   ctx.drawImage(maskCanvas, 0, 0);
@@ -222,7 +220,7 @@ async function visualizeSegmentationResults(
     originalImage.naturalWidth,
     originalImage.naturalHeight,
   ];
-  
+
   const canvas = document.getElementById(canvasID);
   const ctx = canvas.getContext("2d");
   canvas.width = width;
@@ -230,7 +228,7 @@ async function visualizeSegmentationResults(
 
   ctx.drawImage(originalImage, 0, 0, width, height);
 
-  const segmentationOutput = await processPredictions(predictions)
+  const segmentationOutput = await processPredictions(predictions);
 
   drawMask(ctx, segmentationOutput, alpha, width, height);
   drawProperties(ctx, properties);
@@ -238,8 +236,8 @@ async function visualizeSegmentationResults(
   addSegmentationCanvasEventListeners(canvas);
 }
 
-function addSegmentationCanvasEventListeners(canvas){
-  canvas.addEventListener('mousedown', function(event) {
+function addSegmentationCanvasEventListeners(canvas) {
+  canvas.addEventListener("mousedown", function (event) {
     // Throttle clicks to avoid rapid repeated actions if necessary
     const currentTime = Date.now();
     if (currentTime - lastActionTime > actionDebounceInterval) {
@@ -249,28 +247,27 @@ function addSegmentationCanvasEventListeners(canvas){
   });
 
   document
-  .getElementById("undoButton")
-  .addEventListener("mousedown", function () {
-    // Undo action here
+    .getElementById("undoButton")
+    .addEventListener("mousedown", function () {
+      // Undo action here
 
-    const currentTime = Date.now();
-    if (currentTime - lastActionTime > actionDebounceInterval) {
-      undo();
-    }
-    lastActionTime = currentTime;
-  });
+      const currentTime = Date.now();
+      if (currentTime - lastActionTime > actionDebounceInterval) {
+        undo();
+      }
+      lastActionTime = currentTime;
+    });
 
-document
-  .getElementById("redoButton")
-  .addEventListener("mousedown", function () {
-    // Redo action here
-    const currentTime = Date.now();
-    if (currentTime - lastActionTime > actionDebounceInterval) {
-      redo();
-    }
-    lastActionTime = currentTime;
-  });
-
+  document
+    .getElementById("redoButton")
+    .addEventListener("mousedown", function () {
+      // Redo action here
+      const currentTime = Date.now();
+      if (currentTime - lastActionTime > actionDebounceInterval) {
+        redo();
+      }
+      lastActionTime = currentTime;
+    });
 }
 
 function drawCoresOnCanvasForTravelingAlgorithm() {
@@ -281,7 +278,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 
   // const canvas = document.getElementById("coreCanvas");
   // window.viewer.viewport.goHome()
-  const canvas = window.viewer.canvas.firstElementChild
+  const canvas = window.viewer.canvas.firstElementChild;
   // debugger
   const ctx = canvas.getContext("2d");
   let selectedCore = null;
@@ -310,7 +307,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       imageNeedsUpdate = true;
     }
   }
-  function connectAdjacentCores(core, updateSurroundings=false) {
+  function connectAdjacentCores(core, updateSurroundings = false) {
     // Helper function to calculate the edge point
     // function calculateEdgePoint(center1, center2, r1, r2) {
     //   const angle = Math.atan2(center2.y - center1.y, center2.x - center1.x);
@@ -325,44 +322,71 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     //     },
     //   };
     // }
-    if (isNaN(parseInt(core.row)) || isNaN(parseInt(core.col)) || core.isTemporary) {
-      return
+    if (
+      isNaN(parseInt(core.row)) ||
+      isNaN(parseInt(core.col)) ||
+      core.isTemporary
+    ) {
+      return;
     }
     // Find adjacent cores based on row and column
     const adjacentPositions = [
-      [1,0], [0, 1]
+      [1, 0],
+      [0, 1],
     ];
 
     if (updateSurroundings) {
-      adjacentPositions.push([-1, 0])
-      adjacentPositions.push([0, -1])
+      adjacentPositions.push([-1, 0]);
+      adjacentPositions.push([0, -1]);
     }
 
     adjacentPositions.forEach((pos) => {
       const adjacentCore = window.sortedCoresData.find(
-        (c) => c.row === core.row+pos[0] && c.col === core.col+pos[1]
+        (c) => c.row === core.row + pos[0] && c.col === core.col + pos[1]
       );
       if (adjacentCore) {
-        const startCore = (core.row <= adjacentCore.row && core.col <= adjacentCore.col) ? core : adjacentCore
-        const endCore = startCore === adjacentCore ? core : adjacentCore
-        const svgOverlay = window.viewer.svgOverlay()
-        const point1 = window.viewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(startCore.x + (endCore.col - startCore.col)*startCore.currentRadius, startCore.y + (endCore.row - startCore.row)*startCore.currentRadius))
-        const point2 = window.viewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(endCore.x - (endCore.col-startCore.col)*endCore.currentRadius, endCore.y - (endCore.row - startCore.row)*endCore.currentRadius))
-        const id = `line_rowStart_${startCore.row}_colStart_${startCore.col}_rowEnd_${endCore.row}_colEnd_${endCore.col}`
-        let line = svgOverlay.node().querySelector(`line#${id}`)
+        const startCore =
+          core.row <= adjacentCore.row && core.col <= adjacentCore.col
+            ? core
+            : adjacentCore;
+        const endCore = startCore === adjacentCore ? core : adjacentCore;
+        const svgOverlay = window.viewer.svgOverlay();
+        const point1 = window.viewer.viewport.imageToViewportCoordinates(
+          new OpenSeadragon.Point(
+            startCore.x +
+              (endCore.col - startCore.col) * startCore.currentRadius,
+            startCore.y +
+              (endCore.row - startCore.row) * startCore.currentRadius
+          )
+        );
+        const point2 = window.viewer.viewport.imageToViewportCoordinates(
+          new OpenSeadragon.Point(
+            endCore.x - (endCore.col - startCore.col) * endCore.currentRadius,
+            endCore.y - (endCore.row - startCore.row) * endCore.currentRadius
+          )
+        );
+        const id = `line_rowStart_${startCore.row}_colStart_${startCore.col}_rowEnd_${endCore.row}_colEnd_${endCore.col}`;
+        let line = svgOverlay.node().querySelector(`line#${id}`);
 
         if (!line) {
-          line = document.createElementNS("http://www.w3.org/2000/svg", "line")
-          svgOverlay.node().appendChild(line)
+          line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          svgOverlay.node().appendChild(line);
         }
-        
-        line.id = id
-        line.setAttribute("x1", point1.x)
-        line.setAttribute("y1", point1.y)
-        line.setAttribute("x2", point2.x)
-        line.setAttribute("y2", point2.y)
-        line.setAttribute("stroke", "black")
-        line.setAttribute("stroke-width", Math.min(window.viewer.viewport.imageToViewportCoordinates(100, 100).x/window.viewer.viewport.getZoom(), 0.001))
+
+        line.id = id;
+        line.setAttribute("x1", point1.x);
+        line.setAttribute("y1", point1.y);
+        line.setAttribute("x2", point2.x);
+        line.setAttribute("y2", point2.y);
+        line.setAttribute("stroke", "black");
+        line.setAttribute(
+          "stroke-width",
+          Math.min(
+            window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
+              window.viewer.viewport.getZoom(),
+            0.001
+          )
+        );
       }
     });
   }
@@ -378,130 +402,172 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     //   img.src = window.loadedImg.src;
     // }
 
-    window.viewer.clearOverlays()
-    window.viewer.svgOverlay().node().replaceChildren()
-    window.viewer.removeAllHandlers('zoom')
-    window.viewer.addHandler('zoom', (e) => {
-      window.viewer.svgOverlay().node().querySelectorAll("line").forEach(element => {
-        element.setAttribute("stroke-width", Math.min(window.viewer.viewport.imageToViewportCoordinates(100, 100).x/window.viewer.viewport.getZoom(), 0.001))
-      })
-    })
+    window.viewer.clearOverlays();
+    window.viewer.svgOverlay().node().replaceChildren();
+    window.viewer.removeAllHandlers("zoom");
+    window.viewer.addHandler("zoom", (e) => {
+      window.viewer
+        .svgOverlay()
+        .node()
+        .querySelectorAll("line")
+        .forEach((element) => {
+          element.setAttribute(
+            "stroke-width",
+            Math.min(
+              window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
+                window.viewer.viewport.getZoom(),
+              0.001
+            )
+          );
+        });
+    });
     window.sortedCoresData.forEach(drawCore);
     window.sortedCoresData.forEach((core) => {
       connectAdjacentCores(core, false);
     });
   }
 
-  function drawCore(core, index=-1) {
+  function drawCore(core, index = -1) {
     // Add overlay element on the OSD viewer
-    
-    const overlayElement = document.createElement('div')
-    overlayElement.className = "core-overlay-for-gridding"
-    
-    const overlayTitleDiv = document.createElement('div')
-    overlayTitleDiv.className = "core-overlay-title-div"
+
+    const overlayElement = document.createElement("div");
+    overlayElement.className = "core-overlay-for-gridding";
+
+    const overlayTitleDiv = document.createElement("div");
+    overlayTitleDiv.className = "core-overlay-title-div";
     if (core.row >= 0 && core.col >= 0) {
-      overlayTitleDiv.innerText = `${core.row+1},${core.col+1}`
+      overlayTitleDiv.innerText = `${core.row + 1},${core.col + 1}`;
     }
-    overlayTitleDiv.style.top = `-${Math.floor(window.viewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(core.currentRadius/2, core.currentRadius/2)).x)}px`
-    overlayElement.appendChild(overlayTitleDiv)
+    overlayTitleDiv.style.top = `-${Math.floor(
+      window.viewer.viewport.imageToViewportCoordinates(
+        new OpenSeadragon.Point(core.currentRadius / 2, core.currentRadius / 2)
+      ).x
+    )}px`;
+    overlayElement.appendChild(overlayTitleDiv);
 
     if (core.isImaginary) {
-      overlayElement.classList.add("imaginary")
-    } if (core.isTemporary) {
-      overlayElement.classList.add("temporary")
-    } if (core.isSelected) {
-      overlayElement.classList.add("selected")
+      overlayElement.classList.add("imaginary");
     }
-    const overlayRect = window.viewer.viewport.imageToViewportRectangle(new OpenSeadragon.Rect(core.x - core.currentRadius, core.y - core.currentRadius, core.currentRadius*2, core.currentRadius*2))
-    window.viewer.addOverlay(overlayElement, overlayRect)
-    
+    if (core.isTemporary) {
+      overlayElement.classList.add("temporary");
+    }
+    if (core.isSelected) {
+      overlayElement.classList.add("selected");
+    }
+    const overlayRect = window.viewer.viewport.imageToViewportRectangle(
+      new OpenSeadragon.Rect(
+        core.x - core.currentRadius,
+        core.y - core.currentRadius,
+        core.currentRadius * 2,
+        core.currentRadius * 2
+      )
+    );
+    window.viewer.addOverlay(overlayElement, overlayRect);
+
     new OpenSeadragon.MouseTracker({
       element: overlayElement,
-      
+
       clickTimeThreshold: 200,
       clickDistThreshold: 50,
-      
+
       preProcessEventHandler: (e) => {
-        if (e.eventType === 'click' || e.eventType === 'drag' || e.eventType === 'dragEnd') {
+        if (
+          e.eventType === "click" ||
+          e.eventType === "drag" ||
+          e.eventType === "dragEnd"
+        ) {
           e.stopPropagation = true;
           e.preventDefault = true;
         }
       },
-      
+
       clickHandler: (e) => {
         if (e.quick) {
-          const overlay = window.viewer.getOverlayById(overlayElement)
-          const deleteBtnHandler = (e)=>{
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-              removeCoreFromGrid(core)
+          const overlay = window.viewer.getOverlayById(overlayElement);
+          const deleteBtnHandler = (e) => {
+            if (e.key === "Delete" || e.key === "Backspace") {
+              removeCoreFromGrid(core);
             }
-          }
+          };
           if (!overlayElement.classList.contains("selected")) {
-            window.viewer.currentOverlays.filter(overlay => overlay.element.classList.contains("selected")).forEach(selectedOverlay => {
-              selectedOverlay.element.classList.remove("selected")
-            })
-            overlayElement.classList.add("selected")
-            document.addEventListener('keydown', deleteBtnHandler, {once:true})
+            window.viewer.currentOverlays
+              .filter((overlay) =>
+                overlay.element.classList.contains("selected")
+              )
+              .forEach((selectedOverlay) => {
+                selectedOverlay.element.classList.remove("selected");
+              });
+            overlayElement.classList.add("selected");
+            document.addEventListener("keydown", deleteBtnHandler, {
+              once: true,
+            });
             // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
           } else {
-            overlayElement.classList.remove("selected")
-            document.removeEventListener('keydown', deleteBtnHandler)
+            overlayElement.classList.remove("selected");
+            document.removeEventListener("keydown", deleteBtnHandler);
             // selectedIndex = null
           }
         }
       },
-      
+
       dblClickHandler: (e) => {
-        const overlay = window.viewer.getOverlayById(overlayElement)
+        const overlay = window.viewer.getOverlayById(overlayElement);
         // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
-        overlayElement.classList.add("selected")
+        overlayElement.classList.add("selected");
         updateSidebar(core);
         positionSidebarNextToCore(e.originalEvent);
         // drawCores()
       },
-    
+
       dragHandler: (e) => {
-        const overlay = window.viewer.getOverlayById(overlayElement)
+        const overlay = window.viewer.getOverlayById(overlayElement);
         const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta);
-        
+
         if (!e.shift) {
-          overlay.element.style.cursor = "grabbing"
-          overlay.update(overlay.location.plus(delta))
+          overlay.element.style.cursor = "grabbing";
+          overlay.update(overlay.location.plus(delta));
         } else {
-          overlay.element.style.cursor = "nwse-resize"
-          let {width, height} = overlay.bounds
-          const factorToResizeBy = Math.max(delta.x, delta.y)
-          width += factorToResizeBy
-          height += factorToResizeBy
-          overlay.update(new OpenSeadragon.Rect(overlay.bounds.x, overlay.bounds.y, width, height))
+          overlay.element.style.cursor = "nwse-resize";
+          let { width, height } = overlay.bounds;
+          const factorToResizeBy = Math.max(delta.x, delta.y);
+          width += factorToResizeBy;
+          height += factorToResizeBy;
+          overlay.update(
+            new OpenSeadragon.Rect(
+              overlay.bounds.x,
+              overlay.bounds.y,
+              width,
+              height
+            )
+          );
         }
-        
-        overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
-        
-        const deltaPosInImageCoords = window.viewer.viewport.viewportToImageCoordinates(delta)
+
+        overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport);
+
+        const deltaPosInImageCoords =
+          window.viewer.viewport.viewportToImageCoordinates(delta);
         if (index !== -1) {
-          window.sortedCoresData[index].x += deltaPosInImageCoords.x
-          window.sortedCoresData[index].y += deltaPosInImageCoords.y
-          document.getElementById("editXInput").value = window.sortedCoresData[index].x
-          document.getElementById("editYInput").value =  window.sortedCoresData[index].y
-        
-          connectAdjacentCores(window.sortedCoresData[index], true)
+          window.sortedCoresData[index].x += deltaPosInImageCoords.x;
+          window.sortedCoresData[index].y += deltaPosInImageCoords.y;
+          document.getElementById("editXInput").value =
+            window.sortedCoresData[index].x;
+          document.getElementById("editYInput").value =
+            window.sortedCoresData[index].y;
+
+          connectAdjacentCores(window.sortedCoresData[index], true);
         }
-      
       },
-      
+
       dragEndHandler: (e) => {
-        const overlay = window.viewer.getOverlayById(overlayElement)
-        overlay.element.style.cursor = "auto"
+        const overlay = window.viewer.getOverlayById(overlayElement);
+        overlay.element.style.cursor = "auto";
         if (index !== -1) {
-          connectAdjacentCores(window.sortedCoresData[index], true)
+          connectAdjacentCores(window.sortedCoresData[index], true);
         }
-      }
-    
+      },
     });
 
-    return overlayElement
+    return overlayElement;
     // ctx.lineWidth = 2;
     // ctx.setLineDash([]); // Reset line dash for all cores
 
@@ -543,13 +609,12 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     // Reset selected index when switching modes
     selectedIndex = null;
     updateSidebar(null);
-
   }
 
   // Modified updateSidebar function to handle add mode
   function updateSidebar(core) {
     const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
-    
+
     document.getElementById(sidebarPrefix + "RowInput").value = core
       ? core.row + 1
       : "";
@@ -565,39 +630,33 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     document.getElementById(sidebarPrefix + "RadiusInput").value = core
       ? core.currentRadius * window.scalingFactor
       : "";
-    document.getElementById(sidebarPrefix + "AnnotationsInput").value = core?.annotations
-      ? core.annotations
-      : "";
+    document.getElementById(sidebarPrefix + "AnnotationsInput").value =
+      core?.annotations ? core.annotations : "";
     document.getElementById(sidebarPrefix + "RealInput").checked =
       !core?.isImaginary;
     document.getElementById(sidebarPrefix + "ImaginaryInput").checked =
       core?.isImaginary;
-    
+
     const saveHandler = (e) => {
       if (saveCore(core)) {
-        document.getElementById("saveCoreEdits").removeEventListener('click', saveHandler)
-        hideSidebar()
+        document
+          .getElementById("saveCoreEdits")
+          .removeEventListener("click", saveHandler);
+        hideSidebar();
       }
-    }
-    document.getElementById("saveCoreEdits").onclick = saveHandler
+    };
+    document.getElementById("saveCoreEdits").onclick = saveHandler;
 
     const removeHandler = (e) => {
-      removeCoreFromGrid(core)
-      document.getElementById("removeCoreButton").removeEventListener('click', removeHandler)
-      hideSidebar()
-    }
+      removeCoreFromGrid(core);
+      document
+        .getElementById("removeCoreButton")
+        .removeEventListener("click", removeHandler);
+      hideSidebar();
+    };
 
-    document.getElementById("removeCoreButton").onclick = removeHandler
-
-
-
-
+    document.getElementById("removeCoreButton").onclick = removeHandler;
   }
-
-  let mouseDown = false; // New variable to track if the mouse button is down
-  let initialMouseX, initialMouseY;
-  let initialCoreX, initialCoreY;
-
 
   // window.viewer.canvas.firstElementChild.addEventListener("mousedown", (event) => {x
   //   mouseDown = true; // Set the mouseDown flag to true
@@ -638,7 +697,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //       updateSidebar(selectedCore);
   //       drawCores();
   //     } else {
-        
+
   //       selectedCore = null;
   //       updateSidebar(null);
   //       hideSidebar();
@@ -788,85 +847,91 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //   }
   // });
 
-  function saveCore (core) {
+  function saveCore(core) {
     const oldRow = core?.row;
     if (!oldRow && !document.getElementById(currentMode + "RowInput").value) {
       alert("Please enter a value for the row");
-      return false
+      return false;
     }
-    
+
     core.row =
-      parseInt(
-        document.getElementById(currentMode + "RowInput").value,
-        10
-      ) - 1;
+      parseInt(document.getElementById(currentMode + "RowInput").value, 10) - 1;
     core.col =
-      parseInt(
-        document.getElementById(currentMode + "ColumnInput").value,
-        10
-      ) - 1;
-    core.x = parseFloat(
-      document.getElementById(currentMode + "XInput").value
-    ) / window.scalingFactor;
-    core.y = parseFloat(
-      document.getElementById(currentMode + "YInput").value
-    ) / window.scalingFactor;
-    core.currentRadius = parseFloat(
-      document.getElementById(currentMode + "RadiusInput").value
-    ) / window.scalingFactor;
+      parseInt(document.getElementById(currentMode + "ColumnInput").value, 10) -
+      1;
+    core.x =
+      parseFloat(document.getElementById(currentMode + "XInput").value) /
+      window.scalingFactor;
+    core.y =
+      parseFloat(document.getElementById(currentMode + "YInput").value) /
+      window.scalingFactor;
+    core.currentRadius =
+      parseFloat(document.getElementById(currentMode + "RadiusInput").value) /
+      window.scalingFactor;
     core.annotations = document.getElementById(
       currentMode + "AnnotationsInput"
     ).value;
-    
-    core.isTemporary = false
-    core.isSelected = false
+
+    core.isTemporary = false;
+    core.isSelected = false;
     // Update the isImaginary property based on which radio button is checked
     core.isImaginary = document.getElementById(
       currentMode + "ImaginaryInput"
     ).checked;
 
-    const coreIndex = window.sortedCoresData.findIndex(prevCore => prevCore.x === core.x && prevCore.y === core.y)
+    const coreIndex = window.sortedCoresData.findIndex(
+      (prevCore) => prevCore.x === core.x && prevCore.y === core.y
+    );
     // if (coreIndex === -1) {
     //   // Possibly new core, so col might be undefined.
     //   window.sortedCoresData.push(core)
     //   window.sortedCoresData = window.sortedCoresData.sort((a, b) => a.row - b.row || a.col - b.col)
     // } else {
     //   // Likely old core with just a change to class or annotation value.
-    window.sortedCoresData[coreIndex] = core
+    window.sortedCoresData[coreIndex] = core;
     // }
-    
+
     if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
       updateColumnsInRowAfterModification(core.row);
       updateColumnsInRowAfterModification(oldRow);
-      updateSidebar(core)
+      updateSidebar(core);
     }
-    
+
     drawCores(); // Redraw the cores with the updated data
-    
-    return true
+
+    return true;
   }
 
   function removeCoreFromGrid(core) {
-    const coreIndex = window.sortedCoresData.findIndex(coreToRemove => coreToRemove.x === core.x && coreToRemove.y === core.y && coreToRemove.row === core.row && coreToRemove.col === core.col)
+    const coreIndex = window.sortedCoresData.findIndex(
+      (coreToRemove) =>
+        coreToRemove.x === core.x &&
+        coreToRemove.y === core.y &&
+        coreToRemove.row === core.row &&
+        coreToRemove.col === core.col
+    );
     const modifiedRow = window.sortedCoresData[coreIndex].row;
 
     // Remove the selected core
     window.sortedCoresData.splice(coreIndex, 1);
 
     // Check if the removed core was the last real core in the row
-    const isLastRealCore = window.sortedCoresData.filter(core => 
-        core.row === modifiedRow && !core.isImaginary).length === 0;
+    const isLastRealCore =
+      window.sortedCoresData.filter(
+        (core) => core.row === modifiedRow && !core.isImaginary
+      ).length === 0;
 
     if (isLastRealCore) {
       // Remove all cores in the row
-      window.sortedCoresData = window.sortedCoresData.filter(core => 
-          core.row !== modifiedRow);
+      window.sortedCoresData = window.sortedCoresData.filter(
+        (core) => core.row !== modifiedRow
+      );
 
       // Update row numbers for cores in rows below the removed row
-      window.sortedCoresData.forEach(core => {
-          if (core.row > modifiedRow) {
-              core.row -= 1;
-          }
+      window.sortedCoresData.forEach((core) => {
+        if (core.row > modifiedRow) {
+          core.row -= 1;
+        }
       });
     }
 
@@ -932,74 +997,75 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   }
 
   const addCoreHandler = (e) => {
-
-    const addCoreBtn = document.getElementById("osdViewerAddCoreBtn")
+    const addCoreBtn = document.getElementById("osdViewerAddCoreBtn");
     if (addCoreBtn.classList.contains("active")) {
-      addCoreBtn.classList.remove("active")
-      window.viewer.canvas.style.cursor = "auto"
-      window.viewer.removeAllHandlers("canvas-drag")
-      window.viewer.removeAllHandlers("canvas-drag-end")
+      addCoreBtn.classList.remove("active");
+      window.viewer.canvas.style.cursor = "auto";
+      window.viewer.removeAllHandlers("canvas-drag");
+      window.viewer.removeAllHandlers("canvas-drag-end");
     } else {
       document.addEventListener("keydown", (e) => {
-        e.preventDefault()
-        if (e.key === 'Escape') {
-          addCoreHandler()
+        e.preventDefault();
+        if (e.key === "Escape") {
+          addCoreHandler();
         }
-      })
-      addCoreBtn.classList.add("active")
-      window.viewer.canvas.style.cursor = "crosshair"
+      });
+      addCoreBtn.classList.add("active");
+      window.viewer.canvas.style.cursor = "crosshair";
 
       const core = {
         x: -1,
         y: -1,
         currentRadius: -1,
         isTemporary: true,
-        isSelected: false
-      }
-      
-      let overlayElement = undefined
-      
+        isSelected: false,
+      };
+
+      let overlayElement = undefined;
+
       const dragHandler = (e) => {
-        e.preventDefaultAction = true
-        const positionInImage = window.viewer.viewport.viewerElementToImageCoordinates(e.position)
-        
+        e.preventDefaultAction = true;
+        const positionInImage =
+          window.viewer.viewport.viewerElementToImageCoordinates(e.position);
+
         if (core.x === -1) {
-          core.x = positionInImage.x
+          core.x = positionInImage.x;
         }
         if (core.y === -1) {
-          core.y = positionInImage.y
+          core.y = positionInImage.y;
         }
-        
-        core.currentRadius = Math.abs(Math.max(core.x - positionInImage.x, core.y - positionInImage.y))
-        
+
+        core.currentRadius = Math.abs(
+          Math.max(core.x - positionInImage.x, core.y - positionInImage.y)
+        );
+
         if (overlayElement) {
-          window.viewer.removeOverlay(overlayElement)
-          window.sortedCoresData[window.sortedCoresData.length - 1] = core
+          window.viewer.removeOverlay(overlayElement);
+          window.sortedCoresData[window.sortedCoresData.length - 1] = core;
         } else {
-          window.sortedCoresData.push(core)
+          window.sortedCoresData.push(core);
         }
-        overlayElement = drawCore(core, window.sortedCoresData.length - 1)
-      }
-      
-      window.viewer.addHandler('canvas-drag', dragHandler)
-      
-      window.viewer.addOnceHandler('canvas-drag-end', (e) => {
-        window.viewer.removeHandler('canvas-drag', dragHandler)
-        window.viewer.canvas.style.cursor = "auto"
-        addCoreBtn.classList.remove("active")
-        core.isSelected = true
-        dragHandler(e)
+        overlayElement = drawCore(core, window.sortedCoresData.length - 1);
+      };
+
+      window.viewer.addHandler("canvas-drag", dragHandler);
+
+      window.viewer.addOnceHandler("canvas-drag-end", (e) => {
+        window.viewer.removeHandler("canvas-drag", dragHandler);
+        window.viewer.canvas.style.cursor = "auto";
+        addCoreBtn.classList.remove("active");
+        core.isSelected = true;
+        dragHandler(e);
         updateSidebar(core);
         positionSidebarNextToCore(e.originalEvent);
-      })
+      });
     }
-    
-  }
+  };
 
   document
     .getElementById("osdViewerAddCoreBtn")
-    .addEventListener("click", addCoreHandler)
- 
+    .addEventListener("click", addCoreHandler);
+
   // document
   //   .getElementById("addCoreButton")
   //   .addEventListener("click", function () {
@@ -1108,28 +1174,137 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //   .getElementById("addAutoUpdateColumnsCheckbox")
   //   .addEventListener("change", toggleColumnInput);
 }
+// Function to find the optimal angle that minimizes imaginary cores
+async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgorithm, updateUI) {
+  let targetRange = { start: -5, end: 5 };
+  let searchIncrement = 1; // Fine-grained for targeted search
+  let anglesWithMinCores = []; // Store angles with the minimum imaginary cores
 
-async function applyAndVisualizeTravelingAlgorithm() {
-  if (window.preprocessedCores) {
-    const sortedCoresData = await runTravelingAlgorithm(
+  // Function to run the algorithm and count imaginary cores
+  const countImaginaryCores = async (angle) => {
+    updateUI(angle);
+    const hyperparameters = getHyperparameters(angle);
+    const sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
+    return sortedCoresData.filter((core) => core.isImaginary).length;
+  };
+
+  // Perform the initial targeted search and collect imaginary cores count
+  let minImaginaryCores = Infinity;
+  for (let angle = targetRange.start; angle <= targetRange.end; angle += searchIncrement) {
+    const imaginaryCoresCount = await countImaginaryCores(angle);
+    if (imaginaryCoresCount < minImaginaryCores) {
+      minImaginaryCores = imaginaryCoresCount;
+      anglesWithMinCores = [angle]; // Reset the array as this is the new minimum
+    } else if (imaginaryCoresCount === minImaginaryCores) {
+      anglesWithMinCores.push(angle); // Add this angle to the list of optimal angles
+    }
+  }
+
+  // Calculate the median of the angles with the minimum imaginary cores
+  const medianAngle = anglesWithMinCores.length % 2 === 0
+    ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] + anglesWithMinCores[anglesWithMinCores.length / 2]) / 2
+    : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
+
+  // If the median angle is within the targeted range, return it as the optimal angle
+  if (medianAngle >= targetRange.start && medianAngle <= targetRange.end) {
+    return medianAngle;
+  }
+
+  // Otherwise, perform a broader search
+  searchIncrement = 2; // Coarser increment for broad search
+  for (let angle = -90; angle <= 90; angle += searchIncrement) {
+    if (angle >= targetRange.start && angle <= targetRange.end) continue; // Skip the targeted range
+    const imaginaryCoresCount = await countImaginaryCores(angle);
+    if (imaginaryCoresCount < minImaginaryCores) {
+      minImaginaryCores = imaginaryCoresCount;
+      anglesWithMinCores = [angle]; // Reset the array as this is the new minimum
+    } else if (imaginaryCoresCount === minImaginaryCores) {
+      anglesWithMinCores.push(angle); // Add this angle to the list of optimal angles
+    }
+  }
+
+  // Recalculate the median for the broader search
+  return anglesWithMinCores.length % 2 === 0
+    ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] + anglesWithMinCores[anglesWithMinCores.length / 2]) / 2
+    : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
+}
+
+
+async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
+  if (!window.preprocessedCores) {
+    console.error("No cores data available. Please load a file first.");
+    return;
+  }
+  let hyperparameters;
+  if (firstRun) {
+    // Helper function to update the angle in the UI and return updated hyperparameters
+    const updateUIAndHyperparameters = (angle) => {
+      document.getElementById("originAngle").value = angle.toString();
+      return {
+        ...getHyperparametersFromUI(),
+        originAngle: angle,
+      };
+    };
+
+    // Find the optimal angle
+    const optimalAngle = await findOptimalAngle(
       window.preprocessedCores,
-      getHyperparametersFromUI()
+      updateUIAndHyperparameters,
+      runTravelingAlgorithm,
+      (angle) =>
+        (document.getElementById("originAngle").value = angle.toString())
     );
 
-    window.sortedCoresData = sortedCoresData.map(core => {
-      return {
-        ...core,
-        'x': core.x / window.scalingFactor,
-        'y': core.y / window.scalingFactor,
-        'currentRadius': core.currentRadius / window.scalingFactor
-      }
-    })
-
-    drawCoresOnCanvasForTravelingAlgorithm();
+    // Update UI with the optimal angle
+    hyperparameters = updateUIAndHyperparameters(optimalAngle);
   } else {
-    console.error("No cores data available. Please load a file first.");
+    hyperparameters = getHyperparametersFromUI();
   }
+
+  // Run the algorithm with the optimal angle found
+  const sortedCoresData = await runTravelingAlgorithm(
+    window.preprocessedCores,
+    hyperparameters
+  );
+
+  // Function to scale core data
+  const scaleCoreData = (core) => ({
+    ...core,
+    x: core.x / window.scalingFactor,
+    y: core.y / window.scalingFactor,
+    currentRadius: core.currentRadius / window.scalingFactor,
+  });
+
+  // Scale and update the cores data
+  window.sortedCoresData = sortedCoresData.map(scaleCoreData);
+
+  // Visualize the cores
+  drawCoresOnCanvasForTravelingAlgorithm();
 }
+
+// async function applyAndVisualizeTravelingAlgorithm() {
+//   if (window.preprocessedCores) {
+
+//     const sortedCoresData = await runTravelingAlgorithm(
+//       window.preprocessedCores,
+//       getHyperparametersFromUI()
+//     );
+
+//     debugger
+//     window.sortedCoresData = sortedCoresData.map(core => {
+//       return {
+//         ...core,
+//         'x': core.x / window.scalingFactor,
+//         'y': core.y / window.scalingFactor,
+//         'currentRadius': core.currentRadius / window.scalingFactor
+//       }
+//     })
+
+//     drawCoresOnCanvasForTravelingAlgorithm();
+//   } else {
+//     console.error("No cores data available. Please load a file first.");
+//   }
+// }
 
 function obtainHyperparametersAndDrawVirtualGrid() {
   const horizontalSpacing = parseInt(
@@ -1210,8 +1385,8 @@ function createVirtualGrid(
 
       vctx.clip();
 
-      const sourceX = (core.x * window.scalingFactor) - userRadius;
-      const sourceY = (core.y * window.scalingFactor) - userRadius;
+      const sourceX = core.x * window.scalingFactor - userRadius;
+      const sourceY = core.y * window.scalingFactor - userRadius;
 
       vctx.drawImage(
         img,
@@ -1286,5 +1461,5 @@ export {
   updateVirtualGridSpacing,
   redrawCoresForTravelingAlgorithm,
   visualizeSegmentationResults,
-  obtainHyperparametersAndDrawVirtualGrid
+  obtainHyperparametersAndDrawVirtualGrid,
 };
