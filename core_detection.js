@@ -253,7 +253,6 @@ const calculateRegionProperties = (image, minArea, maxArea) => {
   let centroids = new cv.Mat();
   cv.connectedComponentsWithStats(image, labels, stats, centroids);
 
-
   let centroidsFinal = [];
   for (let i = 1; i < stats.rows; i++) {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
@@ -261,7 +260,7 @@ const calculateRegionProperties = (image, minArea, maxArea) => {
     if (area * 4 >= minArea && area * 4 <= maxArea) {
       let x = centroids.data64F[i * 2]; // X coordinate
       let y = centroids.data64F[i * 2 + 1]; // Y coordinate
-      centroidsFinal.push({ x, y, area, radius});
+      centroidsFinal.push({ x, y, area, radius });
     }
   }
 
@@ -334,8 +333,13 @@ function calculateMedianRadius(segmented, minArea, maxArea) {
   // Find contours of the circles
   let contours = new cv.MatVector();
   let hierarchy = new cv.Mat();
-  cv.findContours(inverted, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
-
+  cv.findContours(
+    inverted,
+    contours,
+    hierarchy,
+    cv.RETR_CCOMP,
+    cv.CHAIN_APPROX_SIMPLE
+  );
 
   // visualizeMarkers(inverted, "inverted.png");
   let circleProperties = [];
@@ -346,18 +350,17 @@ function calculateMedianRadius(segmented, minArea, maxArea) {
     if (data[i * 4 + 3] != -1) {
       let cnt = contours.get(i);
       let area = cv.contourArea(cnt);
-      if (area * 4 >= minArea && area * 4 <= maxArea) {
-        let circle = cv.minEnclosingCircle(cnt);
-        circleProperties.push({
-          x: circle.center.x,
-          y: circle.center.y,
-          area: area,
-          radius: circle.radius
-        });
-      }
+      let circle = cv.minEnclosingCircle(cnt);
+      circleProperties.push({
+        x: circle.center.x,
+        y: circle.center.y,
+        area: area,
+        radius: circle.radius,
+      });
     }
   }
 
+  debugger;
   const medianRadius = findMedian(circleProperties.map((x) => x.radius));
   // Cleanup
   contours.delete();
@@ -383,14 +386,13 @@ function applyWatershed(data, markers) {
   // Convert markers back to 8-bit to visualize or further process
   let segmented = new cv.Mat();
   markers.convertTo(segmented, cv.CV_8U, 255, 255); // Convert for visualization
-  
+
   // Optionally, you might want to visualize or isolate specific segments here
   return segmented; // This Mat now contains the watershed result
 }
 
 // This function prepares markers for the watershed algorithm
 function prepareMarkers(filledOpening, sureFg) {
-
   // Finding unknown region
   sureFg.convertTo(sureFg, cv.CV_8U);
 
@@ -402,7 +404,6 @@ function prepareMarkers(filledOpening, sureFg) {
 }
 
 function preprocessImageForContours(segmented) {
-
   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
 
   let processed = segmented.clone(); // Ensure processed has the same size and type as segmented
@@ -415,25 +416,35 @@ function preprocessImageForContours(segmented) {
   return processed;
 }
 
-
 // Modified segmentationAlgorithm to include watershed and statistics extraction
-function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 0.6) {
+function segmentationAlgorithm(
+  data,
+  minArea,
+  maxArea,
+  disTransformMultiplier = 0.6
+) {
   const gray = toGrayscale(data);
   const binary = toBinary(gray);
   const opening = applyOpening(binary);
   const dilated = applyDilation(opening);
   const filledOpening = fillSmallHoles(opening, dilated);
-  const sureFg = thresholdDistanceTransform(filledOpening, disTransformMultiplier);
+  const sureFg = thresholdDistanceTransform(
+    filledOpening,
+    disTransformMultiplier
+  );
 
   // Prepare markers and apply watershed
   const markers = prepareMarkers(filledOpening, sureFg);
   const segmented = applyWatershed(data, markers); // This function is hypothetical and needs implementation based on the above markers preparation
 
-
   // Now, you might need to process 'segmented' to extract centroids and areas
   // For example, using connectedComponentsWithStats on the result of watershed to find centroids and areas
-  const [medianRadius, waterShedAreas] = calculateMedianRadius(segmented, minArea, maxArea); // This function might need adjustment to work with watershed output
-  
+  const [medianRadius, waterShedAreas] = calculateMedianRadius(
+    segmented,
+    minArea,
+    maxArea
+  ); // This function might need adjustment to work with watershed output
+
   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
 
   centroidsFinal.forEach((centroid) => {
@@ -452,7 +463,6 @@ function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 
 
   return centroidsFinal;
 }
-
 
 async function preprocessAndPredict(imageElement, model) {
   // Function to crop the image if it's larger than 1024x1024
@@ -555,7 +565,7 @@ function calculateMedianSpacing(points) {
   // Calculate the median of the distances
   let median;
   const mid = Math.floor(distances.length / 2);
-  
+
   if (distances.length % 2 === 0) {
     // If even number of distances, median is average of two central numbers
     median = (distances[mid - 1] + distances[mid]) / 2;
@@ -566,7 +576,6 @@ function calculateMedianSpacing(points) {
 
   return median;
 }
-
 
 function tensorToCvMat(tensor) {
   // Squeeze the tensor to remove dimensions of size 1
@@ -596,7 +605,7 @@ async function runSegmentationAndObtainCoreProperties(
   threshold,
   minArea,
   maxArea,
-  disTransformMultiplier,
+  disTransformMultiplier
 ) {
   // Preprocess the image and predict
   if (!window.neuralNetworkResult) {
