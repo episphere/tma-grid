@@ -275,6 +275,35 @@ button:hover {
   flex-grow: 1;
   text-align: center; /* This will center the text in each tab link */
 }
+.tablinks {
+  position: relative; /* Needed for positioning the pseudo-elements */
+  flex-grow: 1;
+  text-align: center;
+  padding-right: 30px; /* Adjust padding to prevent text overlap with the arrow */
+}
+
+/* Style for arrow effect using :after pseudo-element */
+.tablinks:not(:nth-last-child(-n+2)):after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(0deg);
+  border-top: 10px solid transparent; /* Create arrow shape */
+  border-bottom: 10px solid transparent; /* Create arrow shape */
+  border-left: 10px solid #ccc; /* Arrow color - match or contrast with button background */
+  transition: border-color 0.3s ease;
+}
+
+/* Change arrow color on hover */
+.tablinks:not(:nth-last-child(-n+2)):hover:after {
+  border-left-color: #fcfcfc; /* Match this with your hover background color */
+}
+
+/* Adjustments for active tab to change arrow color appropriately */
+.tablinks.active:not(:nth-last-child(-n+2)):after {
+  border-left-color: #fcfcfc; /* Active state color */
+}
 
 .tab button:hover {
   background-color: var(--hover-color);
@@ -505,14 +534,6 @@ button:hover {
 }
 
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%; /* Full width on smaller screens */
-    padding: 15px; /* Adjust padding for smaller screens */
-  }
-}
-
 /* Improved readability for sidebar content */
 .sidebar h2, .sidebar label, .sidebar p {
   color: #333; /* Darker text for better contrast */
@@ -548,17 +569,65 @@ button:hover {
 }
 
 /* Responsive Design for side navigation */
-@media (max-width: 1024px) {
+/* Base styles for sidebar (mobile-first approach) */
+.sidebar {
+  width: 100%; /* Start with full width on smallest screens */
+  padding: 10px; /* Base padding for mobile devices */
+  position: relative; /* Default position */
+}
+
+
+/* Adjustments for tablets and above */
+@media (min-width: 601px) {
   .sidebar {
-    width: 200px; /* Smaller sidebar for tablet sizes */
+    /* Adjustments for tablet screens and slightly larger devices */
+    padding: 15px; /* Slightly larger padding */
   }
 }
 
-@media (max-width: 600px) {
+/* Further adjustments for larger tablet and small desktop screens */
+@media (min-width: 769px) {
   .sidebar {
-    position: relative; /* Sidebar flows with the content on mobile */
-    width: 100%; /* Full width sidebar */
-    padding: 10px; /* Smaller padding on mobile */
+    width: 550px; /* Fixed width for larger tablets and small desktops */
+    padding: 15px; /* Consistent padding with the previous breakpoint */
+  }
+}
+
+/* Consideration for very large screens, if necessary */
+@media (min-width: 1025px) {
+  .sidebar {
+    /* You can add styles here if you have specific designs for larger screens */
+    /* Example: adjusting width or padding */
+  }
+}
+
+/* Base styles for .content (mobile-first approach) */
+.content {
+  width: 100%; /* Full width on smallest screens */
+  padding: 10px; /* Base padding for mobile devices */
+}
+
+/* Adjustments for tablets and above */
+@media (min-width: 601px) {
+  .content {
+    /* Adjustments for tablet screens */
+    padding: 20px; /* Increased padding for larger screens */
+  }
+}
+
+/* Further adjustments for larger tablet and small desktop screens */
+@media (min-width: 769px) {
+  .content {
+    padding: 20px; /* Consistent padding with the previous breakpoint */
+  }
+}
+
+/* Adjustments for very large screens, if necessary */
+@media (min-width: 1025px) {
+  .content {
+    /* Additional styling for very large screens */
+    padding: 30px; /* Optionally increase padding */
+    /* You might want to adjust layout, font size, etc., for larger screens */
   }
 }
 

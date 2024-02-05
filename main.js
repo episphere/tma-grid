@@ -746,6 +746,9 @@ const initSegmentation = async () => {
   document
     .getElementById("finalizeSegmentation")
     .addEventListener("click", async function () {
+
+      document.getElementById("rawDataTabButton").disabled = false;
+
       // Assuming `properties` is the variable holding your segmentation results
       if (!window.properties) {
         alert("No image uploaded!");
@@ -858,6 +861,7 @@ const initSegmentation = async () => {
             //     }, 100)
           });
       });
+
     });
 
   // Navigation buttons

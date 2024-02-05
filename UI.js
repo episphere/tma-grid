@@ -261,6 +261,10 @@ function resetApplication() {
   );
   segmentationResultsCanvas.height = 0;
 
+  // Disable Gridding and Virtual Grid Tabs: 
+  document.getElementById("rawDataTabButton").disabled = true;
+  document.getElementById("virtualGridTabButton").disabled = true;
+
   // Reset the data structures that hold the core data
   window.preprocessedCores = [];
   window.sortedCoresData = [];

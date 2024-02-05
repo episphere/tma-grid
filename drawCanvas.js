@@ -1343,6 +1343,7 @@ function obtainHyperparametersAndDrawVirtualGrid() {
   );
 
   showPopup("popupGridding");
+  document.getElementById("virtualGridTabButton").disabled = false;
 }
 
 function createVirtualGrid(
