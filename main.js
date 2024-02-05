@@ -445,10 +445,8 @@ async function segmentImage(initializeParams = false) {
         maxArea,
         disTransformMultiplier,
       );
-
       window.preprocessedCores = preprocessCores(preprocessedCores);
-     
-      
+
       const newParams = await loadDataAndDetermineParams(
         window.preprocessedCores,
         getHyperparametersFromUI()
@@ -459,9 +457,23 @@ async function segmentImage(initializeParams = false) {
 
       const spacingBetweenCores = gridWidth - 2 * coreRadius;
 
+      if (spacingBetweenCores < 0) {
+        [preprocessedCores, thresholdedPredictions] = await runSegmentationAndObtainCoreProperties(
+          originalImageContainer,
+          window.state.model,
+          0.9,
+          minArea,
+          maxArea,
+          disTransformMultiplier,
+        );
+        document.getElementById("thresholdSlider").value = 0.1;
+        document.getElementById("thresholdValue").textContent = 0.1;
+        window.preprocessedCores = preprocessCores(preprocessedCores);
+
+        debugger;
+      }
+
       console.log("spacingBetweenCores", spacingBetweenCores);
-
-
 
 
     } catch (error) {

@@ -258,7 +258,7 @@ const calculateRegionProperties = (image, minArea, maxArea) => {
   for (let i = 1; i < stats.rows; i++) {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
     let radius = Math.sqrt(area / Math.PI);
-    if (area >= minArea && area <= maxArea) {
+    if (area * 4 >= minArea && area * 4 <= maxArea) {
       let x = centroids.data64F[i * 2]; // X coordinate
       let y = centroids.data64F[i * 2 + 1]; // Y coordinate
       centroidsFinal.push({ x, y, area, radius});
@@ -346,7 +346,7 @@ function calculateMedianRadius(segmented, minArea, maxArea) {
     if (data[i * 4 + 3] != -1) {
       let cnt = contours.get(i);
       let area = cv.contourArea(cnt);
-      if (area >= minArea && area <= maxArea) {
+      if (area * 4 >= minArea && area * 4 <= maxArea) {
         let circle = cv.minEnclosingCircle(cnt);
         circleProperties.push({
           x: circle.center.x,
