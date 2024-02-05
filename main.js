@@ -27,7 +27,11 @@ import {
   obtainHyperparametersAndDrawVirtualGrid,
 } from "./drawCanvas.js";
 
-import { loadModel, runSegmentationAndObtainCoreProperties, visualizeSegmentationResults } from "./core_detection.js";
+import {
+  loadModel,
+  runSegmentationAndObtainCoreProperties,
+  visualizeSegmentationResults,
+} from "./core_detection.js";
 
 import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
 
@@ -86,14 +90,14 @@ const getInputValue = (inputId) => document.getElementById(inputId).value;
 // Event handler for file input change
 const handleImageInputChange = async (e, processCallback) => {
   resetApplication();
-  document.getElementById("imageUrlInput").value = null
+  document.getElementById("imageUrlInput").value = null;
   // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
   const file = e.target.files[0];
-  
-  let scalingFactor = 1
-  
+
+  let scalingFactor = 1;
+
   if (file && file.type.startsWith("image/")) {
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -101,9 +105,14 @@ const handleImageInputChange = async (e, processCallback) => {
       img.src = event.target.result;
       img.onload = async () => {
         // Check if the image needs to be scaled down
-        if (img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
-
-          scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height);
+        if (
+          img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
+          img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+        ) {
+          scalingFactor = Math.min(
+            MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
+            MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
+          );
 
           window.imageScalingFactor = scalingFactor;
           // window.scalingFactor = scalingFactor;
@@ -118,10 +127,9 @@ const handleImageInputChange = async (e, processCallback) => {
           scalingFactor = 1;
         }
 
-        const osdCanvasParent = document.getElementById("osdViewer")
+        const osdCanvasParent = document.getElementById("osdViewer");
         osdCanvasParent.style.width = `${img.width * scalingFactor}px`;
         osdCanvasParent.style.height = `${img.height * scalingFactor}px`;
-
 
         originalImageContainer.onload = () => {
           updateStatusMessage(
@@ -144,44 +152,52 @@ const handleImageInputChange = async (e, processCallback) => {
 
           console.error("Image failed to load.");
         };
-
-
       };
-      
+
       img.onerror = () => {
         updateStatusMessage(
           "imageLoadStatus",
           "Image failed to load.",
           "error-message"
         );
-          
+
         console.error("Image failed to load.");
       };
     };
     reader.readAsDataURL(file);
   } else if (file && file.name.endsWith(".svs")) {
     const imageInfo = await getWSIInfo(file);
-    scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width, MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height);
+    scalingFactor = Math.min(
+      MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
+      MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
+    );
 
-    const wsiThumbnail = await getPNGFromWSI(URL.createObjectURL(file), MAX_DIMENSION_FOR_DOWNSAMPLING)
+    const wsiThumbnail = await getPNGFromWSI(
+      URL.createObjectURL(file),
+      MAX_DIMENSION_FOR_DOWNSAMPLING
+    );
     let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
-    
+
     originalImageContainer.crossOrigin = "anonymous";
     originalImageContainer.src = objectURL;
-    
+
     originalImageContainer.onload = () => {
-      const osdCanvasParent = document.getElementById("osdViewer")
-      osdCanvasParent.style.width = `${ Math.ceil(imageInfo.width * scalingFactor) }px`
-      osdCanvasParent.style.height = `${ Math.ceil(imageInfo.height * scalingFactor) }px`
-      
+      const osdCanvasParent = document.getElementById("osdViewer");
+      osdCanvasParent.style.width = `${Math.ceil(
+        imageInfo.width * scalingFactor
+      )}px`;
+      osdCanvasParent.style.height = `${Math.ceil(
+        imageInfo.height * scalingFactor
+      )}px`;
+
       updateStatusMessage(
         "imageLoadStatus",
         "Image loaded successfully.",
         "success-message"
       );
-      
-      processCallback()
-      
+
+      processCallback();
+
       window.loadedImg = originalImageContainer;
       document.getElementById("loadingSpinner").style.display = "none";
     };
@@ -193,9 +209,9 @@ const handleImageInputChange = async (e, processCallback) => {
     );
 
     console.error("File loaded is not an image.");
-    return
+    return;
   }
-  window.scalingFactor = scalingFactor
+  window.scalingFactor = scalingFactor;
 
   moveToCarouselItem("next");
 };
@@ -332,7 +348,7 @@ const getInputParameters = () => {
 // Event handler for load image from URL
 const handleLoadImageUrlClick = async (state) => {
   resetApplication();
-  document.getElementById("fileInput").value = null
+  document.getElementById("fileInput").value = null;
   // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
@@ -346,9 +362,12 @@ const handleLoadImageUrlClick = async (state) => {
       window.scalingFactor = 1;
     } else {
       const imageInfo = await getWSIInfo(imageUrl);
-      width = imageInfo.width
-      height = imageInfo.height
-      const scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / width, MAX_DIMENSION_FOR_DOWNSAMPLING / height);
+      width = imageInfo.width;
+      height = imageInfo.height;
+      const scalingFactor = Math.min(
+        MAX_DIMENSION_FOR_DOWNSAMPLING / width,
+        MAX_DIMENSION_FOR_DOWNSAMPLING / height
+      );
       // Store the scaling factor
       window.scalingFactor = scalingFactor;
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
@@ -373,13 +392,17 @@ const handleLoadImageUrlClick = async (state) => {
         originalImageContainer.src = objectURL;
         originalImageContainer.onload = async () => {
           // Check if the image needs to be scaled down
-          if (originalImageContainer.width > MAX_DIMENSION_FOR_DOWNSAMPLING || originalImageContainer.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
-            scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.width, MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.height);
+          if (
+            originalImageContainer.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
+            originalImageContainer.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+          ) {
+            scalingFactor = Math.min(
+              MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.width,
+              MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.height
+            );
             window.imageScalingFactor = scalingFactor;
-            debugger
-          } 
-        
-          
+          }
+
           // Check if the image needs to be scaled down
           if (!width) {
             width = originalImageContainer.width;
@@ -388,13 +411,12 @@ const handleLoadImageUrlClick = async (state) => {
             height = originalImageContainer.height;
           }
 
-
           const osdCanvasParent = document.getElementById("osdViewer");
           osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
           osdCanvasParent.style.height = `${Math.ceil(
             height * scalingFactor
           )}px`;
-          
+
           window.loadedImg = originalImageContainer;
 
           updateStatusMessage(
@@ -437,45 +459,45 @@ async function segmentImage(initializeParams = false) {
     let preprocessedCores;
 
     try {
-       [preprocessedCores, thresholdedPredictions] = await runSegmentationAndObtainCoreProperties(
-        originalImageContainer,
-        window.state.model,
-        threshold,
-        minArea,
-        maxArea,
-        disTransformMultiplier,
-      );
-      window.preprocessedCores = preprocessCores(preprocessedCores);
-
-      const newParams = await loadDataAndDetermineParams(
-        window.preprocessedCores,
-        getHyperparametersFromUI()
-      );          
-
-      const gridWidth = newParams.gridWidth;
-      const coreRadius = window.preprocessedCores[0].radius;
-
-      const spacingBetweenCores = gridWidth - 2 * coreRadius;
-
-      if (spacingBetweenCores < 0) {
-        [preprocessedCores, thresholdedPredictions] = await runSegmentationAndObtainCoreProperties(
+      [preprocessedCores, thresholdedPredictions] =
+        await runSegmentationAndObtainCoreProperties(
           originalImageContainer,
           window.state.model,
-          0.9,
+          threshold,
           minArea,
           maxArea,
-          disTransformMultiplier,
+          disTransformMultiplier
         );
-        document.getElementById("thresholdSlider").value = 0.1;
-        document.getElementById("thresholdValue").textContent = 0.1;
-        window.preprocessedCores = preprocessCores(preprocessedCores);
+      window.preprocessedCores = preprocessCores(preprocessedCores);
 
-        debugger;
+      if (initializeParams) {
+        const newParams = await loadDataAndDetermineParams(
+          window.preprocessedCores,
+          getHyperparametersFromUI()
+        );
+
+        const gridWidth = newParams.gridWidth;
+        const coreRadius = window.preprocessedCores[0].radius;
+
+        const spacingBetweenCores = gridWidth - 2 * coreRadius;
+
+        if (spacingBetweenCores < 0) {
+          [preprocessedCores, thresholdedPredictions] =
+            await runSegmentationAndObtainCoreProperties(
+              originalImageContainer,
+              window.state.model,
+              0.9,
+              minArea,
+              maxArea,
+              disTransformMultiplier
+            );
+          document.getElementById("thresholdSlider").value = 0.1;
+          document.getElementById("thresholdValue").textContent = 0.1;
+          window.preprocessedCores = preprocessCores(preprocessedCores);
+        }
+
+        console.log("spacingBetweenCores", spacingBetweenCores);
       }
-
-      console.log("spacingBetweenCores", spacingBetweenCores);
-
-
     } catch (error) {
       console.error("Error processing image:", error);
     } finally {
@@ -621,9 +643,9 @@ function bindEventListeners() {
     button.addEventListener("click", function () {
       const sidebar = this.closest(".edit-sidebar");
       sidebar.style.display = "none"; // You can toggle visibility or minimize the sidebar as required
-      window.viewer.currentOverlays.forEach(o => {
-        o.element.classList.remove("selected")
-      })
+      window.viewer.currentOverlays.forEach((o) => {
+        o.element.classList.remove("selected");
+      });
     });
   });
 
@@ -677,7 +699,6 @@ function bindEventListeners() {
     .getElementById("openVirtualGridButton")
     .addEventListener("click", switchToVirtualGrid);
 }
-
 
 // Initialize and bind events
 const initSegmentation = async () => {
@@ -746,7 +767,6 @@ const initSegmentation = async () => {
   document
     .getElementById("finalizeSegmentation")
     .addEventListener("click", async function () {
-
       document.getElementById("rawDataTabButton").disabled = false;
 
       // Assuming `properties` is the variable holding your segmentation results
@@ -755,47 +775,63 @@ const initSegmentation = async () => {
         return;
       }
       const getImageInfo = () => {
-        const checkExtension = (path) => path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".svs")
+        const checkExtension = (path) =>
+          path.endsWith(".png") ||
+          path.endsWith(".jpg") ||
+          path.endsWith(".jpeg") ||
+          path.endsWith(".svs");
         const imageInfo = {
           url: "",
           type: "",
           isSimpleImage: undefined,
-          isOperable: false
-        }
+          isOperable: false,
+        };
         if (document.getElementById("fileInput").files[0]) {
-          const localFile = document.getElementById("fileInput").files[0]
+          const localFile = document.getElementById("fileInput").files[0];
           if (checkExtension(localFile.name)) {
-            imageInfo.type = localFile.name.split(".").slice(-1)[0]
-            imageInfo.isSimpleImage = !localFile.name.endsWith(".svs")
-            imageInfo.isOperable = true
-            imageInfo.url = imageInfo.isSimpleImage ? window.loadedImg.src : document.getElementById("fileInput").files[0]
+            imageInfo.type = localFile.name.split(".").slice(-1)[0];
+            imageInfo.isSimpleImage = !localFile.name.endsWith(".svs");
+            imageInfo.isOperable = true;
+            imageInfo.url = imageInfo.isSimpleImage
+              ? window.loadedImg.src
+              : document.getElementById("fileInput").files[0];
           }
         } else if (getInputValue("imageUrlInput")) {
-          const url = getInputValue("imageUrlInput")
-          imageInfo.type = ""
-          imageInfo.isSimpleImage = url.endsWith(".png") || url.endsWith(".jpg") || url.endsWith(".jpeg")
-          imageInfo.isOperable = true
-          imageInfo.url = url
+          const url = getInputValue("imageUrlInput");
+          imageInfo.type = "";
+          imageInfo.isSimpleImage =
+            url.endsWith(".png") ||
+            url.endsWith(".jpg") ||
+            url.endsWith(".jpeg");
+          imageInfo.isOperable = true;
+          imageInfo.url = url;
         }
-        
-        return imageInfo
-      } 
+
+        return imageInfo;
+      };
       document.getElementById("rawDataLoadingSpinner").style.display = "block";
       document.getElementById("rawDataTabButton").click();
-      let tileSources = {}      
+      let tileSources = {};
 
-      const imageInfo = getImageInfo()
+      const imageInfo = getImageInfo();
       if (imageInfo.isSimpleImage) {
         tileSources = {
-          type: 'image',
-          url: imageInfo.url
-        }
+          type: "image",
+          url: imageInfo.url,
+        };
       } else {
-        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(imageInfo.url, { logLatency: false, cache: true });
+        tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(
+          imageInfo.url,
+          { logLatency: false, cache: true }
+        );
       }
-      document.getElementById("osdViewer").style.width = `${window.loadedImg.getAttribute("width")}px`
-      document.getElementById("osdViewer").style.height = `${window.loadedImg.getAttribute("height")}px`
-      window.viewer?.destroy()
+      document.getElementById(
+        "osdViewer"
+      ).style.width = `${window.loadedImg.getAttribute("width")}px`;
+      document.getElementById(
+        "osdViewer"
+      ).style.height = `${window.loadedImg.getAttribute("height")}px`;
+      window.viewer?.destroy();
       window.viewer = OpenSeadragon({
         id: "osdViewer",
         visibilityRatio: 1,
@@ -861,7 +897,6 @@ const initSegmentation = async () => {
             //     }, 100)
           });
       });
-
     });
 
   // Navigation buttons
@@ -912,11 +947,11 @@ const initSegmentation = async () => {
     });
 };
 
-document.querySelectorAll("input[type='number']").forEach(e => {
+document.querySelectorAll("input[type='number']").forEach((e) => {
   e.onwheel = (e) => {
-    e.preventDefault()
-  }
-})
+    e.preventDefault();
+  };
+});
 
 function moveToCarouselItem(direction) {
   var current = document.querySelector(".carousel-item.active");

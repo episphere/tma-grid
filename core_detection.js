@@ -360,7 +360,6 @@ function calculateMedianRadius(segmented, minArea, maxArea) {
     }
   }
 
-  debugger;
   const medianRadius = findMedian(circleProperties.map((x) => x.radius));
   // Cleanup
   contours.delete();
