@@ -87,134 +87,265 @@ const loadDependencies = async () => ({
 // Pure function to get input values
 const getInputValue = (inputId) => document.getElementById(inputId).value;
 
-// Event handler for file input change
+// // Event handler for file input change
+// const handleImageInputChange = async (e, processCallback) => {
+//   resetApplication();
+//   document.getElementById("imageUrlInput").value = null;
+//   // Show loading spinner
+//   document.getElementById("loadingSpinner").style.display = "block";
+
+//   const file = e.target.files[0];
+
+//   let scalingFactor = 1;
+
+//   if (file && file.type.startsWith("image/")) {
+//     const reader = new FileReader();
+//     reader.onload = async (event) => {
+//       const img = new Image();
+//       img.src = event.target.result;
+//       img.onload = async () => {
+//         // Check if the image needs to be scaled down
+//         if (
+//           img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
+//           img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+//         ) {
+//           scalingFactor = Math.min(
+//             MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
+//             MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
+//           );
+
+//           window.imageScalingFactor = scalingFactor;
+//           // window.scalingFactor = scalingFactor;
+//           const canvas = document.createElement("canvas");
+//           canvas.width = img.width * scalingFactor;
+//           canvas.height = img.height * scalingFactor;
+//           const ctx = canvas.getContext("2d");
+//           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+//           originalImageContainer.src = canvas.toDataURL();
+//           debugger;
+//         } else {
+//           originalImageContainer.src = img.src;
+//           scalingFactor = 1;
+//         }
+
+//         const osdCanvasParent = document.getElementById("osdViewer");
+//         osdCanvasParent.style.width = `${img.width * scalingFactor}px`;
+//         osdCanvasParent.style.height = `${img.height * scalingFactor}px`;
+
+//         originalImageContainer.onload = () => {
+//           updateStatusMessage(
+//             "imageLoadStatus",
+//             "Image loaded successfully.",
+//             "success-message"
+//           );
+//           processCallback();
+
+//           window.loadedImg = originalImageContainer;
+//           document.getElementById("loadingSpinner").style.display = "none";
+//         };
+
+//         originalImageContainer.onerror = () => {
+//           updateStatusMessage(
+//             "imageLoadStatus",
+//             "Image failed to load.",
+//             "error-message"
+//           );
+
+//           console.error("Image failed to load.");
+//         };
+//       };
+
+//       img.onerror = () => {
+//         updateStatusMessage(
+//           "imageLoadStatus",
+//           "Image failed to load.",
+//           "error-message"
+//         );
+
+//         console.error("Image failed to load.");
+//       };
+//     };
+//     reader.readAsDataURL(file);
+//   } else if (file && file.name.endsWith(".svs")) {
+//     const imageInfo = await getWSIInfo(file);
+//     scalingFactor = Math.min(
+//       MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
+//       MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
+//     );
+
+//     const wsiThumbnail = await getPNGFromWSI(
+//       URL.createObjectURL(file),
+//       MAX_DIMENSION_FOR_DOWNSAMPLING
+//     );
+//     let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
+
+//     originalImageContainer.crossOrigin = "anonymous";
+//     originalImageContainer.src = objectURL;
+
+//     originalImageContainer.onload = () => {
+//       const osdCanvasParent = document.getElementById("osdViewer");
+//       osdCanvasParent.style.width = `${Math.ceil(
+//         imageInfo.width * scalingFactor
+//       )}px`;
+//       osdCanvasParent.style.height = `${Math.ceil(
+//         imageInfo.height * scalingFactor
+//       )}px`;
+
+//       updateStatusMessage(
+//         "imageLoadStatus",
+//         "Image loaded successfully.",
+//         "success-message"
+//       );
+
+//       processCallback();
+
+//       window.loadedImg = originalImageContainer;
+//       document.getElementById("loadingSpinner").style.display = "none";
+//     };
+//   } else {
+//     updateStatusMessage(
+//       "imageLoadStatus",
+//       "File loaded is not an image.",
+//       "error-message"
+//     );
+
+//     console.error("File loaded is not an image.");
+//     return;
+//   }
+//   window.scalingFactor = scalingFactor;
+
+//   moveToCarouselItem("next");
+// };
+
+// Helper functions to abstract operations
+const loadImage = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = (event) => resolve(event.target.result);
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
+
+const createImageElement = (src) => new Promise((resolve, reject) => {
+  const img = new Image();
+  img.src = src;
+  img.onload = () => resolve(img);
+  img.onerror = reject;
+});
+
+const scaleImageIfNeeded = (img) => {
+  const scalingFactor = img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+    ? Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height)
+    : 1;
+
+  if (scalingFactor === 1) {
+    return { src: img.src, scalingFactor };
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width * scalingFactor;
+  canvas.height = img.height * scalingFactor;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  return { src: canvas.toDataURL(), scalingFactor };
+};
+
+const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
+  originalImageContainer.src = src;
+  const osdCanvasParent = document.getElementById('osdViewer');
+  osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
+  osdCanvasParent.style.height = `${imgDimensions.height * scalingFactor}px`;
+  document.getElementById("loadingSpinner").style.display = "none";
+};
+
+
+
+
+const handleSVSFile = async (file, processCallback) => {
+
+  const imageInfo = await getWSIInfo(file);
+  scalingFactor = Math.min(
+    MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
+    MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
+  );
+
+  const wsiThumbnail = await getPNGFromWSI(
+    URL.createObjectURL(file),
+    MAX_DIMENSION_FOR_DOWNSAMPLING
+  );
+  let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
+
+  originalImageContainer.crossOrigin = "anonymous";
+  originalImageContainer.src = objectURL;
+
+  originalImageContainer.onload = () => {
+    const osdCanvasParent = document.getElementById("osdViewer");
+    osdCanvasParent.style.width = `${Math.ceil(
+      imageInfo.width * scalingFactor
+    )}px`;
+    osdCanvasParent.style.height = `${Math.ceil(
+      imageInfo.height * scalingFactor
+    )}px`;
+
+    updateStatusMessage(
+      "imageLoadStatus",
+      "Image loaded successfully.",
+      "success-message"
+    );
+
+    processCallback();
+
+    window.loadedImg = originalImageContainer;
+    document.getElementById("loadingSpinner").style.display = "none";
+  };  
+};
+
+// Updated handleImageLoad function to support .svs files
+const handleImageLoad = (file, processCallback) => {
+  resetApplication();
+  document.getElementById("imageUrlInput").value = null;
+  document.getElementById("loadingSpinner").style.display = "block";
+
+  if (file && file.type.startsWith('image/')) {
+    loadImage(file)
+      .then(createImageElement)
+      .then(img => {
+        const { src, scalingFactor } = scaleImageIfNeeded(img);
+        originalImageContainer.onload = () => {
+          updateStatusMessage('imageLoadStatus', 'Image loaded successfully.', 'success-message');
+          processCallback();
+          window.loadedImg = originalImageContainer;
+        };
+        originalImageContainer.onerror = () => {
+          updateStatusMessage('imageLoadStatus', 'Image failed to load.', 'error-message');
+          console.error('Image failed to load.');
+        };
+        updateUIForScaledImage(src, scalingFactor, { width: img.width, height: img.height });
+      })
+      .catch(() => {
+        updateStatusMessage('imageLoadStatus', 'Image failed to load.', 'error-message');
+        console.error('Image failed to load.');
+      });
+  } else if (file && file.name.endsWith('.svs')) {
+    handleSVSFile(file, processCallback);
+  } else {
+    updateStatusMessage('imageLoadStatus', 'File loaded is not an image.', 'error-message');
+    console.error('File loaded is not an image.');
+  }
+
+  document.getElementById("loadingSpinner").style.display = "none";
+};
+// Main event handler, refactored to use functional programming
 const handleImageInputChange = async (e, processCallback) => {
   resetApplication();
   document.getElementById("imageUrlInput").value = null;
-  // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
   const file = e.target.files[0];
-
-  let scalingFactor = 1;
-
-  if (file && file.type.startsWith("image/")) {
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = async () => {
-        // Check if the image needs to be scaled down
-        if (
-          img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
-          img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
-        ) {
-          scalingFactor = Math.min(
-            MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
-            MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
-          );
-
-          window.imageScalingFactor = scalingFactor;
-          // window.scalingFactor = scalingFactor;
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width * scalingFactor;
-          canvas.height = img.height * scalingFactor;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          originalImageContainer.src = canvas.toDataURL();
-        } else {
-          originalImageContainer.src = img.src;
-          scalingFactor = 1;
-        }
-
-        const osdCanvasParent = document.getElementById("osdViewer");
-        osdCanvasParent.style.width = `${img.width * scalingFactor}px`;
-        osdCanvasParent.style.height = `${img.height * scalingFactor}px`;
-
-        originalImageContainer.onload = () => {
-          updateStatusMessage(
-            "imageLoadStatus",
-            "Image loaded successfully.",
-            "success-message"
-          );
-          processCallback();
-
-          window.loadedImg = originalImageContainer;
-          document.getElementById("loadingSpinner").style.display = "none";
-        };
-
-        originalImageContainer.onerror = () => {
-          updateStatusMessage(
-            "imageLoadStatus",
-            "Image failed to load.",
-            "error-message"
-          );
-
-          console.error("Image failed to load.");
-        };
-      };
-
-      img.onerror = () => {
-        updateStatusMessage(
-          "imageLoadStatus",
-          "Image failed to load.",
-          "error-message"
-        );
-
-        console.error("Image failed to load.");
-      };
-    };
-    reader.readAsDataURL(file);
-  } else if (file && file.name.endsWith(".svs")) {
-    const imageInfo = await getWSIInfo(file);
-    scalingFactor = Math.min(
-      MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
-      MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
-    );
-
-    const wsiThumbnail = await getPNGFromWSI(
-      URL.createObjectURL(file),
-      MAX_DIMENSION_FOR_DOWNSAMPLING
-    );
-    let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
-
-    originalImageContainer.crossOrigin = "anonymous";
-    originalImageContainer.src = objectURL;
-
-    originalImageContainer.onload = () => {
-      const osdCanvasParent = document.getElementById("osdViewer");
-      osdCanvasParent.style.width = `${Math.ceil(
-        imageInfo.width * scalingFactor
-      )}px`;
-      osdCanvasParent.style.height = `${Math.ceil(
-        imageInfo.height * scalingFactor
-      )}px`;
-
-      updateStatusMessage(
-        "imageLoadStatus",
-        "Image loaded successfully.",
-        "success-message"
-      );
-
-      processCallback();
-
-      window.loadedImg = originalImageContainer;
-      document.getElementById("loadingSpinner").style.display = "none";
-    };
-  } else {
-    updateStatusMessage(
-      "imageLoadStatus",
-      "File loaded is not an image.",
-      "error-message"
-    );
-
-    console.error("File loaded is not an image.");
-    return;
-  }
-  window.scalingFactor = scalingFactor;
-
+  handleImageLoad(file, processCallback);
   moveToCarouselItem("next");
 };
+
 
 function handleMetadataFileSelect(event) {
   const file = event.target.files[0];
@@ -396,11 +527,22 @@ const handleLoadImageUrlClick = async (state) => {
             originalImageContainer.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
             originalImageContainer.height > MAX_DIMENSION_FOR_DOWNSAMPLING
           ) {
+
             scalingFactor = Math.min(
               MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.width,
               MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.height
             );
+  
             window.imageScalingFactor = scalingFactor;
+            // window.scalingFactor = scalingFactor;
+            const canvas = document.createElement("canvas");
+            canvas.width = originalImageContainer.width * scalingFactor;
+            canvas.height = originalImageContainer.height * scalingFactor;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            originalImageContainer.src = canvas.toDataURL();
+            
+            window.scalingFactor = 1;
           }
 
           // Check if the image needs to be scaled down

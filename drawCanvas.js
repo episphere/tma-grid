@@ -631,13 +631,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       ? core.col + 1
       : "";
     document.getElementById(sidebarPrefix + "XInput").value = core
-      ? core.x * window.scalingFactor
+      ? core.x 
       : "";
     document.getElementById(sidebarPrefix + "YInput").value = core
-      ? core.y * window.scalingFactor
+      ? core.y 
       : "";
     document.getElementById(sidebarPrefix + "RadiusInput").value = core
-      ? core.currentRadius * window.scalingFactor
+      ? core.currentRadius
       : "";
     document.getElementById(sidebarPrefix + "AnnotationsInput").value =
       core?.annotations ? core.annotations : "";
@@ -665,196 +665,8 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     };
 
     document.getElementById("removeCoreButton").onclick = removeHandler;
+
   }
-
-  // window.viewer.canvas.firstElementChild.addEventListener("mousedown", (event) => {x
-  //   mouseDown = true; // Set the mouseDown flag to true
-
-  //   const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //   if (currentMode === "add") {
-  //     if (tempCore && !isSettingSize) {
-  //       const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //       if (
-  //         Math.sqrt(
-  //           (tempCore.x - adjustedX) ** 2 + (tempCore.y - adjustedY) ** 2
-  //         ) < tempCore.currentRadius
-  //       ) {
-  //         isDraggingTempCore = true;
-  //       }
-  //     }
-  //   } else {
-  //     const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //     selectedIndex = window.sortedCoresData.findIndex(
-  //       (core) =>
-  //         Math.sqrt((core.x - adjustedX) ** 2 + (core.y - adjustedY) ** 2) <
-  //         core.currentRadius
-  //     );
-
-  //     if (selectedIndex !== -1) {
-  //       selectedCore = window.sortedCoresData[selectedIndex];
-  //       // Store the initial mouse position
-  //       initialMouseX = event.clientX;
-  //       initialMouseY = event.clientY;
-
-  //       // Store the initial core position
-  //       initialCoreX = selectedCore.x;
-  //       initialCoreY = selectedCore.y;
-
-  //       updateSidebar(selectedCore);
-  //       drawCores();
-  //     } else {
-
-  //       selectedCore = null;
-  //       updateSidebar(null);
-  //       hideSidebar();
-  //       drawCores();
-  //     }
-  //   }
-  // });
-
-  // canvas.addEventListener("click", (event) => {
-  //   const currentTime = Date.now();
-  //   if (currentTime - lastActionTime > actionDebounceInterval) {
-  //     if (currentMode === "add") {
-  //       if (!tempCore) {
-  //         const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //         // First click - set position
-  //         tempCore = {
-  //           x: adjustedX,
-  //           y: adjustedY,
-  //           row: 0,
-  //           col: 0,
-  //           currentRadius: 5, // Set a default radius
-  //           annotations: "",
-  //           isImaginary: true,
-  //           isTemporary: true,
-  //         };
-  //         isSettingSize = true;
-  //       } else if (isSettingSize) {
-  //         // Second click - set size
-  //         finalizeCoreSize(event);
-  //         updateSidebar(tempCore);
-  //       }
-  //       drawCores(); // Redraw to show or update the temporary core
-  //     }
-  //     lastActionTime = currentTime;
-  //   }
-  // });
-
-  // canvas.addEventListener("dblclick", (event) => {
-  //   // Calculate scale factors based on the actual size of the canvas
-  //   const rect = canvas.getBoundingClientRect();
-  //   const scaleX = canvas.width / rect.width;
-  //   const scaleY = canvas.height / rect.height;
-
-  //   // Adjust mouse coordinates with scale factors
-  //   const adjustedX = (event.clientX - rect.left) * scaleX;
-  //   const adjustedY = (event.clientY - rect.top) * scaleY;
-
-  //   selectedIndex = window.sortedCoresData.findIndex(
-  //     (core) =>
-  //       Math.sqrt((core.x - adjustedX) ** 2 + (core.y - adjustedY) ** 2) <
-  //       core.currentRadius
-  //   );
-
-  //   if (selectedIndex !== -1) {
-  //     selectedCore = window.sortedCoresData[selectedIndex];
-  //     updateSidebar(selectedCore);
-  //     positionSidebarNextToCore(event);
-
-  //     drawCores();
-  //   } else {
-  //     updateSidebar(null);
-  //     hideSidebar();
-  //   }
-  // });
-
-  // canvas.addEventListener("mousemove", (event) => {
-  //   const [adjustedX, adjustedY] = getMousePosition(event);
-  //   if (currentMode === "add") {
-  //     if (isSettingSize) {
-  //       // Dynamically update the size of the temporary core
-  //       updateCoreSize(event);
-  //       drawCores();
-  //     } else if (isDraggingTempCore) {
-  //       tempCore.x = adjustedX;
-  //       tempCore.y = adjustedY;
-  //       updateSidebar(tempCore);
-  //       drawCores();
-  //     } else if (tempCore && isAltDown) {
-  //       // Logic for setting or adjusting the size of the temporary core
-  //       const dx = event.offsetX - tempCore.x;
-  //       const dy = event.offsetY - tempCore.y;
-  //       tempCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
-  //       updateSidebar(tempCore);
-  //       drawCores();
-  //     }
-  //   } else {
-  //     if (!selectedCore) return;
-
-  //     if (isAltDown) {
-  //       // Resizing logic when Alt key is down
-  //       let dx = event.clientX - initialMouseX;
-  //       let dy = event.clientY - initialMouseY;
-  //       selectedCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
-  //     } else if (mouseDown && selectedIndex !== null) {
-  //       // Dragging logic
-  //       // Calculate the distance the mouse has moved
-  //       let dx = event.clientX - initialMouseX;
-  //       let dy = event.clientY - initialMouseY;
-
-  //       // Set the new position of the core
-  //       selectedCore.x = initialCoreX + dx;
-  //       selectedCore.y = initialCoreY + dy;
-  //       isDragging = true;
-  //       updateSidebar(window.sortedCoresData[selectedIndex]); // Update sidebar during dragging
-  //     }
-
-  //     drawCores();
-  //   }
-  // });
-
-  // canvas.addEventListener("mouseup", (event) => {
-  //   mouseDown = false; // Set the mouseDown flag to false
-  //   isDragging = false;
-
-  //   if (currentMode === "add") {
-  //     if (isDraggingTempCore) {
-  //       isDraggingTempCore = false;
-  //     }
-  //   } else {
-  //     if (selectedIndex !== null) {
-  //       updateSidebar(window.sortedCoresData[selectedIndex]); // Update sidebar on mouseup
-  //     }
-  //   }
-  // });
-
-  // window.addEventListener("keydown", (event) => {
-  //   if (event.key === "Alt") {
-  //     isAltDown = true;
-  //   } else if (
-  //     (event.key === "Backspace" || event.key === "Delete") &&
-  //     selectedIndex !== null
-  //   ) {
-  //     const currentTime = Date.now();
-  //     if (currentTime - lastActionTime > actionDebounceInterval) {
-  //       // Prevent default behavior to avoid navigating back in browser
-  //       event.preventDefault();
-  //       removeSelectedCore();
-  //     }
-  //     lastActionTime = currentTime;
-  //   }
-  // });
-
-  // window.addEventListener("keyup", (event) => {
-  //   if (event.key === "Alt") {
-  //     isAltDown = false;
-  //   }
-  // });
 
   function saveCore(core) {
     const oldRow = core?.row;
@@ -869,14 +681,11 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       parseInt(document.getElementById(currentMode + "ColumnInput").value, 10) -
       1;
     core.x =
-      parseFloat(document.getElementById(currentMode + "XInput").value) /
-      window.scalingFactor;
+      parseFloat(document.getElementById(currentMode + "XInput").value) ;
     core.y =
-      parseFloat(document.getElementById(currentMode + "YInput").value) /
-      window.scalingFactor;
+      parseFloat(document.getElementById(currentMode + "YInput").value) ;
     core.currentRadius =
-      parseFloat(document.getElementById(currentMode + "RadiusInput").value) /
-      window.scalingFactor;
+      parseFloat(document.getElementById(currentMode + "RadiusInput").value) ;
     core.annotations = document.getElementById(
       currentMode + "AnnotationsInput"
     ).value;
@@ -1293,6 +1102,8 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   // Scale and update the cores data
   window.sortedCoresData = sortedCoresData.map(scaleCoreData);
 
+  debugger
+
   // Visualize the cores
   drawCoresOnCanvasForTravelingAlgorithm();
 }
@@ -1448,8 +1259,8 @@ function updateVirtualGridSpacing(
   // Redraw the grid with new spacings
   createVirtualGrid(
     window.sortedCoresData,
-    horizontalSpacing,
-    verticalSpacing,
+    horizontalSpacing * 1.25,
+    verticalSpacing * 1.25,
     startingX,
     startingY
   );
