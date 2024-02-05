@@ -529,6 +529,8 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       },
 
       dragHandler: (e) => {
+
+        let overlayWidth = null;
         const overlay = window.viewer.getOverlayById(overlayElement);
         const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta);
 
@@ -549,6 +551,9 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
               height
             )
           );
+          overlayWidth = width;
+
+
         }
 
         overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport);
@@ -558,10 +563,20 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         if (index !== -1) {
           window.sortedCoresData[index].x += deltaPosInImageCoords.x;
           window.sortedCoresData[index].y += deltaPosInImageCoords.y;
+
+          // Set the radius if overlayWidth is not null
+          if (overlayWidth !== null) {
+            window.sortedCoresData[index].currentRadius = overlayWidth / 2;
+          }
+          
+
+
           document.getElementById("editXInput").value =
             window.sortedCoresData[index].x;
           document.getElementById("editYInput").value =
             window.sortedCoresData[index].y;
+
+          document.getElementById("editRadiusInput").value =  window.sortedCoresData[index].currentRadius;
 
           connectAdjacentCores(window.sortedCoresData[index], true);
         }
@@ -857,9 +872,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           Math.max(core.x - positionInImage.x, core.y - positionInImage.y)
         );
 
-        // Update UI for Radius
-        document.getElementById("RadiusInput").value = core.currentRadius;
-        
         debugger
         if (overlayElement) {
           window.viewer.removeOverlay(overlayElement);
@@ -919,25 +931,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //     }
   //   });
 
-  function updateCoreSize(event) {
-    const [adjustedX, adjustedY] = getMousePosition(event);
-
-    const dx = adjustedX - tempCore.x;
-    const dy = adjustedY - tempCore.y;
-    tempCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
-  }
-
-  function finalizeCoreSize(event) {
-    updateCoreSize(event);
-    isSettingSize = false;
-  }
-  // Function to cancel the drawing of the current core and reset for a new one
-  function cancelCoreDrawing() {
-    tempCore = null;
-    isSettingSize = false;
-    updateSidebar(null);
-    drawCores();
-  }
 
   // // Event listener for the cancel core drawing button
   // document
