@@ -17,7 +17,6 @@ function loadOpenCV() {
         console.log("OpenCV.js is ready.");
         resolve("OpenCV Loaded");
       } else {
-        // debugger
         // reject("OpenCV.js is loaded but not ready to use.");
       }
     };
@@ -56,7 +55,7 @@ function getMaxValue(mat) {
 }
 
 function visualizeMarkers(distTransform, imgElementId) {
-  return;
+  // return;
 
   // Normalize the distance transform image to be in the range of 0-255 for visualization
   let normalized = new cv.Mat();
@@ -103,119 +102,6 @@ function displayImage(image, filename) {
 }
 
 // // https://docs.opencv.org/4.x/d3/db4/tutorial_py_watershed.html
-// function segmentationAlgorithm(
-//   data,
-//   minArea,
-//   maxArea,
-//   disTransformMultiplier = 0.6
-// ) {
-//   // Convert to grayscale if the image is not already
-//   let gray = new cv.Mat();
-//   if (data.channels() === 3 || data.channels() === 4) {
-//     cv.cvtColor(data, gray, cv.COLOR_RGBA2GRAY, 0);
-//   } else {
-//     gray = src.clone();
-//   }
-
-//   // Convert to binary image using the closed image
-//   let binary = new cv.Mat();
-//   cv.threshold(gray, binary, 0, 255, cv.THRESH_BINAR_INV | cv.THRESH_OTSU);
-
-//   // Noise removal with opening
-//   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
-//   let opening = new cv.Mat();
-//   cv.morphologyEx(
-//     binary,
-//     opening,
-//     cv.MORPH_OPEN,
-//     kernel,
-//     new cv.Point(-1, -1),
-//     3
-//   );
-
-//   // Use morphological closing to fill the gaps
-//   let kernelCLose = cv.Mat.ones(3, 3, cv.CV_8U);
-//   let closing = new cv.Mat();
-//   cv.morphologyEx(opening, closing, cv.MORPH_CLOSE, kernelCLose, new cv.Point(-1, -1), 1);
-
-//   // Sure background area
-//   let sureBg = new cv.Mat();
-//   cv.dilate(closing, sureBg, kernel, new cv.Point(-1, -1), 3);
-
-//   // Finding sure foreground area
-//   let distTransform = new cv.Mat();
-//   cv.distanceTransform(closing, distTransform, cv.DIST_L2, 5);
-
-//   let sureFg = new cv.Mat();
-//   // Then use it in your threshold call
-//   let maxVal = getMaxValue(distTransform);
-
-//   // The disTransformMultiplier is a factor that scales the threshold value used to decide which parts of the distance-transformed image are considered sure foreground.
-//   // Typically, the maximum value in the distance transform image is identified. This value represents the furthest distance any pixel has from the background.
-//   cv.threshold(distTransform, sureFg, disTransformMultiplier * maxVal, 255, 0);
-
-//   // Finding unknown region
-//   sureFg.convertTo(sureFg, cv.CV_8U);
-//   let unknown = new cv.Mat();
-//   cv.subtract(sureBg, sureFg, unknown);
-
-//   // Marker labelling
-//   let markers = new cv.Mat();
-//   cv.connectedComponents(sureFg, markers);
-
-//   // Add one to all labels so that sure background is not 0, but 1
-//   let markersAdjusted = new cv.Mat();
-//   cv.add(
-//     markers,
-//     new cv.Mat(markers.rows, markers.cols, markers.type(), new cv.Scalar(1)),
-//     markersAdjusted
-//   );
-
-//   // Now, mark the region of unknown with zero
-//   for (let i = 0; i < markersAdjusted.rows; i++) {
-//     for (let j = 0; j < markersAdjusted.cols; j++) {
-//       if (unknown.ucharAt(i, j) === 255) {
-//         markersAdjusted.ucharPtr(i, j)[0] = 0;
-//       }
-//     }
-//   }
-
-//   visualizeMarkers(markersAdjusted, "watershedInput07.png");
-//   // Watershed algorithm
-//   cv.watershed(data, markersAdjusted);
-//   visualizeMarkers(markersAdjusted, "watershedResults08.png");
-
-//   visualizeMarkers(gray, "grayScaleInput01.png");
-//   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
-
-//   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
-
-//   if (typeof closing !== 'undefined') visualizeMarkers(closing, "holeClosing03.png");
-
-//   visualizeMarkers(opening, "opening02.png");
-
-//   visualizeMarkers(sureBg, "sureBg04.png");
-
-//   visualizeMarkers(sureFg, "sureFg05.png");
-//   visualizeMarkers(unknown, "unknown06.png");
-
-//   visualizeMarkers(distTransform, "distTransform04.png");
-
-//   // Calculate properties for each region
-//   let properties = calculateCentroids(markersAdjusted, minArea, maxArea);
-
-//   // Cleanup
-//   opening.delete();
-//   sureBg.delete();
-//   distTransform.delete();
-//   sureFg.delete();
-//   unknown.delete();
-//   markers.delete();
-//   markersAdjusted.delete();
-//   // contours?.delete();
-//   // hierarchy?.delete();
-//   return properties;
-// }
 
 // Convert to grayscale if the image is not already
 const toGrayscale = (data) => {
@@ -301,7 +187,7 @@ const fillSmallHoles = (opening, dilated) => {
   let centroids = new cv.Mat();
   cv.connectedComponentsWithStats(holes, labels, stats, centroids);
 
-  visualizeMarkers(holes, "holes03.png");
+  // visualizeMarkers(holes, "00 - holes.png");
   // Assuming a threshold calculation step here, similar to the original logic
   let smallHolesMask = cv.Mat.zeros(holes.rows, holes.cols, cv.CV_8UC1);
 
@@ -330,7 +216,7 @@ const fillSmallHoles = (opening, dilated) => {
     }
   }
 
-  visualizeMarkers(smallHolesMask, "smallHolesMask04.png");
+  // visualizeMarkers(smallHolesMask, "00 - smallHolesMask.png");
 
   let contours = new cv.MatVector();
   let hierarchy = new cv.Mat();
@@ -367,13 +253,15 @@ const calculateRegionProperties = (image, minArea, maxArea) => {
   let centroids = new cv.Mat();
   cv.connectedComponentsWithStats(image, labels, stats, centroids);
 
+
   let centroidsFinal = [];
   for (let i = 1; i < stats.rows; i++) {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
+    let radius = Math.sqrt(area / Math.PI);
     if (area >= minArea && area <= maxArea) {
       let x = centroids.data64F[i * 2]; // X coordinate
       let y = centroids.data64F[i * 2 + 1]; // Y coordinate
-      centroidsFinal.push({ x, y, area });
+      centroidsFinal.push({ x, y, area, radius});
     }
   }
 
@@ -397,47 +285,174 @@ function thresholdDistanceTransform(matrix, disTransformMultiplier) {
   // Typically, the maximum value in the distance transform image is identified. This value represents the furthest distance any pixel has from the background.
   cv.threshold(distTransform, sureFg, disTransformMultiplier * maxVal, 255, 0);
 
-  // Finding unknown region
   sureFg.convertTo(sureFg, cv.CV_8U);
 
   return sureFg;
 }
 
-// Main segmentation function
-function segmentationAlgorithm(
-  data,
-  minArea,
-  maxArea,
-  disTransformMultiplier = 0.6
-) {
+// // Main segmentation function
+// function segmentationAlgorithm(
+//   data,
+//   minArea,
+//   maxArea,
+//   disTransformMultiplier = 0.6
+// ) {
+//   const gray = toGrayscale(data);
+//   const binary = toBinary(gray);
+//   const opening = applyOpening(binary);
+//   visualizeMarkers(opening, "opening03.png");
+
+//   const dilated = applyDilation(opening);
+//   const filledOpening = fillSmallHoles(opening, dilated);
+//   const sureFg = thresholdDistanceTransform(
+//     filledOpening,
+//     disTransformMultiplier
+//   );
+//   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
+
+//   // Visualize each step
+//   visualizeMarkers(gray, "grayScaleInput01.png");
+//   visualizeMarkers(binary, "binary02.png");
+//   visualizeMarkers(filledOpening, "filledOpening05.png");
+//   visualizeMarkers(sureFg, "sureFg06.png");
+
+//   // Cleanup
+//   gray.delete();
+//   binary.delete();
+//   opening.delete();
+//   dilated.delete();
+//   // filledOpening.delete(); // Ensure this is correct; may need to adjust based on actual use
+
+//   return centroidsFinal;
+// }
+
+function calculateMedianRadius(segmented, minArea, maxArea) {
+  // Invert the colors: black to white, white to black
+  let inverted = new cv.Mat();
+  cv.bitwise_not(segmented, inverted);
+
+  // Find contours of the circles
+  let contours = new cv.MatVector();
+  let hierarchy = new cv.Mat();
+  cv.findContours(inverted, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+
+
+  // visualizeMarkers(inverted, "inverted.png");
+  let circleProperties = [];
+  // hierarchy is a Mat where each row contains these four values
+  let data = hierarchy.data32S;
+  for (let i = 0; i < contours.size(); ++i) {
+    // Check if the contour has a parent, meaning it's a hole
+    if (data[i * 4 + 3] != -1) {
+      let cnt = contours.get(i);
+      let area = cv.contourArea(cnt);
+      if (area >= minArea && area <= maxArea) {
+        let circle = cv.minEnclosingCircle(cnt);
+        circleProperties.push({
+          x: circle.center.x,
+          y: circle.center.y,
+          area: area,
+          radius: circle.radius
+        });
+      }
+    }
+  }
+
+  const medianRadius = findMedian(circleProperties.map((x) => x.radius));
+  // Cleanup
+  contours.delete();
+  hierarchy.delete();
+
+  return [medianRadius, circleProperties];
+}
+function findMedian(values) {
+  const sortedValues = [...values].sort((a, b) => a - b);
+  const midIndex = Math.floor(sortedValues.length / 2);
+  if (sortedValues.length % 2 === 0) {
+    // If even number of distances, median is the average of the two middle numbers
+    return (sortedValues[midIndex - 1] + sortedValues[midIndex]) / 2;
+  }
+  // If odd, median is the middle number
+  return sortedValues[midIndex];
+}
+
+function applyWatershed(data, markers) {
+  // Apply watershed
+  cv.watershed(data, markers);
+
+  // Convert markers back to 8-bit to visualize or further process
+  let segmented = new cv.Mat();
+  markers.convertTo(segmented, cv.CV_8U, 255, 255); // Convert for visualization
+  
+  // Optionally, you might want to visualize or isolate specific segments here
+  return segmented; // This Mat now contains the watershed result
+}
+
+// This function prepares markers for the watershed algorithm
+function prepareMarkers(filledOpening, sureFg) {
+
+  // Finding unknown region
+  sureFg.convertTo(sureFg, cv.CV_8U);
+
+  // Marker labelling
+  let markers = new cv.Mat();
+  cv.connectedComponents(sureFg, markers);
+
+  return markers; // This will be used for segmentation
+}
+
+function preprocessImageForContours(segmented) {
+
+  let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
+
+  let processed = segmented.clone(); // Ensure processed has the same size and type as segmented
+  cv.morphologyEx(segmented, processed, cv.MORPH_CLOSE, kernel);
+  // Threshold the image to ensure binary image
+  cv.threshold(processed, processed, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+  // Apply morphological operations
+  cv.morphologyEx(processed, processed, cv.MORPH_CLOSE, kernel);
+  kernel.delete();
+  return processed;
+}
+
+
+// Modified segmentationAlgorithm to include watershed and statistics extraction
+function segmentationAlgorithm(data, minArea, maxArea, disTransformMultiplier = 0.6) {
   const gray = toGrayscale(data);
   const binary = toBinary(gray);
   const opening = applyOpening(binary);
-  visualizeMarkers(opening, "opening03.png");
-
   const dilated = applyDilation(opening);
   const filledOpening = fillSmallHoles(opening, dilated);
-  const sureFg = thresholdDistanceTransform(
-    filledOpening,
-    disTransformMultiplier
-  );
+  const sureFg = thresholdDistanceTransform(filledOpening, disTransformMultiplier);
+
+  // Prepare markers and apply watershed
+  const markers = prepareMarkers(filledOpening, sureFg);
+  const segmented = applyWatershed(data, markers); // This function is hypothetical and needs implementation based on the above markers preparation
+
+
+  // Now, you might need to process 'segmented' to extract centroids and areas
+  // For example, using connectedComponentsWithStats on the result of watershed to find centroids and areas
+  const [medianRadius, waterShedAreas] = calculateMedianRadius(segmented, minArea, maxArea); // This function might need adjustment to work with watershed output
+  
   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
 
-  // Visualize each step
-  visualizeMarkers(gray, "grayScaleInput01.png");
-  visualizeMarkers(binary, "binary02.png");
-  visualizeMarkers(filledOpening, "filledOpening05.png");
-  visualizeMarkers(sureFg, "sureFg06.png");
+  centroidsFinal.forEach((centroid) => {
+    centroid.radius = medianRadius;
+    centroid.area = medianRadius * medianRadius * Math.PI;
+  });
 
   // Cleanup
   gray.delete();
   binary.delete();
   opening.delete();
   dilated.delete();
-  // filledOpening.delete(); // Ensure this is correct; may need to adjust based on actual use
+  sureFg.delete();
+  markers.delete();
+  segmented.delete();
 
   return centroidsFinal;
 }
+
 
 async function preprocessAndPredict(imageElement, model) {
   // Function to crop the image if it's larger than 1024x1024
@@ -575,16 +590,13 @@ function tensorToCvMat(tensor) {
 }
 
 // Main function to run the full prediction and visualization pipeline
-async function runPipeline(
+async function runSegmentationAndObtainCoreProperties(
   imageElement,
   model,
   threshold,
   minArea,
   maxArea,
   disTransformMultiplier,
-  visualizationContainer,
-  maskAlpha = 0.3,
-  autoDetermineParameters = true
 ) {
   // Preprocess the image and predict
   if (!window.neuralNetworkResult) {
@@ -607,11 +619,6 @@ async function runPipeline(
     disTransformMultiplier
   );
 
-  if (autoDetermineParameters) {
-    // const averageSpacing = calculateMedianSpacing(properties);
-    // console.log(averageSpacing);
-  }
-  // debugger;
   // Original image dimensionsƒ
   const originalWidth = imageElement.width;
   const originalHeight = imageElement.height;
@@ -628,14 +635,7 @@ async function runPipeline(
   window.properties = Object.values(properties);
   window.thresholdedPredictions = thresholdedPredictions;
 
-  // Visualize the predictions with the mask overlay and centroids
-  await visualizeSegmentationResults(
-    imageElement,
-    thresholdedPredictions,
-    properties,
-    visualizationContainer,
-    maskAlpha
-  );
+  return [Object.values(properties), thresholdedPredictions];
 }
 
 export {
@@ -643,6 +643,6 @@ export {
   segmentationAlgorithm,
   preprocessAndPredict,
   visualizeSegmentationResults,
-  runPipeline,
+  runSegmentationAndObtainCoreProperties,
   loadOpenCV,
 };

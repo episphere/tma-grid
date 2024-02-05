@@ -9,11 +9,13 @@ import {
   makeElementDraggable,
   showPopup,
   closePopup,
+  getHyperparametersFromUI,
 } from "./UI.js";
 
 import {
   saveUpdatedCores,
   preprocessForTravelingAlgorithm,
+  loadDataAndDetermineParams,
 } from "./data_processing.js";
 
 import { preprocessCores } from "./delaunay_triangulation.js";
@@ -25,7 +27,7 @@ import {
   obtainHyperparametersAndDrawVirtualGrid,
 } from "./drawCanvas.js";
 
-import { loadModel, runPipeline, loadOpenCV } from "./core_detection.js";
+import { loadModel, runSegmentationAndObtainCoreProperties, visualizeSegmentationResults } from "./core_detection.js";
 
 import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
 
@@ -102,6 +104,7 @@ const handleImageInputChange = async (e, processCallback) => {
         if (img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
           scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height);
 
+          window.scalingFactor = scalingFactor;
           const canvas = document.createElement("canvas");
           canvas.width = img.width * scalingFactor;
           canvas.height = img.height * scalingFactor;
@@ -114,8 +117,8 @@ const handleImageInputChange = async (e, processCallback) => {
         }
 
         const osdCanvasParent = document.getElementById("osdViewer")
-        osdCanvasParent.style.width = `${ Math.ceil(img.width * scalingFactor) }px`
-        osdCanvasParent.style.height = `${ Math.ceil(img.height * scalingFactor) }px`
+        osdCanvasParent.style.width = `1024px`;
+        osdCanvasParent.style.height = `1024px`;
 
         originalImageContainer.onload = () => {
           updateStatusMessage(
@@ -130,9 +133,10 @@ const handleImageInputChange = async (e, processCallback) => {
 
         // Update OSD Viewer
         const osdCanvasParent = document.getElementById("osdViewer");
-        osdCanvasParent.style.width = `${Math.ceil(originalImageContainer.width * scalingFactor)}px`;
-        osdCanvasParent.style.height = `${Math.ceil(originalImageContainer.height * scalingFactor)}px`;
+        osdCanvasParent.style.width = `1024px`;
+        osdCanvasParent.style.height = `1024px`;
 
+        debugger
         };
 
         originalImageContainer.onerror = () => {
@@ -354,7 +358,6 @@ const handleLoadImageUrlClick = async (state) => {
       window.scalingFactor = scalingFactor;
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
     }
-    console.log("scalingFactor", scalingFactor);
 
     imageResp
       .then((response) => {
@@ -395,7 +398,7 @@ const handleLoadImageUrlClick = async (state) => {
             "Image loaded successfully.",
             "success-message"
           );
-          await segmentImage();
+          await segmentImage(true);
         };
       })
       .catch((error) => {
@@ -418,7 +421,7 @@ const handleLoadImageUrlClick = async (state) => {
   window.imageSource = "URL";
 };
 
-async function segmentImage() {
+async function segmentImage(initializeParams = false) {
   const { threshold, maskAlpha, minArea, maxArea, disTransformMultiplier } =
     getInputParameters();
 
@@ -426,23 +429,48 @@ async function segmentImage() {
     originalImageContainer.src &&
     originalImageContainer.src[originalImageContainer.src.length - 1] !== "#"
   ) {
+    let thresholdedPredictions;
+    let preprocessedCores;
+
     try {
-      await runPipeline(
+       [preprocessedCores, thresholdedPredictions] = await runSegmentationAndObtainCoreProperties(
         originalImageContainer,
         window.state.model,
         threshold,
         minArea,
         maxArea,
         disTransformMultiplier,
-        processedImageCanvasID,
-        maskAlpha
       );
 
-      window.preprocessedCores = preprocessCores(window.properties);
-      window.preprocessedCores.forEach((core) => {});
+      window.preprocessedCores = preprocessCores(preprocessedCores);
+     
+      
+      const newParams = await loadDataAndDetermineParams(
+        window.preprocessedCores,
+        getHyperparametersFromUI()
+      );          
+
+      const gridWidth = newParams.gridWidth;
+      const coreRadius = window.preprocessedCores[0].radius;
+
+      const spacingBetweenCores = gridWidth - 2 * coreRadius;
+
+      console.log("spacingBetweenCores", spacingBetweenCores);
+
+
+
+
     } catch (error) {
       console.error("Error processing image:", error);
     } finally {
+      // Visualize the predictions with the mask overlay and centroids
+      await visualizeSegmentationResults(
+        originalImageContainer,
+        thresholdedPredictions,
+        preprocessedCores,
+        processedImageCanvasID,
+        maskAlpha
+      );
       // Hide loading spinner
       document.getElementById("loadingSpinner").style.display = "none";
     }
@@ -643,7 +671,7 @@ const initSegmentation = async () => {
   document
     .getElementById("fileInput")
     .addEventListener("change", (e) =>
-      handleImageInputChange(e, () => segmentImage())
+      handleImageInputChange(e, () => segmentImage(true))
     );
   document
     .getElementById("loadImageUrlBtn")

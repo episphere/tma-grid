@@ -615,6 +615,7 @@ button:hover {
   margin: auto;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+
 }
 
 .carousel-item {
@@ -631,9 +632,13 @@ button:hover {
   transform: translateY(-100%);
   display: flex;
   justify-content: space-between;
+  background: transparent;
+  z-index: 10; /* Adjust this value as needed to be above the other items */
+  pointer-events: none; /* This will make sure the div itself doesn't block mouse events */
 }
 .carousel-controls button{
   width:10%;
+  pointer-events: auto; /* This re-enables pointer events for the buttons */
 }
 
 

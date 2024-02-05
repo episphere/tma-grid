@@ -39,7 +39,7 @@ function rotatePoint(point, angle) {
 }
 
 async function preprocessForTravelingAlgorithm() {
-  await loadDataAndDetermineParams(
+  const newParams = await loadDataAndDetermineParams(
     window.preprocessedCores,
     getHyperparametersFromUI()
   );
@@ -289,6 +289,11 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
   params.gridWidth = d;
   params.imageWidth = imageWidth;
   params.gamma = d;
+
+  // Update radius 
+  document.getElementById("userRadius").value = window.preprocessedCores[0].radius;
+
+  return params;
 }
 
 function saveUpdatedCores() {
