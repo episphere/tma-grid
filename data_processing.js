@@ -292,6 +292,7 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
 
   // Update radius 
   document.getElementById("userRadius").value = window.preprocessedCores[0].radius;
+  document.getElementById("radiusValue").value = Math.round(window.preprocessedCores[0].radius);
 
   return params;
 }
@@ -306,9 +307,9 @@ function saveUpdatedCores() {
   const finalSaveData = window.sortedCoresData.map((core) => {
     return {
       ...core,
-      x: core.x / window.scalingFactor,
-      y: core.y / window.scalingFactor,
-      currentRadius: core.currentRadius / window.scalingFactor,
+      x: core.x / window.scalingFactor / (window.imageScalingFactor ?? 1),
+      y: core.y / window.scalingFactor / (window.imageScalingFactor ?? 1),
+      currentRadius: core.currentRadius / window.scalingFactor / (window.imageScalingFactor ?? 1),
     };
   });
 

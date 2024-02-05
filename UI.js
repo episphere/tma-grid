@@ -270,6 +270,8 @@ function resetApplication() {
   window.viewer?.destroy()
   window.viewer = null
   window.imageSource = "";
+  window.scalingFactor = 1;
+  window.imageScalingFactor = null;
 
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();

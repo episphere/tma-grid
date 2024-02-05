@@ -102,9 +102,11 @@ const handleImageInputChange = async (e, processCallback) => {
       img.onload = async () => {
         // Check if the image needs to be scaled down
         if (img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
+
           scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height);
 
-          window.scalingFactor = scalingFactor;
+          window.imageScalingFactor = scalingFactor;
+          // window.scalingFactor = scalingFactor;
           const canvas = document.createElement("canvas");
           canvas.width = img.width * scalingFactor;
           canvas.height = img.height * scalingFactor;
@@ -117,8 +119,9 @@ const handleImageInputChange = async (e, processCallback) => {
         }
 
         const osdCanvasParent = document.getElementById("osdViewer")
-        osdCanvasParent.style.width = `1024px`;
-        osdCanvasParent.style.height = `1024px`;
+        osdCanvasParent.style.width = `${img.width * scalingFactor}px`;
+        osdCanvasParent.style.height = `${img.height * scalingFactor}px`;
+
 
         originalImageContainer.onload = () => {
           updateStatusMessage(
@@ -130,13 +133,6 @@ const handleImageInputChange = async (e, processCallback) => {
 
           window.loadedImg = originalImageContainer;
           document.getElementById("loadingSpinner").style.display = "none";
-
-        // Update OSD Viewer
-        const osdCanvasParent = document.getElementById("osdViewer");
-        osdCanvasParent.style.width = `1024px`;
-        osdCanvasParent.style.height = `1024px`;
-
-        debugger
         };
 
         originalImageContainer.onerror = () => {
@@ -202,7 +198,6 @@ const handleImageInputChange = async (e, processCallback) => {
   window.scalingFactor = scalingFactor
 
   moveToCarouselItem("next");
-
 };
 
 function handleMetadataFileSelect(event) {
@@ -378,6 +373,14 @@ const handleLoadImageUrlClick = async (state) => {
         originalImageContainer.src = objectURL;
         originalImageContainer.onload = async () => {
           // Check if the image needs to be scaled down
+          if (originalImageContainer.width > MAX_DIMENSION_FOR_DOWNSAMPLING || originalImageContainer.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
+            scalingFactor = Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.width, MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.height);
+            window.imageScalingFactor = scalingFactor;
+            debugger
+          } 
+        
+          
+          // Check if the image needs to be scaled down
           if (!width) {
             width = originalImageContainer.width;
           }
@@ -385,12 +388,13 @@ const handleLoadImageUrlClick = async (state) => {
             height = originalImageContainer.height;
           }
 
+
           const osdCanvasParent = document.getElementById("osdViewer");
           osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
           osdCanvasParent.style.height = `${Math.ceil(
             height * scalingFactor
           )}px`;
-
+          
           window.loadedImg = originalImageContainer;
 
           updateStatusMessage(
