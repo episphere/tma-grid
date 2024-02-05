@@ -520,31 +520,38 @@ const handleLoadImageUrlClick = async (state) => {
       .then((blob) => {
         let objectURL = URL.createObjectURL(blob);
         originalImageContainer.crossOrigin = "anonymous";
-        originalImageContainer.src = objectURL;
-        originalImageContainer.onload = async () => {
+
+        const img = new Image();
+        img.src = objectURL;
+        img.onload = async () => {
           // Check if the image needs to be scaled down
           if (
-            originalImageContainer.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
-            originalImageContainer.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+            img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
+            img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
           ) {
-
             scalingFactor = Math.min(
-              MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.width,
-              MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.height
+              MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
+              MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
             );
-  
+
             window.imageScalingFactor = scalingFactor;
             // window.scalingFactor = scalingFactor;
             const canvas = document.createElement("canvas");
-            canvas.width = originalImageContainer.width * scalingFactor;
-            canvas.height = originalImageContainer.height * scalingFactor;
+            canvas.width = img.width * scalingFactor;
+            canvas.height = img.height * scalingFactor;
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             originalImageContainer.src = canvas.toDataURL();
-            
-            window.scalingFactor = 1;
+          } else {
+            originalImageContainer.src = img.src;
+            scalingFactor = 1;
           }
 
+        }
+
+        // originalImageContainer.src = objectURL;
+        originalImageContainer.onload = async () => {
+    
           // Check if the image needs to be scaled down
           if (!width) {
             width = originalImageContainer.width;
@@ -588,6 +595,8 @@ const handleLoadImageUrlClick = async (state) => {
   moveToCarouselItem("next");
   window.imageSource = "URL";
 };
+
+
 
 async function segmentImage(initializeParams = false) {
   const { threshold, maskAlpha, minArea, maxArea, disTransformMultiplier } =

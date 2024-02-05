@@ -857,6 +857,10 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           Math.max(core.x - positionInImage.x, core.y - positionInImage.y)
         );
 
+        // Update UI for Radius
+        document.getElementById("RadiusInput").value = core.currentRadius;
+        
+        debugger
         if (overlayElement) {
           window.viewer.removeOverlay(overlayElement);
           window.sortedCoresData[window.sortedCoresData.length - 1] = core;
@@ -1101,8 +1105,6 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
 
   // Scale and update the cores data
   window.sortedCoresData = sortedCoresData.map(scaleCoreData);
-
-  debugger
 
   // Visualize the cores
   drawCoresOnCanvasForTravelingAlgorithm();
