@@ -257,7 +257,7 @@ function handleMetadataFileSelect(event) {
 function processCSV(file) {
   Papa.parse(file, {
     complete: function (results) {
-      validateMetadata(results.data);
+      validateMetadata(results.data, "csv");
     },
   });
 }
@@ -271,13 +271,13 @@ function processExcel(file) {
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     const json = XLSX.utils.sheet_to_json(worksheet);
-    validateMetadata(json);
+    validateMetadata(json, "excel");
   };
 
   reader.readAsArrayBuffer(file);
 }
 
-function validateMetadata(data) {
+function validateMetadata(data, fileType = "csv") {
   if (!data || data.length === 0) {
     updateStatusMessage(
       "metadataLoadStatus",
@@ -288,8 +288,16 @@ function validateMetadata(data) {
   }
 
   // Helper function to find a column name considering case-insensitivity and abbreviations
-  function findColumnName(data, possibleNames) {
-    const columnNames = Object.keys(data[0]);
+  function findColumnName(data, possibleNames, fileType = "csv") {
+
+    let columnNames;
+    if (fileType === "csv") {
+
+      columnNames = data[0];
+
+    } else {
+      columnNames = Object.keys(data[0]);
+    }
     for (const name of columnNames) {
       if (possibleNames.includes(name.toLowerCase())) {
         return name;
@@ -299,11 +307,11 @@ function validateMetadata(data) {
   }
 
   // Define possible names for 'row' and 'column' considering case and abbreviations
-  const possibleRowNames = ["row", "Row"];
-  const possibleColumnNames = ["column", "col", "Column", "Col"];
+  const possibleRowNames = ["row"];
+  const possibleColumnNames = ["column", "col"];
 
-  const rowName = findColumnName(data, possibleRowNames);
-  const colName = findColumnName(data, possibleColumnNames);
+  const rowName = findColumnName(data, possibleRowNames, fileType);
+  const colName = findColumnName(data, possibleColumnNames, fileType);
 
   if (!rowName || !colName) {
     updateStatusMessage(
