@@ -162,6 +162,7 @@ const handleSVSFile = async (file, processCallback) => {
       "Image loaded successfully.",
       "success-message"
     );
+    moveToCarouselItem("next");
 
     processCallback();
 

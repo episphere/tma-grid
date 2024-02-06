@@ -482,7 +482,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           if (!overlayElement.classList.contains("selected")) {
             overlayElement.classList.add("selected");
             document.addEventListener("keydown", deleteBtnHandler, { once: true });
-            // selectedIndex = window.viewer.currentOverlays.indexOf(overlay); // Uncomment if you use selectedIndex
           } else {
             // If it was already selected, remove the listener (since it's deselected now)
             document.removeEventListener("keydown", deleteBtnHandler);
@@ -710,9 +709,15 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   function determineCoreRow(core, sortedCoresData){
 
 
-    const imageRotation = parseFloat(
+    let imageRotation = parseFloat(
       document.getElementById("originAngle").value
     );
+
+    if (imageRotation < 10) {
+
+      imageRotation = 0;
+
+    }
 
     // Determine rotated median Y value of each row
     const medianRows = Object.values(determineMedianRowColumnValues(sortedCoresData, imageRotation).rows);
@@ -757,9 +762,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       window.sortedCoresData = window.sortedCoresData.filter(
         (core) => core.row !== modifiedRow
       );
-
-      // Update row numbers for cores in rows below the removed row
-      window.sortedCoresData.forEach((core) => {
+      resData.forEach((core) => {
         if (core.row > modifiedRow) {
           core.row -= 1;
         }
@@ -772,6 +775,8 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       // Update columns only if the row was not removed
       updateColumnsInRowAfterModification(modifiedRow);
     }
+
+    flagMisalignedCores(window.sortedCoresData, parseFloat(document.getElementById("originAngle").value));
 
     drawCores(); // Redraw the cores
   }
@@ -1188,6 +1193,10 @@ function removeImaginaryCoresFilledRowsAndColumns(coresData) {
 }
 
 function determineMedianRowColumnValues(coresData, imageRotation) {
+  if (imageRotation < 10){
+    imageRotation = 0;
+  }
+
   // Initialize structures to hold separated X and Y values for rows and columns
   const rowValues = {};
   const columnValues = {};
@@ -1242,6 +1251,10 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
 function flagMisalignedCores(coresData, imageRotation) {
 
+  if (imageRotation < 10){
+    imageRotation = 0;
+  }
+
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
   // Count the number of cores in each column
@@ -1261,15 +1274,22 @@ function flagMisalignedCores(coresData, imageRotation) {
     const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
 
    
-    // If the core's rotated X value is 1.25 radii outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned
+    // If the core's rotated X value is 1.5 radii outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned. 
 
     if (
-      Math.abs(rotatedX - medianRotatedXValues[core.col]) > 1.25 * core.currentRadius ||
+      Math.abs(medianRotatedXValues[core.col] - rotatedX) > 1.25 * core.currentRadius ||
       coreCounts[core.col] < 2
     ) {
       core.isMisaligned = true;
-    }else{
+    } else {
       core.isMisaligned = false;
+    }
+
+
+    // If there's another core with the same row and column, also mark it as misaligned
+   
+    if (coresData.some((otherCore) => otherCore !== core && otherCore.row === core.row && otherCore.col === core.col)) {
+      core.isMisaligned = true;
     }
 
   });
@@ -1311,8 +1331,78 @@ function reassignCoreIndices(coresData) {
   return coresData;
 }
 
+function alignMisalignedCores(coresData, imageRotation) {
+
+  const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
+
+
+  // Count the number of cores in each column
+  const coreCounts = {};
+  coresData.forEach((core) => {
+    coreCounts[core.col] = (coreCounts[core.col] || 0) + 1;
+  });
+  
+  // Since we're aligning columns, we focus on median X values in columns
+  const medianRotatedXValues = {};
+  Object.keys(medianValues.columns).forEach(col => {
+    medianRotatedXValues[col] = medianValues.columns[col].medianX;
+  });
+
+  // Modify this part to take into account the number of cores in each column
+  coresData.forEach((core) => {
+    const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
+    let nearestCol = null;
+    let minDistance = Infinity;
+
+    // Store the distances
+    let distances = {};
+
+    Object.keys(medianRotatedXValues).forEach((col) => {
+      // Added one so that if the core is the median itself, there will still be a nonzero distance, so it can get reassigned to another column if the
+      // weightedDistance is high enough
+      
+      const distance = Math.abs(medianRotatedXValues[col] - rotatedX) + 5;
+
+      distances[col] = distance;
+
+      // Added a 0.000001 to prevent division by zero. This makes the penalty for being in a column of 1 extremely high.
+      const weightedDistance = distance / Math.log(coreCounts[col] + 0.000001); // Example weighting
+
+      if (weightedDistance < minDistance) {
+        nearestCol = col;
+        minDistance = weightedDistance;
+      }
+
+    });
+
+    // if (core.row == 9 && core.col == 11) {
+
+    //   console.log("nearestCol", nearestCol);
+    //   debugger
+    // }
+
+    core.col = parseInt(nearestCol);
+  });
+
+  return coresData;
+}
+
 function filterAndReassignCores(coresData, imageRotation) {
-  let filteredCores = removeImaginaryCoresFilledRowsAndColumns(coresData);
+
+
+  if (imageRotation < 10){
+
+    imageRotation = 0;
+
+  }
+
+  let filteredCores = alignMisalignedCores(coresData, imageRotation);
+  
+  filteredCores = reassignCoreIndices(filteredCores);
+  
+  filteredCores = removeImaginaryCoresFilledRowsAndColumns(coresData);
+
+  filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
   filteredCores = reassignCoreIndices(filteredCores);
 
@@ -1470,6 +1560,7 @@ function redrawCoresForTravelingAlgorithm() {
     alert("Please load an image first.");
   }
 }
+
 
 export {
   drawCoresOnCanvasForTravelingAlgorithm,
