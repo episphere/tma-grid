@@ -442,6 +442,11 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     );
     window.viewer.addOverlay(overlayElement, overlayRect);
 
+    // Define a flag outside of the click handler to track the event listener's state
+    let isDeleteHandlerActive = false;
+    let activeDeleteHandler = null; // Store the active handler function to remove it later
+
+
     new OpenSeadragon.MouseTracker({
       element: overlayElement,
 
@@ -458,36 +463,34 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           e.preventDefault = true;
         }
       },
-
       clickHandler: (e) => {
         if (e.quick) {
           const overlay = window.viewer.getOverlayById(overlayElement);
           const deleteBtnHandler = (e) => {
             if (e.key === "Delete" || e.key === "Backspace") {
-              removeCoreFromGrid(core);
+              // check if the core is selected
+              if (overlayElement.classList.contains("selected")) {
+                removeCoreFromGrid(core); // Assuming removeCoreFromGrid is defined elsewhere
+              }
             }
           };
+          // Deselect all overlays first
+          window.viewer.currentOverlays.forEach((overlay) => {
+            overlay.element.classList.remove("selected");
+          });
+          // Then check if the clicked overlay wasn't already selected
           if (!overlayElement.classList.contains("selected")) {
-            window.viewer.currentOverlays
-              .filter((overlay) =>
-                overlay.element.classList.contains("selected")
-              )
-              .forEach((selectedOverlay) => {
-                selectedOverlay.element.classList.remove("selected");
-              });
             overlayElement.classList.add("selected");
-            document.addEventListener("keydown", deleteBtnHandler, {
-              once: true,
-            });
-            // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
+            document.addEventListener("keydown", deleteBtnHandler, { once: true });
+            // selectedIndex = window.viewer.currentOverlays.indexOf(overlay); // Uncomment if you use selectedIndex
           } else {
-            overlayElement.classList.remove("selected");
+            // If it was already selected, remove the listener (since it's deselected now)
             document.removeEventListener("keydown", deleteBtnHandler);
-            // selectedIndex = null
+            // selectedIndex = null; // Uncomment if you use selectedIndex
           }
         }
       },
-
+      
       dblClickHandler: (e) => {
         const overlay = window.viewer.getOverlayById(overlayElement);
         // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
