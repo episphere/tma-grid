@@ -1,5 +1,5 @@
 import { getHyperparametersFromUI } from "./UI.js";
-import { runTravelingAlgorithm } from "./data_processing.js";
+import { runTravelingAlgorithm, updateSpacingInVirtualGrid} from "./data_processing.js";
 
 import { preprocessCores } from "./delaunay_triangulation.js";
 
@@ -279,7 +279,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   // const canvas = document.getElementById("coreCanvas");
   // window.viewer.viewport.goHome()
   const canvas = window.viewer.canvas.firstElementChild;
-  // debugger
   const ctx = canvas.getContext("2d");
   let selectedCore = null;
   let isAltDown = false; // Track the state of the Alt key
@@ -785,26 +784,38 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //     saveCore(window.sortedCoresData[selectedIndex])
   //   });
 
-  // Function to clear the temporary core
-  function clearTempCore() {
-    tempCore = null;
-    isSettingSize = false;
-    drawCores();
+  // Function to rotate a point around the origin
+  function rotatePoint(point, angle) {
+    const pivotX = window.loadedImg.width/2/window.scalingFactor;
+    const pivotY = window.loadedImg.height/2/window.scalingFactor;
+  
+    // Translate point to origin (pivot point becomes the new origin)
+    const translatedX = point[0] - pivotX;
+    const translatedY = point[1] - pivotY;
+  
+    // Convert angle to radians
+    const radians = (angle * Math.PI) / 180;
+  
+    // Perform rotation around origin
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+    const rotatedX = translatedX * cos - translatedY * sin;
+    const rotatedY = translatedX * sin + translatedY * cos;
+  
+    // Translate point back
+    const newX = rotatedX + pivotX;
+    const newY = rotatedY + pivotY;
+  
+    return [newX, newY];
   }
-
+  
   function updateColumnsInRowAfterModification(row) {
     const imageRotation = parseFloat(
       document.getElementById("originAngle").value
     );
 
-    // Function to rotate a point around the origin
-    function rotatePoint(x, y, angle) {
-      const radians = (angle * Math.PI) / 180;
-      return {
-        x: x * Math.cos(radians) - y * Math.sin(radians),
-        y: x * Math.sin(radians) + y * Math.cos(radians),
-      };
-    }
+
+    
 
     // Create an array to hold the original cores with their rotated coordinates for sorting
     const coresWithRotatedCoordinates = window.sortedCoresData
@@ -812,7 +823,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       .map((core) => {
         return {
           originalCore: core,
-          rotatedCoordinates: rotatePoint(core.x, core.y, imageRotation),
+          rotatedCoordinates: rotatePoint([core.x, core.y], imageRotation),
         };
       });
 
@@ -872,7 +883,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           Math.max(core.x - positionInImage.x, core.y - positionInImage.y)
         );
 
-        debugger
         if (overlayElement) {
           window.viewer.removeOverlay(overlayElement);
           window.sortedCoresData[window.sortedCoresData.length - 1] = core;
@@ -1076,20 +1086,20 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
     // Update UI with the optimal angle
     hyperparameters = updateUIAndHyperparameters(optimalAngle);
 
-
-
   } else {
     hyperparameters = getHyperparametersFromUI();
   }
 
   // Run the algorithm with the optimal angle found
-  const sortedCoresData = await runTravelingAlgorithm(
+  let sortedCoresData = await runTravelingAlgorithm(
     window.preprocessedCores,
     hyperparameters
   );
 
-  updateVirtualGridSpacing(hyperparameters.gridWidth);
+   sortedCoresData = filterAndReassignCores(sortedCoresData);
 
+
+  updateSpacingInVirtualGrid(hyperparameters.gridWidth * 1.5);
 
 
   // Function to scale core data
@@ -1107,29 +1117,83 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   drawCoresOnCanvasForTravelingAlgorithm();
 }
 
-// async function applyAndVisualizeTravelingAlgorithm() {
-//   if (window.preprocessedCores) {
 
-//     const sortedCoresData = await runTravelingAlgorithm(
-//       window.preprocessedCores,
-//       getHyperparametersFromUI()
-//     );
+function removeImaginaryCoresFilledRowsAndColumns(coresData) {  
+// Calculate imaginary core counts
+let rowImaginaryCounts = {};
+let colImaginaryCounts = {};
+let rowCount = {};
+let colCount = {};
 
-//     debugger
-//     window.sortedCoresData = sortedCoresData.map(core => {
-//       return {
-//         ...core,
-//         'x': core.x / window.scalingFactor,
-//         'y': core.y / window.scalingFactor,
-//         'currentRadius': core.currentRadius / window.scalingFactor
-//       }
-//     })
+// Initialize counts
+coresData.forEach(core => {
+  rowCount[core.row] = (rowCount[core.row] || 0) + 1;
+  colCount[core.col] = (colCount[core.col] || 0) + 1;
+  if (core.isImaginary) {
+    rowImaginaryCounts[core.row] = (rowImaginaryCounts[core.row] || 0) + 1;
+    colImaginaryCounts[core.col] = (colImaginaryCounts[core.col] || 0) + 1;
+  }
+});
 
-//     drawCoresOnCanvasForTravelingAlgorithm();
-//   } else {
-//     console.error("No cores data available. Please load a file first.");
-//   }
-// }
+// Filter cores
+coresData = coresData.filter(core => {
+  let rowImaginaryRatio = (rowImaginaryCounts[core.row] || 0) / rowCount[core.row];
+  let colImaginaryRatio = (colImaginaryCounts[core.col] || 0) / colCount[core.col];
+  return !(core.isImaginary && (rowImaginaryRatio >= 0.65 || colImaginaryRatio >= 0.65));
+});
+
+// Sort by row and col for consistent processing
+coresData.sort((a, b) => a.row - b.row || a.col - b.col);
+
+// Reassign row indices
+let rowMap = {};
+let rowIndex = 0;
+coresData
+  .map(core => core.row)
+  .filter((value, index, self) => self.indexOf(value) === index)
+  .sort((a, b) => a - b)
+  .forEach(originalRow => {
+    rowMap[originalRow] = rowIndex++;
+  });
+
+// Reassign column indices within each row
+coresData.forEach(core => {
+  core.row = rowMap[core.row]; // Update row to new mapping
+});
+
+// For each row, assign consecutive col indices starting from 0
+let lastRow = -1;
+let colIndex = 0;
+coresData.forEach(core => {
+  if (core.row !== lastRow) {
+    // New row
+    lastRow = core.row;
+    colIndex = 0;
+  }
+  core.col = colIndex++;
+});
+
+return coresData;
+}
+
+
+function removeMisalignedImaginaryCores(coresData) {
+
+  // Calculate the average 
+
+}
+
+
+function filterAndReassignCores(coresData) {
+  
+
+  const filteredCores = removeImaginaryCoresFilledRowsAndColumns(coresData);
+
+
+
+  return filteredCores;
+}
+
 
 function obtainHyperparametersAndDrawVirtualGrid() {
   const horizontalSpacing = parseInt(

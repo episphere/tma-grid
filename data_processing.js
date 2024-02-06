@@ -155,6 +155,21 @@ function invertTranspose(transposedArray, originalStructure) {
   return result;
 }
 
+function sortRowsByRotatedPoints(rows, originAngle) {
+  // Temporarily rotate the first point of each row for sorting purposes
+  let sortingHelper = rows.map((row) => {
+    return {
+      originalRow: row,
+      rotatedPoint: rotatePoint(row[0]["point"], -originAngle),
+    };
+  });
+
+  // Sort the rows based on the y-coordinate of the rotated first point in each row
+  sortingHelper.sort((a, b) => a.rotatedPoint[1] - b.rotatedPoint[1]);
+
+  // Extract the original rows in sorted order
+  return sortingHelper.map((item) => item.originalRow);
+}
 
 async function runTravelingAlgorithm(normalizedCores, params) {
   const delaunayTriangleEdges = getEdgesFromTriangulation(normalizedCores);
@@ -191,21 +206,6 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.radiusMultiplier
   );
 
-  function sortRowsByRotatedPoints(rows, originAngle) {
-    // Temporarily rotate the first point of each row for sorting purposes
-    let sortingHelper = rows.map((row) => {
-      return {
-        originalRow: row,
-        rotatedPoint: rotatePoint(row[0]["point"], -originAngle),
-      };
-    });
-
-    // Sort the rows based on the y-coordinate of the rotated first point in each row
-    sortingHelper.sort((a, b) => a.rotatedPoint[1] - b.rotatedPoint[1]);
-
-    // Extract the original rows in sorted order
-    return sortingHelper.map((item) => item.originalRow);
-  }
 
   // Extract the original rows in sorted order
   let sortedRows = sortRowsByRotatedPoints(rows, params.originAngle);
@@ -385,4 +385,6 @@ export {
   loadDataAndDetermineParams,
   saveUpdatedCores,
   preprocessForTravelingAlgorithm,
+  updateSpacingInVirtualGrid,
+  
 };
