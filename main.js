@@ -131,9 +131,6 @@ const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
   document.getElementById("loadingSpinner").style.display = "none";
 };
 
-
-
-
 const handleSVSFile = async (file, processCallback) => {
 
   const imageInfo = await getWSIInfo(file);
@@ -188,6 +185,8 @@ const handleImageLoad = (file, processCallback) => {
           updateStatusMessage('imageLoadStatus', 'Image loaded successfully.', 'success-message');
           processCallback();
           window.loadedImg = originalImageContainer;
+          moveToCarouselItem("next");
+
         };
         originalImageContainer.onerror = () => {
           updateStatusMessage('imageLoadStatus', 'Image failed to load.', 'error-message');
@@ -216,7 +215,6 @@ const handleImageInputChange = async (e, processCallback) => {
 
   const file = e.target.files[0];
   handleImageLoad(file, processCallback);
-  moveToCarouselItem("next");
 };
 
 
@@ -254,8 +252,6 @@ function handleMetadataFileSelect(event) {
   } else {
     processExcel(file);
   }
-
-  moveToCarouselItem("next");
 }
 
 function processCSV(file) {
@@ -328,6 +324,7 @@ function validateMetadata(data) {
     "File successfully uploaded and validated.",
     "success-message"
   );
+  moveToCarouselItem("next");
 }
 
 // Function to get input parameters from the UI
@@ -447,6 +444,8 @@ const handleLoadImageUrlClick = async (state) => {
             "success-message"
           );
           await segmentImage(true);
+          moveToCarouselItem("next");
+
         };
       })
       .catch((error) => {
@@ -465,7 +464,6 @@ const handleLoadImageUrlClick = async (state) => {
     console.error("Please enter a valid image URL");
   }
 
-  moveToCarouselItem("next");
   window.imageSource = "URL";
 };
 
@@ -540,6 +538,15 @@ async function segmentImage(initializeParams = false) {
 }
 
 function bindEventListeners() {
+
+  document.querySelectorAll("input[type='number']").forEach((e) => {
+    e.onwheel = (e) => {
+      e.preventDefault();
+    };
+  });
+
+  
+
   // Event listener for the Apply Hyperparameters button
   document
     .getElementById("apply-hyperparameters")
@@ -971,11 +978,6 @@ const initSegmentation = async () => {
     });
 };
 
-document.querySelectorAll("input[type='number']").forEach((e) => {
-  e.onwheel = (e) => {
-    e.preventDefault();
-  };
-});
 
 function moveToCarouselItem(direction) {
   var current = document.querySelector(".carousel-item.active");
@@ -993,9 +995,53 @@ function moveToCarouselItem(direction) {
   }
   items[nextIndex].classList.add("active");
 }
+function addDragAndDrop() {
+  var dropzones = document.querySelectorAll(".file-dropzone");
+
+  dropzones.forEach(function(dropzone) {
+    dropzone.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.style.borderColor = "green";
+    });
+
+    dropzone.addEventListener("dragleave", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.style.borderColor = "#ccc";
+    });
+
+    dropzone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.style.borderColor = "#ccc";
+
+      var files = e.dataTransfer.files;
+
+      if (files.length > 1) {
+        alert("Please drop only one file.");
+        return;
+      }
+
+      if (files.length === 1) {
+        // Simulate the file input selection
+        var fileInput = document.getElementById(dropzone.getAttribute('for'));
+        var dataTransfer = new DataTransfer();
+        dataTransfer.items.add(files[0]);
+        fileInput.files = dataTransfer.files;
+
+        // Manually trigger the change event on the input
+        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  });
+}
+
+
 
 // Main function that runs the application
 const run = async () => {
+  addDragAndDrop();
   bindEventListeners();
   // Run the app
   initSegmentation();
