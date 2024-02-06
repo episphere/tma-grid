@@ -125,28 +125,36 @@ function normalizeRowsByAddingImaginaryPoints(
 }
 
 // Helper function to transpose rows and columns without adding undefined values
-function transpose(matrix) {
-  // Check if the matrix is empty
-  if (matrix.length === 0 || matrix[0].length === 0) {
-    return [];
-  }
-
-  // Initialize the transposed array with empty arrays for each column based on the longest row
-  const maxLength = Math.max(...matrix.map((row) => row.length));
-  let transposed = Array.from({ length: maxLength }, () => []);
-
-  // Loop through each row and column to populate the transposed matrix, excluding undefined values
-  matrix.forEach((row, rowIndex) => {
-    row.forEach((item, colIndex) => {
-      // Only add the item to the transposed array if it exists
-      if (item !== undefined) {
-        transposed[colIndex].push(item);
+// Function to transpose a jagged array
+function transposeJaggedArray(jaggedArray) {
+  let result = [];
+  jaggedArray.forEach(row => {
+    row.forEach((item, columnIndex) => {
+      if (!result[columnIndex]) {
+        result[columnIndex] = []; // Create a new row if it doesn't exist
       }
+      result[columnIndex].push(item);
     });
   });
-
-  return transposed;
+  return result;
 }
+
+// Function to invert the transposition of a jagged array
+// originalStructure is an array of the lengths of each sub-array in the original jagged array
+function invertTranspose(transposedArray, originalStructure) {
+  let result = [];
+  let itemIndex = 0;
+  for (let length of originalStructure) {
+    let newRow = [];
+    for (let i = 0; i < length; i++) {
+      newRow.push(transposedArray[i][itemIndex]);
+    }
+    result.push(newRow);
+    itemIndex++;
+  }
+  return result;
+}
+
 
 async function runTravelingAlgorithm(normalizedCores, params) {
   const delaunayTriangleEdges = getEdgesFromTriangulation(normalizedCores);
@@ -211,14 +219,6 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.originAngle
   );
   
-  // // Transpose rows to columns
-  // let columns = transpose(sortedRows);
-
-  // // Filter out columns where every cell is imaginary
-  // columns = columns.filter((column) => column.some((v) => !v.isImaginary));
-
-  // // Transpose back to rows
-  // sortedRows = transpose(columns);
 
   const userRadius = document.getElementById("userRadius").value;
 
@@ -237,8 +237,6 @@ async function runTravelingAlgorithm(normalizedCores, params) {
       });
     });
   });
-
-  updateSpacingInVirtualGrid(params.gridWidth);
 
   return sortedData;
 }
@@ -305,12 +303,24 @@ function saveUpdatedCores() {
 
   // Create finalSaveData by mapping over sortedCoresData
   const finalSaveData = window.sortedCoresData.map((core) => {
-    return {
-      ...core,
-      x: core.x / window.scalingFactor / (window.imageScalingFactor ?? 1),
-      y: core.y / window.scalingFactor / (window.imageScalingFactor ?? 1),
-      currentRadius: core.currentRadius / window.scalingFactor / (window.imageScalingFactor ?? 1),
-    };
+
+    if (imageScalingFactor !== null) {
+      return {
+        ...core,
+        x: core.x / (window.imageScalingFactor),
+        y: core.y / (window.imageScalingFactor),
+        currentRadius: core.currentRadius / (window.imageScalingFactor),
+      };
+    }else{
+      return {
+        ...core,
+        x: core.x,
+        y: core.y,
+        currentRadius: core.currentRadius,
+      };
+    }
+
+    
   });
 
   // Check if there's uploaded metadata to update

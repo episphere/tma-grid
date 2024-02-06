@@ -1088,6 +1088,10 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
     hyperparameters
   );
 
+  updateVirtualGridSpacing(hyperparameters.gridWidth);
+
+
+
   // Function to scale core data
   const scaleCoreData = (core) => ({
     ...core,
