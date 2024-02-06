@@ -556,37 +556,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     });
 
     return overlayElement;
-    // ctx.lineWidth = 2;
-    // ctx.setLineDash([]); // Reset line dash for all cores
 
-    // // Core circle
-    // ctx.beginPath();
-    // ctx.arc(core.x, core.y, core.currentRadius, 0, Math.PI * 2);
-
-    // Style settings for a selected core
-    // if (isSelected) {
-    //   ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-    //   ctx.shadowBlur = 30; // More pronounced shadow for a glow effect
-    //   ctx.shadowOffsetX = 0;
-    //   ctx.shadowOffsetY = 0;
-    //   ctx.strokeStyle = "#FFD700"; // Gold color for selection
-    //   ctx.lineWidth = 5; // Thicker line for selected core
-    // } else if (core.isTemporary) {
-    //   ctx.strokeStyle = "#808080";
-    //   ctx.setLineDash([5, 5]); // Dashed line for temporary core
-    // } else {
-    //   ctx.strokeStyle = core.isImaginary ? ; // Default color logic
-    // }
-
-    // Core labels
-    // ctx.fillStyle = isSelected ? "#333" : "#333"; // Use the same gold color for selected core labels
-    // ctx.font = isSelected ? "bold 14px Arial" : "12px Arial";
-    // const textMetrics = ctx.measureText(`(${core.row + 1},${core.col + 1})`);
-    // ctx.fillText(
-    //   `(${core.row + 1},${core.col + 1})`,
-    //   core.x - textMetrics.width / 2,
-    //   core.y - core.currentRadius - 10
-    // );
   }
 
   // Modified updateSidebar function to handle add mode
@@ -738,19 +708,21 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 
   function removeCoreFromGrid(core) {
     const resData = window.sortedCoresData.filter((core) => !core.isTemporary);
-    let coreIndex;
-    if (core.isTemporary) {
-      coreIndex = window.sortedCoresData.findIndex(
-        (coreToRemove) => coreToRemove.x === core.x && coreToRemove.y === core.y
-      );
-    } else {
-      coreIndex = window.sortedCoresData.findIndex(
-        (coreToRemove) =>
-          coreToRemove.x === core.x &&
-          coreToRemove.y === core.y &&
-          coreToRemove.row === core.row &&
-          coreToRemove.col === core.col
-      );
+    let coreIndex = window.sortedCoresData.findIndex(
+      (coreToRemove) =>
+        coreToRemove.x === core.x &&
+        coreToRemove.y === core.y 
+    );
+
+    if (coreIndex === -1) {
+
+      console.log("Core not found in sortedCoresData");
+      return;
+
+    }
+
+    if (!core.isTemporary) {
+     
       const modifiedRow = window.sortedCoresData[coreIndex].row;
          // Check if the removed core was the last real core in the row
       const isLastRealCore =
@@ -845,6 +817,9 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       item.originalCore.col = currentColumn;
       currentColumn++;
     });
+
+    console.log(coresWithRotatedCoordinates);
+
   }
 
   const addCoreHandler = (e) => {
@@ -893,6 +868,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         if (overlayElement) {
           window.viewer.removeOverlay(overlayElement);
           window.sortedCoresData[window.sortedCoresData.length - 1] = core;
+          debugger
         } else {
           window.sortedCoresData.push(core);
         }
