@@ -275,41 +275,17 @@ function addSegmentationCanvasEventListeners(canvas) {
 }
 
 function drawCoresOnCanvasForTravelingAlgorithm() {
-  // const img = new Image();
 
-  // img.src = window.loadedImg.src;
-  let imageNeedsUpdate = true;
 
-  // const canvas = document.getElementById("coreCanvas");
-  // window.viewer.viewport.goHome()
+
   const canvas = window.viewer.canvas.firstElementChild;
-  const ctx = canvas.getContext("2d");
-  let selectedCore = null;
-  let isAltDown = false; // Track the state of the Alt key
-  let isDragging = false; // Track whether the mouse is dragging
-
-  let selectedIndex = null; // Index of the selected core
+  
 
   let currentMode = "edit"; // Possible values: 'edit', 'add'
 
-  let tempCore = null; // Temporary core for add mode
-  let isSettingSize = false; // Track whether setting position or size
 
-  // let isDraggingTempCore = false;
-
-  // img.onload = () => {
-  //   // canvas.height = img.height;
-
-  //   imageNeedsUpdate = false;
   drawCores();
-  // };
 
-  function updateImageSource() {
-    if (window.loadedImg.src !== img.src) {
-      img.src = window.loadedImg.src;
-      imageNeedsUpdate = true;
-    }
-  }
   function connectAdjacentCores(core, updateSurroundings = false) {
     // Helper function to calculate the edge point
     // function calculateEdgePoint(center1, center2, r1, r2) {
@@ -1213,7 +1189,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
   // Calculate rotated values and separate X and Y for each row and column
   coresData.forEach((core) => {
-    if (!core.isImaginary) {
+    // if (!core.isImaginary) {
       const [rotatedX, rotatedY] = rotatePoint([core.x, core.y], -imageRotation);
       
       // Handle column values
@@ -1229,7 +1205,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
       }
       rowValues[core.row].x.push(rotatedX);
       rowValues[core.row].y.push(rotatedY);
-    }
+    // }
   });
 
   // Function to calculate median of a sorted array
@@ -1259,10 +1235,9 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
   return medianValues;
 }
 
-function alignMisalignedCores(coresData, imageRotation) {
+function flagMisalignedCores(coresData, imageRotation) {
 
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
-
 
   // Count the number of cores in each column
   const coreCounts = {};
@@ -1286,7 +1261,6 @@ function alignMisalignedCores(coresData, imageRotation) {
       // Added one so that if the core is the median itself, there will still be a nonzero distance, so it can get reassigned to another column if the
       // weightedDistance is high enough
       const distance = Math.abs(medianRotatedXValues[col] - rotatedX) + 5;
-
       // Added a 0.000001 to prevent division by zero. This makes the penalty for being in a column of 1 extremely high.
       const weightedDistance = distance / Math.log(coreCounts[col] + 0.000001); // Example weighting
 
@@ -1294,9 +1268,16 @@ function alignMisalignedCores(coresData, imageRotation) {
         nearestCol = col;
         minDistance = weightedDistance;
       }
+
+
     });
 
-    core.col = parseInt(nearestCol);
+    if (core.col !== parseInt(nearestCol)) {
+      // console.log(`Core at (${core.row},${core.col}) moved to (${core.row},${nearestCol})`);
+      core.isMisaligned = true;
+    }else{
+      core.isMisaligned = false;
+    }
   });
 
   return coresData;
@@ -1341,7 +1322,7 @@ function filterAndReassignCores(coresData, imageRotation) {
 
   filteredCores = reassignCoreIndices(filteredCores);
 
-  filteredCores = alignMisalignedCores(filteredCores, imageRotation);
+  filteredCores = flagMisalignedCores(filteredCores, imageRotation);
 
   return filteredCores;
 }
