@@ -438,10 +438,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     );
     window.viewer.addOverlay(overlayElement, overlayRect);
 
-    // Define a flag outside of the click handler to track the event listener's state
-    let isDeleteHandlerActive = false;
-    let activeDeleteHandler = null; // Store the active handler function to remove it later
-
     new OpenSeadragon.MouseTracker({
       element: overlayElement,
 
@@ -556,7 +552,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     });
 
     return overlayElement;
-
   }
 
   // Modified updateSidebar function to handle add mode
@@ -709,53 +704,52 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   function removeCoreFromGrid(core) {
     const resData = window.sortedCoresData.filter((core) => !core.isTemporary);
     let coreIndex = window.sortedCoresData.findIndex(
-      (coreToRemove) =>
-        coreToRemove.x === core.x &&
-        coreToRemove.y === core.y 
+      (coreToRemove) => coreToRemove.x === core.x && coreToRemove.y === core.y
     );
 
     if (coreIndex === -1) {
-
       console.log("Core not found in sortedCoresData");
       return;
-
     }
 
     if (!core.isTemporary) {
-     
       const modifiedRow = window.sortedCoresData[coreIndex].row;
-         // Check if the removed core was the last real core in the row
+      // Check if the removed core was the last real core in the row
       const isLastRealCore =
-      window.sortedCoresData.filter(
-        (core) => core.row === modifiedRow && !core.isImaginary
-      ).length === 0;
+        window.sortedCoresData.filter(
+          (core) => core.row === modifiedRow && !core.isImaginary
+        ).length === 0;
 
-    if (isLastRealCore) {
-      // Remove all cores in the row
-      window.sortedCoresData = window.sortedCoresData.filter(
-        (core) => core.row !== modifiedRow
+      if (isLastRealCore) {
+        // Remove all cores in the row
+        window.sortedCoresData = window.sortedCoresData.filter(
+          (core) => core.row !== modifiedRow
+        );
+        resData.forEach((core) => {
+          if (core.row > modifiedRow) {
+            core.row -= 1;
+          }
+        });
+      }
+
+      // Remove the selected core
+      window.sortedCoresData.splice(coreIndex, 1);
+
+      if (!isLastRealCore) {
+        // Update columns only if the row was not removed
+        updateColumnsInRowAfterModification(modifiedRow);
+      }
+
+      flagMisalignedCores(
+        window.sortedCoresData,
+        parseFloat(document.getElementById("originAngle").value)
       );
-      resData.forEach((core) => {
-        if (core.row > modifiedRow) {
-          core.row -= 1;
-        }
-      });
+    } else {
+      // Remove the selected core
+      window.sortedCoresData.splice(coreIndex, 1);
     }
-    if (!isLastRealCore) {
-      // Update columns only if the row was not removed
-      updateColumnsInRowAfterModification(modifiedRow);
-    }
-    }
-   
-    // Remove the selected core
-    window.sortedCoresData.splice(coreIndex, 1);
 
     updateSidebar(null); // Update the sidebar to reflect no selection
-
-    flagMisalignedCores(
-      window.sortedCoresData,
-      parseFloat(document.getElementById("originAngle").value)
-    );
 
     drawCores(); // Redraw the cores
   }
@@ -818,8 +812,8 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       currentColumn++;
     });
 
+    drawCores(); // Redraw the cores
     console.log(coresWithRotatedCoordinates);
-
   }
 
   const addCoreHandler = (e) => {
@@ -868,7 +862,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         if (overlayElement) {
           window.viewer.removeOverlay(overlayElement);
           window.sortedCoresData[window.sortedCoresData.length - 1] = core;
-          debugger
+          debugger;
         } else {
           window.sortedCoresData.push(core);
         }
