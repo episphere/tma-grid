@@ -673,7 +673,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 
     if (document.getElementById(currentMode + "AutoUpdateRowsCheckbox").checked) {
       core.row = determineCoreRow(core, window.sortedCoresData);
-      debugger;
     }
 
 
@@ -686,11 +685,21 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       updateSidebar(core);
     }
 
-    drawCores(); // Redraw the cores with the updated data
 
     core.isTemporary = false;
     core.isSelected = false;
-    
+
+
+    const imageRotation = parseFloat(
+      document.getElementById("originAngle").value
+    );
+
+    // Reflag for misaligned cores
+    window.sortedCoresData = flagMisalignedCores(window.sortedCoresData, imageRotation);
+
+    drawCores(); // Redraw the cores with the updated data
+
+
     return true;
   }
 
@@ -718,8 +727,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         closestRow = i;
       }
     }
-
-    debugger
     return closestRow;
   }
 
@@ -887,6 +894,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
         dragHandler(e);
         updateSidebar(core);
         positionSidebarNextToCore(e.originalEvent);
+
       });
     }
   };
@@ -1202,8 +1210,6 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
     }
   });
 
-  debugger
-
   // Function to calculate median of a sorted array
   const calculateMedian = (arr) => {
     const mid = Math.floor(arr.length / 2);
@@ -1252,10 +1258,10 @@ function flagMisalignedCores(coresData, imageRotation) {
     const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
 
    
-    // If the core's rotated X value is 1.5 radii outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned
+    // If the core's rotated X value is 1.25 radii outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned
 
     if (
-      Math.abs(rotatedX - medianRotatedXValues[core.col]) > 1.5 * core.currentRadius ||
+      Math.abs(rotatedX - medianRotatedXValues[core.col]) > 1.25 * core.currentRadius ||
       coreCounts[core.col] < 2
     ) {
       core.isMisaligned = true;
