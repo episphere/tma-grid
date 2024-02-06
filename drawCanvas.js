@@ -277,10 +277,6 @@ function addSegmentationCanvasEventListeners(canvas) {
 function drawCoresOnCanvasForTravelingAlgorithm() {
 
 
-
-  const canvas = window.viewer.canvas.firstElementChild;
-  
-
   let currentMode = "edit"; // Possible values: 'edit', 'add'
 
 
@@ -379,15 +375,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   }
 
   function drawCores() {
-    // if (imageNeedsUpdate) {
-    //   updateImageSource();
-    //   return; // Exit the function and wait for the image to load
-    // }
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // if (img.src !== window.loadedImg.src) {
-    //   img.src = window.loadedImg.src;
-    // }
 
     window.viewer.clearOverlays();
     window.viewer.svgOverlay().node().replaceChildren();
@@ -441,6 +428,10 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     if (core.isSelected) {
       overlayElement.classList.add("selected");
     }
+    if (core.isMisaligned){
+      overlayElement.classList.add("misaligned");
+    }
+
     const overlayRect = window.viewer.viewport.imageToViewportRectangle(
       new OpenSeadragon.Rect(
         core.x - core.currentRadius,
@@ -667,8 +658,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       currentMode + "AnnotationsInput"
     ).value;
 
-    core.isTemporary = false;
-    core.isSelected = false;
+
     // Update the isImaginary property based on which radio button is checked
     core.isImaginary = document.getElementById(
       currentMode + "ImaginaryInput"
@@ -698,6 +688,9 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 
     drawCores(); // Redraw the cores with the updated data
 
+    core.isTemporary = false;
+    core.isSelected = false;
+    
     return true;
   }
 
@@ -726,6 +719,7 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       }
     }
 
+    debugger
     return closestRow;
   }
 
@@ -1189,7 +1183,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
   // Calculate rotated values and separate X and Y for each row and column
   coresData.forEach((core) => {
-    // if (!core.isImaginary) {
+    if (!core.isTemporary) {
       const [rotatedX, rotatedY] = rotatePoint([core.x, core.y], -imageRotation);
       
       // Handle column values
@@ -1205,8 +1199,10 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
       }
       rowValues[core.row].x.push(rotatedX);
       rowValues[core.row].y.push(rotatedY);
-    // }
+    }
   });
+
+  debugger
 
   // Function to calculate median of a sorted array
   const calculateMedian = (arr) => {
@@ -1254,30 +1250,19 @@ function flagMisalignedCores(coresData, imageRotation) {
   // Modify this part to take into account the number of cores in each column
   coresData.forEach((core) => {
     const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
-    let nearestCol = null;
-    let minDistance = Infinity;
 
-    Object.keys(medianRotatedXValues).forEach((col) => {
-      // Added one so that if the core is the median itself, there will still be a nonzero distance, so it can get reassigned to another column if the
-      // weightedDistance is high enough
-      const distance = Math.abs(medianRotatedXValues[col] - rotatedX) + 5;
-      // Added a 0.000001 to prevent division by zero. This makes the penalty for being in a column of 1 extremely high.
-      const weightedDistance = distance / Math.log(coreCounts[col] + 0.000001); // Example weighting
+   
+    // If the core's rotated X value is 1.5 radii outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned
 
-      if (weightedDistance < minDistance) {
-        nearestCol = col;
-        minDistance = weightedDistance;
-      }
-
-
-    });
-
-    if (core.col !== parseInt(nearestCol)) {
-      // console.log(`Core at (${core.row},${core.col}) moved to (${core.row},${nearestCol})`);
+    if (
+      Math.abs(rotatedX - medianRotatedXValues[core.col]) > 1.5 * core.currentRadius ||
+      coreCounts[core.col] < 2
+    ) {
       core.isMisaligned = true;
     }else{
       core.isMisaligned = false;
     }
+
   });
 
   return coresData;
@@ -1323,6 +1308,7 @@ function filterAndReassignCores(coresData, imageRotation) {
   filteredCores = reassignCoreIndices(filteredCores);
 
   filteredCores = flagMisalignedCores(filteredCores, imageRotation);
+
 
   return filteredCores;
 }

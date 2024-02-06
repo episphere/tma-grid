@@ -1139,6 +1139,11 @@ label:disabled {
   border-color: #808080;
 }
 
+.core-overlay-for-gridding.misaligned {
+  border-color: #FF0000;
+  border-width: 2px;
+}
+
 .core-overlay-for-gridding.selected {
   border-width: 3px;
   border-color: #FFD700;
