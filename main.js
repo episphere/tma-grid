@@ -746,34 +746,34 @@ const initSegmentation = async () => {
       .getElementById("maskAlphaSlider")
       .addEventListener(event, () => updateSliderUIText(state));
   });
-  document
-    .getElementById("downloadSegmentationResults")
-    .addEventListener("click", function () {
-      // Assuming `properties` is the variable holding your segmentation results
-      if (!window.properties) {
-        alert("Algorithm has not run yet!");
-        return;
-      }
+  // document
+  //   .getElementById("downloadSegmentationResults")
+  //   .addEventListener("click", function () {
+  //     // Assuming `properties` is the variable holding your segmentation results
+  //     if (!window.properties) {
+  //       alert("Algorithm has not run yet!");
+  //       return;
+  //     }
 
-      // Create finalSaveData by mapping over sortedCoresData
-      const finalSaveData = window.properties.map((core) => {
-        return {
-          ...core,
-          x: core.x / window.scalingFactor,
-          y: core.y / window.scalingFactor,
-          radius: core.radius / window.scalingFactor,
-        };
-      });
+  //     // Create finalSaveData by mapping over sortedCoresData
+  //     const finalSaveData = window.properties.map((core) => {
+  //       return {
+  //         ...core,
+  //         x: core.x / window.scalingFactor,
+  //         y: core.y / window.scalingFactor,
+  //         radius: core.radius / window.scalingFactor,
+  //       };
+  //     });
 
-      const propertiesJson = JSON.stringify(finalSaveData, null, 2);
-      const blob = new Blob([propertiesJson], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "segmentation-properties.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    });
+  //     const propertiesJson = JSON.stringify(finalSaveData, null, 2);
+  //     const blob = new Blob([propertiesJson], { type: "application/json" });
+  //     const url = URL.createObjectURL(blob);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = "segmentation-properties.json";
+  //     a.click();
+  //     URL.revokeObjectURL(url);
+  //   });
 
   document
     .getElementById("applySegmentation")

@@ -1,5 +1,9 @@
 import { getHyperparametersFromUI } from "./UI.js";
-import { runTravelingAlgorithm, updateSpacingInVirtualGrid} from "./data_processing.js";
+import {
+  rotatePoint,
+  runTravelingAlgorithm,
+  updateSpacingInVirtualGrid,
+} from "./data_processing.js";
 
 import { preprocessCores } from "./delaunay_triangulation.js";
 
@@ -325,9 +329,8 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     if (!document.getElementById("connectCoresCheckbox").checked) {
       // If the checkbox is checked, draw lines between adjacent cores
       return;
-
     }
-    
+
     if (
       isNaN(parseInt(core.row)) ||
       isNaN(parseInt(core.col)) ||
@@ -528,7 +531,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       },
 
       dragHandler: (e) => {
-
         let overlayWidth = null;
         const overlay = window.viewer.getOverlayById(overlayElement);
         const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta);
@@ -551,8 +553,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
             )
           );
           overlayWidth = width;
-
-
         }
 
         overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport);
@@ -567,15 +567,14 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
           if (overlayWidth !== null) {
             window.sortedCoresData[index].currentRadius = overlayWidth / 2;
           }
-          
-
 
           document.getElementById("editXInput").value =
             window.sortedCoresData[index].x;
           document.getElementById("editYInput").value =
             window.sortedCoresData[index].y;
 
-          document.getElementById("editRadiusInput").value =  window.sortedCoresData[index].currentRadius;
+          document.getElementById("editRadiusInput").value =
+            window.sortedCoresData[index].currentRadius;
 
           connectAdjacentCores(window.sortedCoresData[index], true);
         }
@@ -624,16 +623,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     // );
   }
 
-  // Function to switch modes
-  function switchMode(newMode) {
-    selectedCore = null;
-    currentMode = newMode;
-
-    // Reset selected index when switching modes
-    selectedIndex = null;
-    updateSidebar(null);
-  }
-
   // Modified updateSidebar function to handle add mode
   function updateSidebar(core) {
     const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
@@ -645,10 +634,10 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       ? core.col + 1
       : "";
     document.getElementById(sidebarPrefix + "XInput").value = core
-      ? core.x 
+      ? core.x
       : "";
     document.getElementById(sidebarPrefix + "YInput").value = core
-      ? core.y 
+      ? core.y
       : "";
     document.getElementById(sidebarPrefix + "RadiusInput").value = core
       ? core.currentRadius
@@ -679,12 +668,11 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     };
 
     document.getElementById("removeCoreButton").onclick = removeHandler;
-
   }
 
   function saveCore(core) {
     const oldRow = core?.row;
-    if (!oldRow && !document.getElementById(currentMode + "RowInput").value) {
+    if (!oldRow && !document.getElementById(currentMode + "RowInput").value && !document.getElementById("editAutoUpdateRowsCheckbox").checked) {
       alert("Please enter a value for the row");
       return false;
     }
@@ -694,12 +682,11 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     core.col =
       parseInt(document.getElementById(currentMode + "ColumnInput").value, 10) -
       1;
-    core.x =
-      parseFloat(document.getElementById(currentMode + "XInput").value) ;
-    core.y =
-      parseFloat(document.getElementById(currentMode + "YInput").value) ;
-    core.currentRadius =
-      parseFloat(document.getElementById(currentMode + "RadiusInput").value) ;
+    core.x = parseFloat(document.getElementById(currentMode + "XInput").value);
+    core.y = parseFloat(document.getElementById(currentMode + "YInput").value);
+    core.currentRadius = parseFloat(
+      document.getElementById(currentMode + "RadiusInput").value
+    );
     core.annotations = document.getElementById(
       currentMode + "AnnotationsInput"
     ).value;
@@ -714,24 +701,56 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     const coreIndex = window.sortedCoresData.findIndex(
       (prevCore) => prevCore.x === core.x && prevCore.y === core.y
     );
-    // if (coreIndex === -1) {
-    //   // Possibly new core, so col might be undefined.
-    //   window.sortedCoresData.push(core)
-    //   window.sortedCoresData = window.sortedCoresData.sort((a, b) => a.row - b.row || a.col - b.col)
-    // } else {
-    //   // Likely old core with just a change to class or annotation value.
+
     window.sortedCoresData[coreIndex] = core;
-    // }
+
+
+    if (document.getElementById(currentMode + "AutoUpdateRowsCheckbox").checked) {
+      core.row = determineCoreRow(core, window.sortedCoresData);
+      debugger;
+    }
+
 
     if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
       updateColumnsInRowAfterModification(core.row);
-      updateColumnsInRowAfterModification(oldRow);
+
+      if (oldRow !== core.row) {
+        updateColumnsInRowAfterModification(oldRow);
+      }
       updateSidebar(core);
     }
 
     drawCores(); // Redraw the cores with the updated data
 
     return true;
+  }
+
+  // Picks the row with the closest rotated median Y value to the rotated median Y value of the core
+  function determineCoreRow(core, sortedCoresData){
+
+
+    const imageRotation = parseFloat(
+      document.getElementById("originAngle").value
+    );
+
+    // Determine rotated median Y value of each row
+    const medianRows = Object.values(determineMedianRowColumnValues(sortedCoresData, imageRotation).rows);
+
+    // Determine the rotated Y value of the core
+    const rotatedY = rotatePoint([core.x, core.y], -imageRotation)[1];
+
+    // Determine the row with the closest rotated median Y value to the rotated median Y value of the core
+    let closestRow = 0;
+    let closestDistance = Infinity;
+    for (let i = 0; i < medianRows.length; i++) {
+      const distance = Math.abs(medianRows[i].medianY - rotatedY);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestRow = i;
+      }
+    }
+
+    return closestRow;
   }
 
   function removeCoreFromGrid(core) {
@@ -786,50 +805,46 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 
   // Function to rotate a point around the origin
   function rotatePoint(point, angle) {
-    const pivotX = window.loadedImg.width/2/window.scalingFactor;
-    const pivotY = window.loadedImg.height/2/window.scalingFactor;
-  
+    const pivotX = window.loadedImg.width / 2 / window.scalingFactor;
+    const pivotY = window.loadedImg.height / 2 / window.scalingFactor;
+
     // Translate point to origin (pivot point becomes the new origin)
     const translatedX = point[0] - pivotX;
     const translatedY = point[1] - pivotY;
-  
+
     // Convert angle to radians
     const radians = (angle * Math.PI) / 180;
-  
+
     // Perform rotation around origin
     const cos = Math.cos(radians);
     const sin = Math.sin(radians);
     const rotatedX = translatedX * cos - translatedY * sin;
     const rotatedY = translatedX * sin + translatedY * cos;
-  
+
     // Translate point back
     const newX = rotatedX + pivotX;
     const newY = rotatedY + pivotY;
-  
+
     return [newX, newY];
   }
-  
+
   function updateColumnsInRowAfterModification(row) {
     const imageRotation = parseFloat(
       document.getElementById("originAngle").value
     );
-
-
-    
-
     // Create an array to hold the original cores with their rotated coordinates for sorting
     const coresWithRotatedCoordinates = window.sortedCoresData
       .filter((core) => core.row === row)
       .map((core) => {
         return {
           originalCore: core,
-          rotatedCoordinates: rotatePoint([core.x, core.y], imageRotation),
+          rotatedCoordinates: rotatePoint([core.x, core.y], -imageRotation),
         };
       });
 
     // Sort the array based on the x-value of the rotated coordinates
     coresWithRotatedCoordinates.sort(
-      (a, b) => a.rotatedCoordinates.x - b.rotatedCoordinates.x
+      (a, b) => a.rotatedCoordinates[0] - b.rotatedCoordinates[0]
     );
 
     // Assign column values based on the sorted array, updating only the column in the original data
@@ -849,13 +864,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
       window.viewer.removeAllHandlers("canvas-drag-end");
     } else {
       document.addEventListener("keydown", (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault()
-          addCoreHandler()
+        if (e.key === "Escape") {
+          e.preventDefault();
+          addCoreHandler();
         }
-      })
-      addCoreBtn.classList.add("active")
-      window.viewer.canvas.style.cursor = "crosshair"
+      });
+      addCoreBtn.classList.add("active");
+      window.viewer.canvas.style.cursor = "crosshair";
 
       const core = {
         x: -1,
@@ -941,7 +956,6 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //     }
   //   });
 
-
   // // Event listener for the cancel core drawing button
   // document
   //   .getElementById("cancelCoreDrawing")
@@ -995,12 +1009,33 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   document
     .getElementById("editAutoUpdateColumnsCheckbox")
     .addEventListener("change", toggleColumnInput);
-  // document
-  //   .getElementById("addAutoUpdateColumnsCheckbox")
-  //   .addEventListener("change", toggleColumnInput);
+
+  function toggleRowInput() {
+    var editAutoUpdateRowsCheckbox = document.getElementById(
+      currentMode + "AutoUpdateRowsCheckbox"
+    );
+    var rowInput = document.getElementById(currentMode + "RowInput");
+
+    // If the checkbox is checked, disable the column input
+    if (editAutoUpdateRowsCheckbox.checked) {
+      rowInput.disabled = true;
+    } else {
+      // Otherwise, enable it
+      rowInput.disabled = false;
+    }
+  }
+
+  document
+    .getElementById("editAutoUpdateRowsCheckbox")
+    .addEventListener("change", toggleRowInput);
 }
 // Function to find the optimal angle that minimizes imaginary cores
-async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgorithm, updateUI) {
+async function findOptimalAngle(
+  preprocessedCores,
+  getHyperparameters,
+  runAlgorithm,
+  updateUI
+) {
   let targetRange = { start: -10, end: 10 };
   let searchIncrement = 1; // Fine-grained for targeted search
   let anglesWithMinCores = []; // Store angles with the minimum imaginary cores
@@ -1009,15 +1044,27 @@ async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgori
   const countImaginaryCores = async (angle) => {
     updateUI(angle);
     const hyperparameters = getHyperparameters(angle);
-    const sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
-    return [sortedCoresData.filter((core) => core.isImaginary).length, sortedCoresData.length];
+    const sortedCoresData = await runAlgorithm(
+      preprocessedCores,
+      hyperparameters
+    );
+    return [
+      sortedCoresData.filter((core) => core.isImaginary).length,
+      sortedCoresData.length,
+    ];
   };
 
   // Perform the initial targeted search and collect imaginary cores count
   let minImaginaryCores = Infinity;
   let minImaginaryCorePercentage = Infinity;
-  for (let angle = targetRange.start; angle <= targetRange.end; angle += searchIncrement) {
-    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(angle);
+  for (
+    let angle = targetRange.start;
+    angle <= targetRange.end;
+    angle += searchIncrement
+  ) {
+    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(
+      angle
+    );
     if (imaginaryCoresCount < minImaginaryCores) {
       minImaginaryCores = imaginaryCoresCount;
       minImaginaryCorePercentage = imaginaryCoresCount / totalCoresCount;
@@ -1028,10 +1075,17 @@ async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgori
   }
 
   // Calculate the median of the angles with the minimum imaginary cores
-  const medianAngle = anglesWithMinCores.length % 2 === 0
-    ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] + anglesWithMinCores[anglesWithMinCores.length / 2]) / 2
-    : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
+  const medianAngle =
+    anglesWithMinCores.length % 2 === 0
+      ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
+          anglesWithMinCores[anglesWithMinCores.length / 2]) /
+        2
+      : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 
+  // If zero is among the optimal angles, return it as the optimal angle
+  if (anglesWithMinCores.includes(0)) {
+    return 0;
+  }
 
   // If the median angle is within the targeted range, return it as the optimal angle
   if (minImaginaryCorePercentage < 0.3) {
@@ -1042,7 +1096,9 @@ async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgori
   searchIncrement = 2; // Coarser increment for broad search
   for (let angle = -50; angle <= 50; angle += searchIncrement) {
     if (angle >= targetRange.start && angle <= targetRange.end) continue; // Skip the targeted range
-    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(angle);
+    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(
+      angle
+    );
     if (imaginaryCoresCount < minImaginaryCores) {
       minImaginaryCores = imaginaryCoresCount;
       anglesWithMinCores = [angle]; // Reset the array as this is the new minimum
@@ -1053,10 +1109,11 @@ async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgori
 
   // Recalculate the median for the broader search
   return anglesWithMinCores.length % 2 === 0
-    ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] + anglesWithMinCores[anglesWithMinCores.length / 2]) / 2
+    ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
+        anglesWithMinCores[anglesWithMinCores.length / 2]) /
+        2
     : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 }
-
 
 async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   if (!window.preprocessedCores) {
@@ -1085,7 +1142,6 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
 
     // Update UI with the optimal angle
     hyperparameters = updateUIAndHyperparameters(optimalAngle);
-
   } else {
     hyperparameters = getHyperparametersFromUI();
   }
@@ -1096,11 +1152,12 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
     hyperparameters
   );
 
-   sortedCoresData = filterAndReassignCores(sortedCoresData);
-
+  sortedCoresData = filterAndReassignCores(
+    sortedCoresData,
+    hyperparameters.originAngle
+  );
 
   updateSpacingInVirtualGrid(hyperparameters.gridWidth * 1.5);
-
 
   // Function to scale core data
   const scaleCoreData = (core) => ({
@@ -1117,83 +1174,177 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   drawCoresOnCanvasForTravelingAlgorithm();
 }
 
+function removeImaginaryCoresFilledRowsAndColumns(coresData) {
+  // Calculate imaginary core counts
+  let rowImaginaryCounts = {};
+  let colImaginaryCounts = {};
+  let rowCount = {};
+  let colCount = {};
 
-function removeImaginaryCoresFilledRowsAndColumns(coresData) {  
-// Calculate imaginary core counts
-let rowImaginaryCounts = {};
-let colImaginaryCounts = {};
-let rowCount = {};
-let colCount = {};
-
-// Initialize counts
-coresData.forEach(core => {
-  rowCount[core.row] = (rowCount[core.row] || 0) + 1;
-  colCount[core.col] = (colCount[core.col] || 0) + 1;
-  if (core.isImaginary) {
-    rowImaginaryCounts[core.row] = (rowImaginaryCounts[core.row] || 0) + 1;
-    colImaginaryCounts[core.col] = (colImaginaryCounts[core.col] || 0) + 1;
-  }
-});
-
-// Filter cores
-coresData = coresData.filter(core => {
-  let rowImaginaryRatio = (rowImaginaryCounts[core.row] || 0) / rowCount[core.row];
-  let colImaginaryRatio = (colImaginaryCounts[core.col] || 0) / colCount[core.col];
-  return !(core.isImaginary && (rowImaginaryRatio >= 0.65 || colImaginaryRatio >= 0.65));
-});
-
-// Sort by row and col for consistent processing
-coresData.sort((a, b) => a.row - b.row || a.col - b.col);
-
-// Reassign row indices
-let rowMap = {};
-let rowIndex = 0;
-coresData
-  .map(core => core.row)
-  .filter((value, index, self) => self.indexOf(value) === index)
-  .sort((a, b) => a - b)
-  .forEach(originalRow => {
-    rowMap[originalRow] = rowIndex++;
+  // Initialize counts
+  coresData.forEach((core) => {
+    rowCount[core.row] = (rowCount[core.row] || 0) + 1;
+    colCount[core.col] = (colCount[core.col] || 0) + 1;
+    if (core.isImaginary) {
+      rowImaginaryCounts[core.row] = (rowImaginaryCounts[core.row] || 0) + 1;
+      colImaginaryCounts[core.col] = (colImaginaryCounts[core.col] || 0) + 1;
+    }
   });
 
-// Reassign column indices within each row
-coresData.forEach(core => {
-  core.row = rowMap[core.row]; // Update row to new mapping
-});
+  // Filter cores
+  coresData = coresData.filter((core) => {
+    let rowImaginaryRatio =
+      (rowImaginaryCounts[core.row] || 0) / rowCount[core.row];
+    let colImaginaryRatio =
+      (colImaginaryCounts[core.col] || 0) / colCount[core.col];
+    return !(
+      core.isImaginary &&
+      (rowImaginaryRatio >= 0.65 || colImaginaryRatio >= 0.75)
+    );
+  });
 
-// For each row, assign consecutive col indices starting from 0
-let lastRow = -1;
-let colIndex = 0;
-coresData.forEach(core => {
-  if (core.row !== lastRow) {
-    // New row
-    lastRow = core.row;
-    colIndex = 0;
-  }
-  core.col = colIndex++;
-});
-
-return coresData;
+  return coresData;
 }
 
+function determineMedianRowColumnValues(coresData, imageRotation) {
+  // Initialize structures to hold separated X and Y values for rows and columns
+  const rowValues = {};
+  const columnValues = {};
 
-function removeMisalignedImaginaryCores(coresData) {
+  // Calculate rotated values and separate X and Y for each row and column
+  coresData.forEach((core) => {
+    if (!core.isImaginary) {
+      const [rotatedX, rotatedY] = rotatePoint([core.x, core.y], -imageRotation);
+      
+      // Handle column values
+      if (!columnValues[core.col]) {
+        columnValues[core.col] = { x: [], y: [] };
+      }
+      columnValues[core.col].x.push(rotatedX);
+      columnValues[core.col].y.push(rotatedY);
 
-  // Calculate the average 
+      // Handle row values
+      if (!rowValues[core.row]) {
+        rowValues[core.row] = { x: [], y: [] };
+      }
+      rowValues[core.row].x.push(rotatedX);
+      rowValues[core.row].y.push(rotatedY);
+    }
+  });
 
-}
+  // Function to calculate median of a sorted array
+  const calculateMedian = (arr) => {
+    const mid = Math.floor(arr.length / 2);
+    arr.sort((a, b) => a - b);
+    return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+  };
 
-
-function filterAndReassignCores(coresData) {
+  // Calculate medians for each column and row
+  const medianValues = { rows: {}, columns: {} };
   
+  Object.keys(columnValues).forEach((col) => {
+    medianValues.columns[col] = {
+      medianX: calculateMedian(columnValues[col].x),
+      medianY: calculateMedian(columnValues[col].y)
+    };
+  });
 
-  const filteredCores = removeImaginaryCoresFilledRowsAndColumns(coresData);
+  Object.keys(rowValues).forEach((row) => {
+    medianValues.rows[row] = {
+      medianX: calculateMedian(rowValues[row].x),
+      medianY: calculateMedian(rowValues[row].y)
+    };
+  });
+
+  return medianValues;
+}
+
+function alignMisalignedCores(coresData, imageRotation) {
+
+  const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
 
+  // Count the number of cores in each column
+  const coreCounts = {};
+  coresData.forEach((core) => {
+    coreCounts[core.col] = (coreCounts[core.col] || 0) + 1;
+  });
+  
+  // Since we're aligning columns, we focus on median X values in columns
+  const medianRotatedXValues = {};
+  Object.keys(medianValues.columns).forEach(col => {
+    medianRotatedXValues[col] = medianValues.columns[col].medianX;
+  });
+
+  // Modify this part to take into account the number of cores in each column
+  coresData.forEach((core) => {
+    const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
+    let nearestCol = null;
+    let minDistance = Infinity;
+
+    Object.keys(medianRotatedXValues).forEach((col) => {
+      // Added one so that if the core is the median itself, there will still be a nonzero distance, so it can get reassigned to another column if the
+      // weightedDistance is high enough
+      const distance = Math.abs(medianRotatedXValues[col] - rotatedX) + 5;
+
+      // Added a 0.000001 to prevent division by zero. This makes the penalty for being in a column of 1 extremely high.
+      const weightedDistance = distance / Math.log(coreCounts[col] + 0.000001); // Example weighting
+
+      if (weightedDistance < minDistance) {
+        nearestCol = col;
+        minDistance = weightedDistance;
+      }
+    });
+
+    core.col = parseInt(nearestCol);
+  });
+
+  return coresData;
+}
+
+function reassignCoreIndices(coresData) {
+  // Sort by row and col for consistent processing
+  coresData.sort((a, b) => a.row - b.row || a.col - b.col);
+
+  // Reassign row indices
+  let rowMap = {};
+  let rowIndex = 0;
+  coresData
+    .map((core) => core.row)
+    .filter((value, index, self) => self.indexOf(value) === index)
+    .sort((a, b) => a - b)
+    .forEach((originalRow) => {
+      rowMap[originalRow] = rowIndex++;
+    });
+
+  // Reassign column indices within each row
+  coresData.forEach((core) => {
+    core.row = rowMap[core.row]; // Update row to new mapping
+  });
+
+  // For each row, assign consecutive col indices starting from 0
+  let lastRow = -1;
+  let colIndex = 0;
+  coresData.forEach((core) => {
+    if (core.row !== lastRow) {
+      // New row
+      lastRow = core.row;
+      colIndex = 0;
+    }
+    core.col = colIndex++;
+  });
+  return coresData;
+}
+
+function filterAndReassignCores(coresData, imageRotation) {
+  let filteredCores = removeImaginaryCoresFilledRowsAndColumns(coresData);
+
+  filteredCores = reassignCoreIndices(filteredCores);
+
+  filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
   return filteredCores;
 }
-
 
 function obtainHyperparametersAndDrawVirtualGrid() {
   const horizontalSpacing = parseInt(

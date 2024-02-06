@@ -80,7 +80,7 @@ function normalizeRowsByAddingImaginaryPoints(
     let rotatedFirstPoint = rotatePoint(row[0].point, -originAngle);
 
     // Calculate the offset from the median
-    let offsetX = rotatedFirstPoint[0] - medianX;
+    let offsetX = rotatedFirstPoint[0] - medianX - 5;
 
     if (offsetX < 0) {
       offsetX = 0;
@@ -90,7 +90,6 @@ function normalizeRowsByAddingImaginaryPoints(
       0,
       Math.floor(offsetX / gridWidth + thresholdForImaginaryPoints)
     );
-
 
     // Generate imaginary points
     let imaginaryPoints = [];
@@ -210,13 +209,13 @@ async function runTravelingAlgorithm(normalizedCores, params) {
   // Extract the original rows in sorted order
   let sortedRows = sortRowsByRotatedPoints(rows, params.originAngle);
   // Calculate the median x coordinate for the first column
-  let medianX = calculateMedianX(sortedRows, params.originAngle);
+  let medianX = calculateMedianX(sortedRows, 0);
   // Normalize rows by adding imaginary points
   sortedRows = normalizeRowsByAddingImaginaryPoints(
     sortedRows,
     medianX,
     params.gridWidth,
-    params.originAngle
+    0
   );
   
 
@@ -281,12 +280,12 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
   // Update the form values with the new calculations
   document.getElementById("gridWidth").value = d.toFixed(2);
   document.getElementById("imageWidth").value = imageWidth.toFixed(2);
-  document.getElementById("gamma").value = d.toFixed(2);
+  document.getElementById("gamma").value = (1.25 * d).toFixed(2);
 
   // Update the params object with the new calculations
   params.gridWidth = d;
   params.imageWidth = imageWidth;
-  params.gamma = d;
+  params.gamma = 1.25 * d;
 
   // Update radius 
   document.getElementById("userRadius").value = window.preprocessedCores[0].radius;
@@ -310,6 +309,8 @@ function saveUpdatedCores() {
         x: core.x / (window.imageScalingFactor),
         y: core.y / (window.imageScalingFactor),
         currentRadius: core.currentRadius / (window.imageScalingFactor),
+        row: core.row + 1,
+        col: core.col + 1
       };
     }else{
       return {
@@ -317,6 +318,8 @@ function saveUpdatedCores() {
         x: core.x,
         y: core.y,
         currentRadius: core.currentRadius,
+        row: core.row + 1,
+        col: core.col + 1
       };
     }
 
@@ -336,8 +339,8 @@ function saveUpdatedCores() {
         // Ensure both row and column values match
         // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
         return (
-          entry[metadataRowName] == core.row + 1 &&
-          entry[metadataColName] == core.col + 1
+          entry[metadataRowName] == core.row  &&
+          entry[metadataColName] == core.col 
         );
       });
 
