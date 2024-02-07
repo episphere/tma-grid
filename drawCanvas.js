@@ -23,7 +23,7 @@ const getInputValue = (inputId) => document.getElementById(inputId).value;
 window.actionHistory = [];
 let currentActionIndex = -1;
 
-let MIN_CORE_WIDTH_PROPORTION = 0.01
+let MIN_CORE_WIDTH_PROPORTION = 0.01;
 
 function getMousePosition(event, canvasID = "coreCanvas") {
   const canvas = document.getElementById(canvasID);
@@ -290,14 +290,13 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //   imageNeedsUpdate = false;
   document
     .getElementById("osdViewerAddCoreBtn")
-    .removeEventListener("click", addCoreHandler)
+    .removeEventListener("click", addCoreHandler);
 
   document
     .getElementById("osdViewerAddCoreBtn")
     .addEventListener("click", addCoreHandler);
   drawCores();
   // };
-
 
   // function updateImageSource() {
   //   if (window.loadedImg.src !== img.src) {
@@ -325,7 +324,6 @@ function connectAdjacentCores(core, updateSurroundings = false) {
   if (!document.getElementById("connectCoresCheckbox").checked) {
     // If the checkbox is checked, draw lines between adjacent cores
     return;
-
   }
 
   if (
@@ -361,10 +359,8 @@ function connectAdjacentCores(core, updateSurroundings = false) {
 
       const point1 = window.viewer.viewport.imageToViewportCoordinates(
         new OpenSeadragon.Point(
-          startCore.x +
-          (endCore.col - startCore.col) * startCore.currentRadius,
-          startCore.y +
-          (endCore.row - startCore.row) * startCore.currentRadius
+          startCore.x + (endCore.col - startCore.col) * startCore.currentRadius,
+          startCore.y + (endCore.row - startCore.row) * startCore.currentRadius
         )
       );
       const point2 = window.viewer.viewport.imageToViewportCoordinates(
@@ -391,7 +387,7 @@ function connectAdjacentCores(core, updateSurroundings = false) {
         "stroke-width",
         Math.min(
           window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
-          window.viewer.viewport.getZoom(),
+            window.viewer.viewport.getZoom(),
           0.001
         )
       );
@@ -400,55 +396,67 @@ function connectAdjacentCores(core, updateSurroundings = false) {
 }
 
 const drawResizeHandles = (overlay, show = true) => {
+  const resizeHandleTL_Id = `coreResizeHandle_topLeft`;
+  const resizeHandleTR_Id = `coreResizeHandle_topRight`;
+  const resizeHandleBL_Id = `coreResizeHandle_bottomLeft`;
+  const resizeHandleBR_Id = `coreResizeHandle_bottomRight`;
 
-  const resizeHandleTL_Id = `coreResizeHandle_topLeft`
-  const resizeHandleTR_Id = `coreResizeHandle_topRight`
-  const resizeHandleBL_Id = `coreResizeHandle_bottomLeft`
-  const resizeHandleBR_Id = `coreResizeHandle_bottomRight`
+  let overlayResizeHandleTL = overlay.element.querySelector(
+    `#${resizeHandleTL_Id}`
+  );
+  let overlayResizeHandleTR = overlay.element.querySelector(
+    `#${resizeHandleTR_Id}`
+  );
+  let overlayResizeHandleBL = overlay.element.querySelector(
+    `#${resizeHandleBL_Id}`
+  );
+  let overlayResizeHandleBR = overlay.element.querySelector(
+    `#${resizeHandleBR_Id}`
+  );
 
-  let overlayResizeHandleTL = overlay.element.querySelector(`#${resizeHandleTL_Id}`)
-  let overlayResizeHandleTR = overlay.element.querySelector(`#${resizeHandleTR_Id}`)
-  let overlayResizeHandleBL = overlay.element.querySelector(`#${resizeHandleBL_Id}`)
-  let overlayResizeHandleBR = overlay.element.querySelector(`#${resizeHandleBR_Id}`)
+  overlayResizeHandleTL?.parentElement.removeChild(overlayResizeHandleTL);
+  overlayResizeHandleTR?.parentElement.removeChild(overlayResizeHandleTR);
+  overlayResizeHandleBL?.parentElement.removeChild(overlayResizeHandleBL);
+  overlayResizeHandleBR?.parentElement.removeChild(overlayResizeHandleBR);
 
-  overlayResizeHandleTL?.parentElement.removeChild(overlayResizeHandleTL)
-  overlayResizeHandleTR?.parentElement.removeChild(overlayResizeHandleTR)
-  overlayResizeHandleBL?.parentElement.removeChild(overlayResizeHandleBL)
-  overlayResizeHandleBR?.parentElement.removeChild(overlayResizeHandleBR)
-
-  overlay['trackers']?.forEach(tracker => tracker.destroy())
-  overlay['trackers'] = []
+  overlay["trackers"]?.forEach((tracker) => tracker.destroy());
+  overlay["trackers"] = [];
 
   if (show) {
-    overlayResizeHandleTL = document.createElement("div")
-    overlayResizeHandleTL.className = "coreResizeHandle topLeft"
-    overlayResizeHandleTL.id = resizeHandleTL_Id
-    overlayResizeHandleTL.style.top = "-5px"
-    overlayResizeHandleTL.style.left = "-5px"
-    overlayResizeHandleTL.style.pointerEvents = "auto"
+    overlayResizeHandleTL = document.createElement("div");
+    overlayResizeHandleTL.className = "coreResizeHandle topLeft";
+    overlayResizeHandleTL.id = resizeHandleTL_Id;
+    overlayResizeHandleTL.style.top = "-5px";
+    overlayResizeHandleTL.style.left = "-5px";
+    overlayResizeHandleTL.style.pointerEvents = "auto";
 
-    overlayResizeHandleTR = document.createElement("div")
-    overlayResizeHandleTR.className = "coreResizeHandle topRight"
-    overlayResizeHandleTR.id = resizeHandleTR_Id
-    overlayResizeHandleTR.style.top = "-5px"
-    overlayResizeHandleTR.style.right = "-5px"
-    overlayResizeHandleTR.style.pointerEvents = "auto"
+    overlayResizeHandleTR = document.createElement("div");
+    overlayResizeHandleTR.className = "coreResizeHandle topRight";
+    overlayResizeHandleTR.id = resizeHandleTR_Id;
+    overlayResizeHandleTR.style.top = "-5px";
+    overlayResizeHandleTR.style.right = "-5px";
+    overlayResizeHandleTR.style.pointerEvents = "auto";
 
-    overlayResizeHandleBL = document.createElement("div")
-    overlayResizeHandleBL.className = "coreResizeHandle bottomLeft"
-    overlayResizeHandleBL.id = resizeHandleBL_Id
-    overlayResizeHandleBL.style.bottom = "-5px"
-    overlayResizeHandleBL.style.left = "-5px"
-    overlayResizeHandleBL.style.pointerEvents = "auto"
+    overlayResizeHandleBL = document.createElement("div");
+    overlayResizeHandleBL.className = "coreResizeHandle bottomLeft";
+    overlayResizeHandleBL.id = resizeHandleBL_Id;
+    overlayResizeHandleBL.style.bottom = "-5px";
+    overlayResizeHandleBL.style.left = "-5px";
+    overlayResizeHandleBL.style.pointerEvents = "auto";
 
-    overlayResizeHandleBR = document.createElement("div")
-    overlayResizeHandleBR.className = "coreResizeHandle bottomRight"
-    overlayResizeHandleBR.id = resizeHandleBR_Id
-    overlayResizeHandleBR.style.bottom = "-5px"
-    overlayResizeHandleBR.style.right = "-5px"
+    overlayResizeHandleBR = document.createElement("div");
+    overlayResizeHandleBR.className = "coreResizeHandle bottomRight";
+    overlayResizeHandleBR.id = resizeHandleBR_Id;
+    overlayResizeHandleBR.style.bottom = "-5px";
+    overlayResizeHandleBR.style.right = "-5px";
     overlayResizeHandleBR.style.pointerEvents = "auto";
 
-    [overlayResizeHandleTL, overlayResizeHandleTR, overlayResizeHandleBL, overlayResizeHandleBR].forEach(resizeHandle => {
+    [
+      overlayResizeHandleTL,
+      overlayResizeHandleTR,
+      overlayResizeHandleBL,
+      overlayResizeHandleBR,
+    ].forEach((resizeHandle) => {
       const tracker = new OpenSeadragon.MouseTracker({
         element: resizeHandle,
         userData: overlay.getBounds(window.viewer.viewport),
@@ -459,91 +467,168 @@ const drawResizeHandles = (overlay, show = true) => {
           }
         },
         dragHandler: (e) => {
-          let { x, y, width, height } = overlay.getBounds(window.viewer.viewport)
-          
-          const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta)
-          const factorToResizeBy = delta.y
-          
-          const viewportBounds = window.viewer.viewport.getConstrainedBounds()
-          const resizeHandleLocation = resizeHandle.id.split("_").slice(-1)[0]
-          
+          let { x, y, width, height } = overlay.getBounds(
+            window.viewer.viewport
+          );
+
+          const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta);
+          const factorToResizeBy = delta.y;
+
+          const viewportBounds = window.viewer.viewport.getConstrainedBounds();
+          const resizeHandleLocation = resizeHandle.id.split("_").slice(-1)[0];
+
           switch (resizeHandleLocation) {
-            case 'topLeft':
+            case "topLeft":
               if (-Math.PI <= e.direction && e.direction <= -Math.PI / 2) {
-                x = Math.max(x + factorToResizeBy, viewportBounds.x)
-                y = Math.max(y + factorToResizeBy, viewportBounds.y)
-                width = Math.min(width - factorToResizeBy, viewportBounds.width)
-                height = Math.min(height - factorToResizeBy, viewportBounds.height)
+                x = Math.max(x + factorToResizeBy, viewportBounds.x);
+                y = Math.max(y + factorToResizeBy, viewportBounds.y);
+                width = Math.min(
+                  width - factorToResizeBy,
+                  viewportBounds.width
+                );
+                height = Math.min(
+                  height - factorToResizeBy,
+                  viewportBounds.height
+                );
               } else if (0 <= e.direction && e.direction <= Math.PI / 2) {
-                x = Math.min(x + factorToResizeBy, viewportBounds.width - MIN_CORE_WIDTH_PROPORTION)
-                y = Math.min(y + factorToResizeBy, viewportBounds.height - MIN_CORE_WIDTH_PROPORTION)
-                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
-                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                x = Math.min(
+                  x + factorToResizeBy,
+                  viewportBounds.width - MIN_CORE_WIDTH_PROPORTION
+                );
+                y = Math.min(
+                  y + factorToResizeBy,
+                  viewportBounds.height - MIN_CORE_WIDTH_PROPORTION
+                );
+                width = Math.max(
+                  width - factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
+                height = Math.max(
+                  height - factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
               }
-              break
+              break;
 
-            case 'topRight':
+            case "topRight":
               if (-Math.PI / 2 <= e.direction && e.direction <= 0) {
-                y = Math.max(y + factorToResizeBy, viewportBounds.y)
-                width = Math.min(width - factorToResizeBy, viewportBounds.width)
-                height = Math.min(height - factorToResizeBy, viewportBounds.height)
+                y = Math.max(y + factorToResizeBy, viewportBounds.y);
+                width = Math.min(
+                  width - factorToResizeBy,
+                  viewportBounds.width
+                );
+                height = Math.min(
+                  height - factorToResizeBy,
+                  viewportBounds.height
+                );
               } else if (Math.PI / 2 <= e.direction && e.direction <= Math.PI) {
-                y = Math.min(y + factorToResizeBy, viewportBounds.height - MIN_CORE_WIDTH_PROPORTION)
-                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
-                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                y = Math.min(
+                  y + factorToResizeBy,
+                  viewportBounds.height - MIN_CORE_WIDTH_PROPORTION
+                );
+                width = Math.max(
+                  width - factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
+                height = Math.max(
+                  height - factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
               }
-              break
+              break;
 
-            case 'bottomRight':
+            case "bottomRight":
               if (0 <= e.direction && e.direction <= Math.PI / 2) {
-                width = Math.min(width + factorToResizeBy, viewportBounds.width)
-                height = Math.min(height + factorToResizeBy, viewportBounds.height)
-              } else if (-Math.PI <= e.direction && e.direction <= -Math.PI / 2) {
-                width = Math.max(width + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
-                height = Math.max(height + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                width = Math.min(
+                  width + factorToResizeBy,
+                  viewportBounds.width
+                );
+                height = Math.min(
+                  height + factorToResizeBy,
+                  viewportBounds.height
+                );
+              } else if (
+                -Math.PI <= e.direction &&
+                e.direction <= -Math.PI / 2
+              ) {
+                width = Math.max(
+                  width + factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
+                height = Math.max(
+                  height + factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
               }
-              break
+              break;
 
-            case 'bottomLeft':
+            case "bottomLeft":
               if (Math.PI / 2 <= e.direction && e.direction <= Math.PI) {
-                x = Math.max(x - factorToResizeBy, viewportBounds.x)
-                width = Math.min(width + factorToResizeBy, viewportBounds.width)
-                height = Math.min(height + factorToResizeBy, viewportBounds.height)
+                x = Math.max(x - factorToResizeBy, viewportBounds.x);
+                width = Math.min(
+                  width + factorToResizeBy,
+                  viewportBounds.width
+                );
+                height = Math.min(
+                  height + factorToResizeBy,
+                  viewportBounds.height
+                );
               } else if (-Math.PI / 2 <= e.direction && e.direction <= 0) {
-                x = Math.min(x - factorToResizeBy, viewportBounds.width - MIN_CORE_WIDTH_PROPORTION)
-                width = Math.max(width + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
-                height = Math.max(height + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                x = Math.min(
+                  x - factorToResizeBy,
+                  viewportBounds.width - MIN_CORE_WIDTH_PROPORTION
+                );
+                width = Math.max(
+                  width + factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
+                height = Math.max(
+                  height + factorToResizeBy,
+                  MIN_CORE_WIDTH_PROPORTION
+                );
               }
-              break
+              break;
 
             default:
-              break
+              break;
           }
-          overlay.update(new OpenSeadragon.Rect(x, y, width, height))
-          overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
+          overlay.update(new OpenSeadragon.Rect(x, y, width, height));
+          overlay.drawHTML(
+            overlay.element.parentElement,
+            window.viewer.viewport
+          );
 
           if (!overlay.element.classList.contains("temporary")) {
-            const row = parseInt(overlay.element.id.split("_")[2])
-            const col = parseInt(overlay.element.id.split("_")[4])
-            const coreIndex = window.sortedCoresData.findIndex(core => core.row === row && core.col === col)
+            const row = parseInt(overlay.element.id.split("_")[2]);
+            const col = parseInt(overlay.element.id.split("_")[4]);
+            const coreIndex = window.sortedCoresData.findIndex(
+              (core) => core.row === row && core.col === col
+            );
             if (coreIndex !== -1) {
-              const overlayBoundsInImageCoords = window.viewer.viewport.viewportToImageRectangle(overlay.getBounds(window.viewer.viewport))
-              window.sortedCoresData[coreIndex]['x'] = overlayBoundsInImageCoords.x + overlayBoundsInImageCoords.width / 2
-              window.sortedCoresData[coreIndex]['y'] = overlayBoundsInImageCoords.y + overlayBoundsInImageCoords.height / 2
-              window.sortedCoresData[coreIndex]['currentRadius'] = overlayBoundsInImageCoords.width / 2
-              connectAdjacentCores(window.sortedCoresData[coreIndex], true)
+              const overlayBoundsInImageCoords =
+                window.viewer.viewport.viewportToImageRectangle(
+                  overlay.getBounds(window.viewer.viewport)
+                );
+              window.sortedCoresData[coreIndex]["x"] =
+                overlayBoundsInImageCoords.x +
+                overlayBoundsInImageCoords.width / 2;
+              window.sortedCoresData[coreIndex]["y"] =
+                overlayBoundsInImageCoords.y +
+                overlayBoundsInImageCoords.height / 2;
+              window.sortedCoresData[coreIndex]["currentRadius"] =
+                overlayBoundsInImageCoords.width / 2;
+              connectAdjacentCores(window.sortedCoresData[coreIndex], true);
               updateSidebar(window.sortedCoresData[coreIndex]);
             }
           }
         },
-        dragEndHandler: (e) => {
-        }
-      })
-      overlay['trackers'].push(tracker)
-      overlay.element.appendChild(resizeHandle)
-    })
+        dragEndHandler: (e) => {},
+      });
+      overlay["trackers"].push(tracker);
+      overlay.element.appendChild(resizeHandle);
+    });
   }
-}
+};
 
 function drawCores() {
   // if (imageNeedsUpdate) {
@@ -569,7 +654,7 @@ function drawCores() {
           "stroke-width",
           Math.min(
             window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
-            window.viewer.viewport.getZoom(),
+              window.viewer.viewport.getZoom(),
             0.001
           )
         );
@@ -658,14 +743,16 @@ function drawCore(core, index = -1) {
     dragHandler: (e) => {
       // console.log(e)
       const overlay = window.viewer.getOverlayById(overlayElement);
-      const deltaViewport = window.viewer.viewport.deltaPointsFromPixels(e.delta)
+      const deltaViewport = window.viewer.viewport.deltaPointsFromPixels(
+        e.delta
+      );
 
       overlay.element.style.cursor = "grabbing";
       overlay.update(overlay.location.plus(deltaViewport));
 
-
       overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport);
-      const deltaImage = window.viewer.viewport.viewportToImageCoordinates(deltaViewport)
+      const deltaImage =
+        window.viewer.viewport.viewportToImageCoordinates(deltaViewport);
 
       if (index !== -1) {
         window.sortedCoresData[index].x += deltaImage.x;
@@ -690,78 +777,89 @@ function drawCore(core, index = -1) {
         // drawCore(window.sortedCoresData[index], index);
 
         drawCores();
-        console.log()
+        console.log();
       }
-
-
     },
   });
 
   return overlayElement;
-
 }
 
 const keyPressHandler = (e) => {
   if (e.key === "Delete" || e.key === "Backspace") {
-    const overlay = window.viewer.currentOverlays.find(overlay => overlay.element.classList.contains("selected"))
-    const row = parseInt(overlay.element.id.split("_")[2])
-    const col = parseInt(overlay.element.id.split("_")[4])
+    const overlay = window.viewer.currentOverlays.find((overlay) =>
+      overlay.element.classList.contains("selected")
+    );
+    const row = parseInt(overlay.element.id.split("_")[2]);
+    const col = parseInt(overlay.element.id.split("_")[4]);
     if (!isNaN(row) && !isNaN(col)) {
-      const core = window.sortedCoresData.find(core => core.row === row && core.col === col)
+      const core = window.sortedCoresData.find(
+        (core) => core.row === row && core.col === col
+      );
       removeCoreFromGrid(core);
     } else if (overlay.element.classList.contains("temporary")) {
-      const overlayBounds = window.viewer.viewport.viewportToImageRectangle(overlay.getBounds(window.viewer.viewport))
-      const core = window.sortedCoresData.find(core => Math.floor(core.x) === Math.floor(overlayBounds.x + overlayBounds.width / 2) && Math.floor(core.y) === Math.floor(overlayBounds.y + overlayBounds.height / 2))
-      removeCoreFromGrid(core)
+      const overlayBounds = window.viewer.viewport.viewportToImageRectangle(
+        overlay.getBounds(window.viewer.viewport)
+      );
+      const core = window.sortedCoresData.find(
+        (core) =>
+          Math.floor(core.x) ===
+            Math.floor(overlayBounds.x + overlayBounds.width / 2) &&
+          Math.floor(core.y) ===
+            Math.floor(overlayBounds.y + overlayBounds.height / 2)
+      );
+      removeCoreFromGrid(core);
     }
-    document.removeEventListener('keydown', keyPressHandler)
+    document.removeEventListener("keydown", keyPressHandler);
   } else if (e.key === "Escape") {
-    overlayClickHandler({ quick: true })
+    overlayClickHandler({ quick: true });
   }
 };
 
 const zoomHandlerForResizeHandles = (e) => {
-  const overlay = window.viewer.currentOverlays.find(overlay => overlay.element.classList.contains("selected"))
-  drawResizeHandles(overlay, true)
-}
+  const overlay = window.viewer.currentOverlays.find((overlay) =>
+    overlay.element.classList.contains("selected")
+  );
+  drawResizeHandles(overlay, true);
+};
 
 const deselectOverlay = (overlay) => {
   overlay.element.classList.remove("selected");
-  window.viewer.removeHandler('canvas-click', overlayClickHandler)
-  window.viewer.removeHandler('zoom', zoomHandlerForResizeHandles)
-  document.removeEventListener('keydown', keyPressHandler)
-  hideSidebar()
-  drawResizeHandles(overlay, false)
-}
+  window.viewer.removeHandler("canvas-click", overlayClickHandler);
+  window.viewer.removeHandler("zoom", zoomHandlerForResizeHandles);
+  document.removeEventListener("keydown", keyPressHandler);
+  hideSidebar();
+  drawResizeHandles(overlay, false);
+};
 
 const overlayClickHandler = (e) => {
-  let overlay = undefined
+  let overlay = undefined;
   if (e.originalTarget?.classList.contains("core-overlay-for-gridding")) {
-    overlay = window.viewer.getOverlayById(e.originalTarget)
+    overlay = window.viewer.getOverlayById(e.originalTarget);
   } else {
-    overlay = window.viewer.currentOverlays.find(overlay => overlay.element.classList.contains("selected"))
+    overlay = window.viewer.currentOverlays.find((overlay) =>
+      overlay.element.classList.contains("selected")
+    );
   }
 
   if (e.quick && overlay) {
     if (overlay.element.classList.contains("selected")) {
-      deselectOverlay(overlay)
+      deselectOverlay(overlay);
     } else {
       // selectedIndex = null
       window.viewer.currentOverlays
-        .filter((overlay) =>
-          overlay.element.classList.contains("selected")
-        )
+        .filter((overlay) => overlay.element.classList.contains("selected"))
         .forEach(deselectOverlay);
 
       overlay.element.classList.add("selected");
 
-      drawResizeHandles(overlay, true)
-      document.addEventListener('keydown', keyPressHandler);
-      window.viewer.addHandler('zoom', zoomHandlerForResizeHandles)
-      window.viewer.addOnceHandler('canvas-click', overlayClickHandler);
+      drawResizeHandles(overlay, true);
+      document.addEventListener("keydown", keyPressHandler);
+      window.viewer.addHandler("zoom", zoomHandlerForResizeHandles);
+      window.viewer.addOnceHandler("canvas-click", overlayClickHandler);
     }
   }
-}
+};
 
 // Function to switch modes
 function switchMode(newMode) {
@@ -776,7 +874,7 @@ function switchMode(newMode) {
 // Modified updateSidebar function to handle add mode
 function updateSidebar(core) {
   // const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
-  const sidebarPrefix = "edit"
+  const sidebarPrefix = "edit";
 
   document.getElementById(sidebarPrefix + "RowInput").value = core
     ? core.row + 1
@@ -832,11 +930,8 @@ function saveCore(core) {
     return false;
   }
 
-  core.row =
-    parseInt(document.getElementById("editRowInput").value, 10) - 1;
-  core.col =
-    parseInt(document.getElementById("editColumnInput").value, 10) -
-    1;
+  core.row = parseInt(document.getElementById("editRowInput").value, 10) - 1;
+  core.col = parseInt(document.getElementById("editColumnInput").value, 10) - 1;
   core.x =
     parseFloat(document.getElementById("editXInput").value) /
     window.scalingFactor;
@@ -846,14 +941,10 @@ function saveCore(core) {
   core.currentRadius =
     parseFloat(document.getElementById("editRadiusInput").value) /
     window.scalingFactor;
-  core.annotations = document.getElementById(
-    "editAnnotationsInput"
-  ).value;
+  core.annotations = document.getElementById("editAnnotationsInput").value;
 
   // Update the isImaginary property based on which radio button is checked
-  core.isImaginary = document.getElementById(
-    "editImaginaryInput"
-  ).checked;
+  core.isImaginary = document.getElementById("editImaginaryInput").checked;
 
   const coreIndex = window.sortedCoresData.findIndex(
     (prevCore) => prevCore.x === core.x && prevCore.y === core.y
@@ -861,9 +952,7 @@ function saveCore(core) {
 
   window.sortedCoresData[coreIndex] = core;
 
-  if (
-    document.getElementById("editAutoUpdateRowsCheckbox").checked
-  ) {
+  if (document.getElementById("editAutoUpdateRowsCheckbox").checked) {
     core.row = determineCoreRow(core, window.sortedCoresData);
   }
 
@@ -896,12 +985,10 @@ function saveCore(core) {
 
 // Picks the row with the closest rotated median Y value to the rotated median Y value of the core
 function determineCoreRow(core, sortedCoresData) {
-  let imageRotation = parseFloat(
-    document.getElementById("originAngle").value
-  );
+  let imageRotation = parseFloat(document.getElementById("originAngle").value);
 
-  if (imageRotation < 10) {
-    imageRotation = 0;
+  if (Math.abs(imageRotation) < 10) {
+    imageRotation = Math.round(imageRotation) / 3;
   }
 
   // Determine rotated median Y value of each row
@@ -986,9 +1073,14 @@ function removeCoreFromGrid(core) {
 //   });
 
 function updateColumnsInRowAfterModification(row) {
-  const imageRotation = parseFloat(
+  let imageRotation = parseFloat(
     document.getElementById("originAngle").value
   );
+
+  if (Math.abs(imageRotation) < 10) {
+    imageRotation = Math.round(imageRotation/3);
+  }
+
   // Create an array to hold the original cores with their rotated coordinates for sorting
   const coresWithRotatedCoordinates = window.sortedCoresData
     .filter((core) => core.row === row)
@@ -1015,14 +1107,12 @@ function updateColumnsInRowAfterModification(row) {
   console.log(coresWithRotatedCoordinates);
 }
 
-
 const addCoreEscapeHandler = (e) => {
-  if (e.key === 'Escape') {
-    e.preventDefault()
-    addCoreHandler(e)
+  if (e.key === "Escape") {
+    e.preventDefault();
+    addCoreHandler(e);
   }
-}
-
+};
 
 const addCoreHandler = (e) => {
   const addCoreBtn = document.getElementById("osdViewerAddCoreBtn");
@@ -1032,11 +1122,11 @@ const addCoreHandler = (e) => {
     window.viewer.canvas.style.cursor = "auto";
     window.viewer.removeAllHandlers("canvas-drag");
     window.viewer.removeAllHandlers("canvas-drag-end");
-    document.removeEventListener('keydown', addCoreEscapeHandler)
+    document.removeEventListener("keydown", addCoreEscapeHandler);
   } else {
-    addCoreBtn.classList.add("active")
+    addCoreBtn.classList.add("active");
 
-    window.viewer.canvas.style.cursor = "crosshair"
+    window.viewer.canvas.style.cursor = "crosshair";
 
     const tempCore = {
       x: -1,
@@ -1081,10 +1171,9 @@ const addCoreHandler = (e) => {
       addCoreHandler(e, dragHandler, dragEndHandler, addCoreEscapeHandler);
 
       saveCore(tempCore);
-      debugger
-    }
+    };
 
-    document.addEventListener('keydown', addCoreEscapeHandler, { once: true })
+    document.addEventListener("keydown", addCoreEscapeHandler, { once: true });
 
     window.viewer.addHandler("canvas-drag", dragHandler);
 
@@ -1178,8 +1267,8 @@ async function findOptimalAngle(
   const medianAngle =
     anglesWithMinCores.length % 2 === 0
       ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
-        anglesWithMinCores[anglesWithMinCores.length / 2]) /
-      2
+          anglesWithMinCores[anglesWithMinCores.length / 2]) /
+        2
       : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 
   // If zero is among the optimal angles, return it as the optimal angle
@@ -1210,8 +1299,8 @@ async function findOptimalAngle(
   // Recalculate the median for the broader search
   return anglesWithMinCores.length % 2 === 0
     ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
-      anglesWithMinCores[anglesWithMinCores.length / 2]) /
-    2
+        anglesWithMinCores[anglesWithMinCores.length / 2]) /
+        2
     : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 }
 
@@ -1299,7 +1388,7 @@ function removeImaginaryCoresFilledRowsAndColumns(coresData) {
       (colImaginaryCounts[core.col] || 0) / colCount[core.col];
     return !(
       core.isImaginary &&
-      (rowImaginaryRatio >= 0.65 || colImaginaryRatio >= 0.75)
+      (rowImaginaryRatio >= 0.75 || colImaginaryRatio >= 0.8)
     );
   });
 
@@ -1307,9 +1396,9 @@ function removeImaginaryCoresFilledRowsAndColumns(coresData) {
 }
 
 function determineMedianRowColumnValues(coresData, imageRotation) {
-  if (imageRotation < 10) {
-    imageRotation = 0;
-  }
+  // if (Math.abs(imageRotation) < 10) {
+  //   imageRotation = imageRotation / 3;
+  // }
 
   // Initialize structures to hold separated X and Y values for rows and columns
   const rowValues = {};
@@ -1317,7 +1406,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
   // Calculate rotated values and separate X and Y for each row and column
   coresData.forEach((core) => {
-    if (!core.isTemporary) {
+    if (!core.isTemporary && !core.isImaginary ) {
       const [rotatedX, rotatedY] = rotatePoint(
         [core.x, core.y],
         -imageRotation
@@ -1341,9 +1430,12 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
   // Function to calculate median of a sorted array
   const calculateMedian = (arr) => {
-    const mid = Math.floor(arr.length / 2);
-    arr.sort((a, b) => a - b);
-    return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    // const mid = Math.floor(arr.length / 2);
+    // arr.sort((a, b) => a - b);
+    // return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+  
+    // Calculate average
+    return arr.reduce((a, b) => a + b, 0) / arr.length;
   };
 
   // Calculate medians for each column and row
@@ -1367,9 +1459,9 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 }
 
 function flagMisalignedCores(coresData, imageRotation) {
-  if (imageRotation < 10) {
-    imageRotation = 0;
-  }
+  // if (Math.abs(imageRotation) < 10) {
+  //   imageRotation = Math.round(imageRotation / 3);
+  // }
 
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
@@ -1393,7 +1485,7 @@ function flagMisalignedCores(coresData, imageRotation) {
 
     if (
       Math.abs(medianRotatedXValues[core.col] - rotatedX) >
-      1.25 * core.currentRadius ||
+        1 * core.currentRadius ||
       coreCounts[core.col] < 2
     ) {
       core.isMisaligned = true;
@@ -1453,12 +1545,18 @@ function reassignCoreIndices(coresData) {
 }
 
 function alignMisalignedCores(coresData, imageRotation) {
+  if (Math.abs(imageRotation) < 10) {
+    imageRotation = Math.round(imageRotation / 3);
+  }
+
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
   // Count the number of cores in each column
   const coreCounts = {};
   coresData.forEach((core) => {
-    coreCounts[core.col] = (coreCounts[core.col] || 0) + 1;
+    if (!core.isMisaligned) {
+      coreCounts[core.col] = (coreCounts[core.col] || 0) + 1;
+    }
   });
 
   // Since we're aligning columns, we focus on median X values in columns
@@ -1493,12 +1591,6 @@ function alignMisalignedCores(coresData, imageRotation) {
       }
     });
 
-    // if (core.row == 9 && core.col == 11) {
-
-    //   console.log("nearestCol", nearestCol);
-    //   debugger
-    // }
-
     core.col = parseInt(nearestCol);
   });
 
@@ -1506,13 +1598,9 @@ function alignMisalignedCores(coresData, imageRotation) {
 }
 
 function filterAndReassignCores(coresData, imageRotation) {
-  if (imageRotation < 10) {
-    imageRotation = 0;
-  }
+  let filteredCores = flagMisalignedCores(coresData, imageRotation);
 
-  let filteredCores = alignMisalignedCores(coresData, imageRotation);
-
-  // filteredCores = reassignCoreIndices(filteredCores);
+  filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
   filteredCores = removeImaginaryCoresFilledRowsAndColumns(coresData);
 
@@ -1521,7 +1609,6 @@ function filterAndReassignCores(coresData, imageRotation) {
   filteredCores = reassignCoreIndices(filteredCores);
 
   filteredCores = flagMisalignedCores(filteredCores, imageRotation);
-
   return filteredCores;
 }
 
@@ -1550,91 +1637,109 @@ function obtainHyperparametersAndDrawVirtualGrid() {
   document.getElementById("virtualGridTabButton").disabled = false;
 }
 
-function createVirtualGrid(
+async function createVirtualGrid(
   sortedCoresData,
   horizontalSpacing,
   verticalSpacing,
   startingX,
   startingY
 ) {
-  // Use the loaded image if available, otherwise use default or file input image
+  // If window.imageScalingFactror is not defined
 
-  const imageSrc = window.loadedImg
-    ? window.loadedImg.src
-    : document.getElementById("fileInput").files.length > 0
+  if (!window.imageScalingFactror) {
+    const imageInfo = await getWSIInfo(imageUrl);
+    width = imageInfo.width;
+    height = imageInfo.height;
+    const scalingFactor = Math.min(
+      MAX_DIMENSION_FOR_DOWNSAMPLING / width,
+      MAX_DIMENSION_FOR_DOWNSAMPLING / height
+    );
+    // Store the scaling factor
+    window.scalingFactor = scalingFactor;
+    imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
+
+    debugger
+
+
+  } else {
+    // Use the loaded image if available, otherwise use default or file input image
+    const imageSrc = window.loadedImg
+      ? window.loadedImg.src
+      : document.getElementById("fileInput").files.length > 0
       ? URL.createObjectURL(document.getElementById("fileInput").files[0])
       : "path/to/default/image.jpg";
 
-  const virtualGridCanvas = document.getElementById("virtualGridCanvas");
-  if (!virtualGridCanvas) {
-    console.error("Virtual grid canvas not found");
-    return;
+    const virtualGridCanvas = document.getElementById("virtualGridCanvas");
+    if (!virtualGridCanvas) {
+      console.error("Virtual grid canvas not found");
+      return;
+    }
+
+    const rows =
+      sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
+    const cols =
+      sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
+    const defaultRadius = parseInt(document.getElementById("userRadius").value);
+    virtualGridCanvas.width =
+      cols * horizontalSpacing + defaultRadius * 2 + startingX;
+    virtualGridCanvas.height =
+      rows * verticalSpacing + defaultRadius * 2 + startingY;
+
+    const vctx = virtualGridCanvas.getContext("2d");
+    const img = new Image();
+    img.src = imageSrc;
+
+    img.onload = () => {
+      vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
+
+      sortedCoresData.forEach((core) => {
+        const idealX = startingX + core.col * horizontalSpacing;
+        const idealY = startingY + core.row * verticalSpacing;
+        const userRadius = core.currentRadius * window.scalingFactor;
+
+        vctx.save();
+        vctx.beginPath();
+        vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
+        vctx.closePath();
+
+        // Use the isImaginary flag to determine the stroke style
+        vctx.strokeStyle = core.isImaginary ? "red" : "green";
+        vctx.lineWidth = 2; // Adjust line width as needed
+        vctx.stroke();
+
+        vctx.clip();
+
+        const sourceX = core.x * window.scalingFactor - userRadius;
+        const sourceY = core.y * window.scalingFactor - userRadius;
+
+        vctx.drawImage(
+          img,
+          sourceX,
+          sourceY,
+          userRadius * 2,
+          userRadius * 2,
+          idealX - userRadius,
+          idealY - userRadius,
+          userRadius * 2,
+          userRadius * 2
+        );
+
+        vctx.restore();
+
+        vctx.fillStyle = "black"; // Text color
+        vctx.font = "12px Arial"; // Text font and size
+        vctx.fillText(
+          `(${core.row + 1},${core.col + 1})`,
+          idealX - userRadius / 2,
+          idealY - userRadius / 2
+        );
+      });
+    };
+
+    img.onerror = () => {
+      console.error("Image failed to load.");
+    };
   }
-
-  const rows =
-    sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
-  const cols =
-    sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
-  const defaultRadius = parseInt(document.getElementById("userRadius").value);
-  virtualGridCanvas.width =
-    cols * horizontalSpacing + defaultRadius * 2 + startingX;
-  virtualGridCanvas.height =
-    rows * verticalSpacing + defaultRadius * 2 + startingY;
-
-  const vctx = virtualGridCanvas.getContext("2d");
-  const img = new Image();
-  img.src = imageSrc;
-
-  img.onload = () => {
-    vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
-
-    sortedCoresData.forEach((core) => {
-      const idealX = startingX + core.col * horizontalSpacing;
-      const idealY = startingY + core.row * verticalSpacing;
-      const userRadius = core.currentRadius * window.scalingFactor;
-
-      vctx.save();
-      vctx.beginPath();
-      vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
-      vctx.closePath();
-
-      // Use the isImaginary flag to determine the stroke style
-      vctx.strokeStyle = core.isImaginary ? "red" : "green";
-      vctx.lineWidth = 2; // Adjust line width as needed
-      vctx.stroke();
-
-      vctx.clip();
-
-      const sourceX = core.x * window.scalingFactor - userRadius;
-      const sourceY = core.y * window.scalingFactor - userRadius;
-
-      vctx.drawImage(
-        img,
-        sourceX,
-        sourceY,
-        userRadius * 2,
-        userRadius * 2,
-        idealX - userRadius,
-        idealY - userRadius,
-        userRadius * 2,
-        userRadius * 2
-      );
-
-      vctx.restore();
-
-      vctx.fillStyle = "black"; // Text color
-      vctx.font = "12px Arial"; // Text font and size
-      vctx.fillText(
-        `(${core.row + 1},${core.col + 1})`,
-        idealX - userRadius / 2,
-        idealY - userRadius / 2
-      );
-    });
-  };
-
-  img.onerror = () => {
-    console.error("Image failed to load.");
-  };
 }
 
 function updateVirtualGridSpacing(
@@ -1664,8 +1769,8 @@ function redrawCoresForTravelingAlgorithm() {
   const imageFile = window.loadedImg
     ? window.loadedImg.src
     : document.getElementById("fileInput").files.length > 0
-      ? URL.createObjectURL(document.getElementById("fileInput").files[0])
-      : "path/to/default/image.jpg";
+    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+    : "path/to/default/image.jpg";
 
   if (imageFile && window.preprocessedCores) {
     drawCoresOnCanvasForTravelingAlgorithm();
