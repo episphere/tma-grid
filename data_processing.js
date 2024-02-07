@@ -80,7 +80,7 @@ function normalizeRowsByAddingImaginaryPoints(
     let rotatedFirstPoint = rotatePoint(row[0].point, -originAngle);
 
     // Calculate the offset from the median
-    let offsetX = rotatedFirstPoint[0] - medianX;
+    let offsetX = rotatedFirstPoint[0] - medianX - 5;
 
     if (offsetX < 0) {
       offsetX = 0;
@@ -90,7 +90,6 @@ function normalizeRowsByAddingImaginaryPoints(
       0,
       Math.floor(offsetX / gridWidth + thresholdForImaginaryPoints)
     );
-
 
     // Generate imaginary points
     let imaginaryPoints = [];
@@ -125,27 +124,50 @@ function normalizeRowsByAddingImaginaryPoints(
 }
 
 // Helper function to transpose rows and columns without adding undefined values
-function transpose(matrix) {
-  // Check if the matrix is empty
-  if (matrix.length === 0 || matrix[0].length === 0) {
-    return [];
-  }
-
-  // Initialize the transposed array with empty arrays for each column based on the longest row
-  const maxLength = Math.max(...matrix.map((row) => row.length));
-  let transposed = Array.from({ length: maxLength }, () => []);
-
-  // Loop through each row and column to populate the transposed matrix, excluding undefined values
-  matrix.forEach((row, rowIndex) => {
-    row.forEach((item, colIndex) => {
-      // Only add the item to the transposed array if it exists
-      if (item !== undefined) {
-        transposed[colIndex].push(item);
+// Function to transpose a jagged array
+function transposeJaggedArray(jaggedArray) {
+  let result = [];
+  jaggedArray.forEach(row => {
+    row.forEach((item, columnIndex) => {
+      if (!result[columnIndex]) {
+        result[columnIndex] = []; // Create a new row if it doesn't exist
       }
+      result[columnIndex].push(item);
     });
   });
+  return result;
+}
 
-  return transposed;
+// Function to invert the transposition of a jagged array
+// originalStructure is an array of the lengths of each sub-array in the original jagged array
+function invertTranspose(transposedArray, originalStructure) {
+  let result = [];
+  let itemIndex = 0;
+  for (let length of originalStructure) {
+    let newRow = [];
+    for (let i = 0; i < length; i++) {
+      newRow.push(transposedArray[i][itemIndex]);
+    }
+    result.push(newRow);
+    itemIndex++;
+  }
+  return result;
+}
+
+function sortRowsByRotatedPoints(rows, originAngle) {
+  // Temporarily rotate the first point of each row for sorting purposes
+  let sortingHelper = rows.map((row) => {
+    return {
+      originalRow: row,
+      rotatedPoint: rotatePoint(row[0]["point"], -originAngle),
+    };
+  });
+
+  // Sort the rows based on the y-coordinate of the rotated first point in each row
+  sortingHelper.sort((a, b) => a.rotatedPoint[1] - b.rotatedPoint[1]);
+
+  // Extract the original rows in sorted order
+  return sortingHelper.map((item) => item.originalRow);
 }
 
 async function runTravelingAlgorithm(normalizedCores, params) {
@@ -183,42 +205,19 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.radiusMultiplier
   );
 
-  function sortRowsByRotatedPoints(rows, originAngle) {
-    // Temporarily rotate the first point of each row for sorting purposes
-    let sortingHelper = rows.map((row) => {
-      return {
-        originalRow: row,
-        rotatedPoint: rotatePoint(row[0]["point"], -originAngle),
-      };
-    });
-
-    // Sort the rows based on the y-coordinate of the rotated first point in each row
-    sortingHelper.sort((a, b) => a.rotatedPoint[1] - b.rotatedPoint[1]);
-
-    // Extract the original rows in sorted order
-    return sortingHelper.map((item) => item.originalRow);
-  }
 
   // Extract the original rows in sorted order
   let sortedRows = sortRowsByRotatedPoints(rows, params.originAngle);
   // Calculate the median x coordinate for the first column
-  let medianX = calculateMedianX(sortedRows, params.originAngle);
+  let medianX = calculateMedianX(sortedRows, 0);
   // Normalize rows by adding imaginary points
   sortedRows = normalizeRowsByAddingImaginaryPoints(
     sortedRows,
     medianX,
     params.gridWidth,
-    params.originAngle
+    0
   );
   
-  // // Transpose rows to columns
-  // let columns = transpose(sortedRows);
-
-  // // Filter out columns where every cell is imaginary
-  // columns = columns.filter((column) => column.some((v) => !v.isImaginary));
-
-  // // Transpose back to rows
-  // sortedRows = transpose(columns);
 
   const userRadius = document.getElementById("userRadius").value;
 
@@ -237,8 +236,6 @@ async function runTravelingAlgorithm(normalizedCores, params) {
       });
     });
   });
-
-  updateSpacingInVirtualGrid(params.gridWidth);
 
   return sortedData;
 }
@@ -283,12 +280,12 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
   // Update the form values with the new calculations
   document.getElementById("gridWidth").value = d.toFixed(2);
   document.getElementById("imageWidth").value = imageWidth.toFixed(2);
-  document.getElementById("gamma").value = d.toFixed(2);
+  document.getElementById("gamma").value = (1.25 * d).toFixed(2);
 
   // Update the params object with the new calculations
   params.gridWidth = d;
   params.imageWidth = imageWidth;
-  params.gamma = d;
+  params.gamma = 1.25 * d;
 
   // Update radius 
   document.getElementById("userRadius").value = window.preprocessedCores[0].radius;
@@ -305,12 +302,28 @@ function saveUpdatedCores() {
 
   // Create finalSaveData by mapping over sortedCoresData
   const finalSaveData = window.sortedCoresData.map((core) => {
-    return {
-      ...core,
-      x: core.x / window.scalingFactor / (window.imageScalingFactor ?? 1),
-      y: core.y / window.scalingFactor / (window.imageScalingFactor ?? 1),
-      currentRadius: core.currentRadius / window.scalingFactor / (window.imageScalingFactor ?? 1),
-    };
+
+    if (imageScalingFactor !== null) {
+      return {
+        ...core,
+        x: core.x / (window.imageScalingFactor),
+        y: core.y / (window.imageScalingFactor),
+        currentRadius: core.currentRadius / (window.imageScalingFactor),
+        row: core.row + 1,
+        col: core.col + 1
+      };
+    }else{
+      return {
+        ...core,
+        x: core.x,
+        y: core.y,
+        currentRadius: core.currentRadius,
+        row: core.row + 1,
+        col: core.col + 1
+      };
+    }
+
+    
   });
 
   // Check if there's uploaded metadata to update
@@ -326,8 +339,8 @@ function saveUpdatedCores() {
         // Ensure both row and column values match
         // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
         return (
-          entry[metadataRowName] == core.row + 1 &&
-          entry[metadataColName] == core.col + 1
+          entry[metadataRowName] == core.row  &&
+          entry[metadataColName] == core.col 
         );
       });
 
@@ -375,4 +388,6 @@ export {
   loadDataAndDetermineParams,
   saveUpdatedCores,
   preprocessForTravelingAlgorithm,
+  updateSpacingInVirtualGrid,
+  
 };

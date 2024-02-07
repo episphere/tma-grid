@@ -87,134 +87,137 @@ const loadDependencies = async () => ({
 // Pure function to get input values
 const getInputValue = (inputId) => document.getElementById(inputId).value;
 
-// Event handler for file input change
+// Helper functions to abstract operations
+const loadImage = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = (event) => resolve(event.target.result);
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
+
+const createImageElement = (src) => new Promise((resolve, reject) => {
+  const img = new Image();
+  img.src = src;
+  img.onload = () => resolve(img);
+  img.onerror = reject;
+});
+
+const scaleImageIfNeeded = (img) => {
+  const scalingFactor = img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+    ? Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height)
+    : 1;
+
+  if (scalingFactor === 1) {
+    return { src: img.src, scalingFactor };
+  }else{
+    window.imageScalingFactor = scalingFactor;
+
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width * scalingFactor;
+  canvas.height = img.height * scalingFactor;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  return { src: canvas.toDataURL(), scalingFactor };
+};
+
+const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
+  originalImageContainer.src = src;
+  const osdCanvasParent = document.getElementById('osdViewer');
+  osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
+  osdCanvasParent.style.height = `${imgDimensions.height * scalingFactor}px`;
+  document.getElementById("loadingSpinner").style.display = "none";
+};
+
+const handleSVSFile = async (file, processCallback) => {
+
+  const imageInfo = await getWSIInfo(file);
+  scalingFactor = Math.min(
+    MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
+    MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
+  );
+
+  const wsiThumbnail = await getPNGFromWSI(
+    URL.createObjectURL(file),
+    MAX_DIMENSION_FOR_DOWNSAMPLING
+  );
+  let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
+
+  originalImageContainer.crossOrigin = "anonymous";
+  originalImageContainer.src = objectURL;
+
+  originalImageContainer.onload = () => {
+    const osdCanvasParent = document.getElementById("osdViewer");
+    osdCanvasParent.style.width = `${Math.ceil(
+      imageInfo.width * scalingFactor
+    )}px`;
+    osdCanvasParent.style.height = `${Math.ceil(
+      imageInfo.height * scalingFactor
+    )}px`;
+
+    updateStatusMessage(
+      "imageLoadStatus",
+      "Image loaded successfully.",
+      "success-message"
+    );
+    moveToCarouselItem("next");
+
+    processCallback();
+
+    window.loadedImg = originalImageContainer;
+    document.getElementById("loadingSpinner").style.display = "none";
+  };  
+};
+
+// Updated handleImageLoad function to support .svs files
+const handleImageLoad = (file, processCallback) => {
+  resetApplication();
+  document.getElementById("imageUrlInput").value = null;
+  document.getElementById("loadingSpinner").style.display = "block";
+
+  if (file && file.type.startsWith('image/')) {
+    loadImage(file)
+      .then(createImageElement)
+      .then(img => {
+        const { src, scalingFactor } = scaleImageIfNeeded(img);
+        originalImageContainer.onload = () => {
+          updateStatusMessage('imageLoadStatus', 'Image loaded successfully.', 'success-message');
+          processCallback();
+          window.loadedImg = originalImageContainer;
+          moveToCarouselItem("next");
+
+        };
+        originalImageContainer.onerror = () => {
+          updateStatusMessage('imageLoadStatus', 'Image failed to load.', 'error-message');
+          console.error('Image failed to load.');
+        };
+        updateUIForScaledImage(src, scalingFactor, { width: img.width, height: img.height });
+      })
+      .catch(() => {
+        updateStatusMessage('imageLoadStatus', 'Image failed to load.', 'error-message');
+        console.error('Image failed to load.');
+      });
+  } else if (file && file.name.endsWith('.svs')) {
+    handleSVSFile(file, processCallback);
+  } else {
+    updateStatusMessage('imageLoadStatus', 'File loaded is not an image.', 'error-message');
+    console.error('File loaded is not an image.');
+  }
+
+  document.getElementById("loadingSpinner").style.display = "none";
+};
+// Main event handler, refactored to use functional programming
 const handleImageInputChange = async (e, processCallback) => {
   resetApplication();
   document.getElementById("imageUrlInput").value = null;
-  // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
   const file = e.target.files[0];
-
-  let scalingFactor = 1;
-
-  if (file && file.type.startsWith("image/")) {
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = async () => {
-        // Check if the image needs to be scaled down
-        if (
-          img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
-          img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
-        ) {
-          scalingFactor = Math.min(
-            MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
-            MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
-          );
-
-          window.imageScalingFactor = scalingFactor;
-          // window.scalingFactor = scalingFactor;
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width * scalingFactor;
-          canvas.height = img.height * scalingFactor;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          originalImageContainer.src = canvas.toDataURL();
-        } else {
-          originalImageContainer.src = img.src;
-          scalingFactor = 1;
-        }
-
-        const osdCanvasParent = document.getElementById("osdViewer");
-        osdCanvasParent.style.width = `${img.width * scalingFactor}px`;
-        osdCanvasParent.style.height = `${img.height * scalingFactor}px`;
-
-        originalImageContainer.onload = () => {
-          updateStatusMessage(
-            "imageLoadStatus",
-            "Image loaded successfully.",
-            "success-message"
-          );
-          processCallback();
-
-          window.loadedImg = originalImageContainer;
-          document.getElementById("loadingSpinner").style.display = "none";
-        };
-
-        originalImageContainer.onerror = () => {
-          updateStatusMessage(
-            "imageLoadStatus",
-            "Image failed to load.",
-            "error-message"
-          );
-
-          console.error("Image failed to load.");
-        };
-      };
-
-      img.onerror = () => {
-        updateStatusMessage(
-          "imageLoadStatus",
-          "Image failed to load.",
-          "error-message"
-        );
-
-        console.error("Image failed to load.");
-      };
-    };
-    reader.readAsDataURL(file);
-  } else if (file && file.name.endsWith(".svs")) {
-    const imageInfo = await getWSIInfo(file);
-    scalingFactor = Math.min(
-      MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
-      MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
-    );
-
-    const wsiThumbnail = await getPNGFromWSI(
-      URL.createObjectURL(file),
-      MAX_DIMENSION_FOR_DOWNSAMPLING
-    );
-    let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
-
-    originalImageContainer.crossOrigin = "anonymous";
-    originalImageContainer.src = objectURL;
-
-    originalImageContainer.onload = () => {
-      const osdCanvasParent = document.getElementById("osdViewer");
-      osdCanvasParent.style.width = `${Math.ceil(
-        imageInfo.width * scalingFactor
-      )}px`;
-      osdCanvasParent.style.height = `${Math.ceil(
-        imageInfo.height * scalingFactor
-      )}px`;
-
-      updateStatusMessage(
-        "imageLoadStatus",
-        "Image loaded successfully.",
-        "success-message"
-      );
-
-      processCallback();
-
-      window.loadedImg = originalImageContainer;
-      document.getElementById("loadingSpinner").style.display = "none";
-    };
-  } else {
-    updateStatusMessage(
-      "imageLoadStatus",
-      "File loaded is not an image.",
-      "error-message"
-    );
-
-    console.error("File loaded is not an image.");
-    return;
-  }
-  window.scalingFactor = scalingFactor;
-
-  moveToCarouselItem("next");
+  handleImageLoad(file, processCallback);
 };
+
 
 function handleMetadataFileSelect(event) {
   const file = event.target.files[0];
@@ -250,14 +253,12 @@ function handleMetadataFileSelect(event) {
   } else {
     processExcel(file);
   }
-
-  moveToCarouselItem("next");
 }
 
 function processCSV(file) {
   Papa.parse(file, {
     complete: function (results) {
-      validateMetadata(results.data);
+      validateMetadata(results.data, "csv");
     },
   });
 }
@@ -271,13 +272,13 @@ function processExcel(file) {
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     const json = XLSX.utils.sheet_to_json(worksheet);
-    validateMetadata(json);
+    validateMetadata(json, "excel");
   };
 
   reader.readAsArrayBuffer(file);
 }
 
-function validateMetadata(data) {
+function validateMetadata(data, fileType = "csv") {
   if (!data || data.length === 0) {
     updateStatusMessage(
       "metadataLoadStatus",
@@ -288,8 +289,16 @@ function validateMetadata(data) {
   }
 
   // Helper function to find a column name considering case-insensitivity and abbreviations
-  function findColumnName(data, possibleNames) {
-    const columnNames = Object.keys(data[0]);
+  function findColumnName(data, possibleNames, fileType = "csv") {
+
+    let columnNames;
+    if (fileType === "csv") {
+
+      columnNames = data[0];
+
+    } else {
+      columnNames = Object.keys(data[0]);
+    }
     for (const name of columnNames) {
       if (possibleNames.includes(name.toLowerCase())) {
         return name;
@@ -299,11 +308,11 @@ function validateMetadata(data) {
   }
 
   // Define possible names for 'row' and 'column' considering case and abbreviations
-  const possibleRowNames = ["row", "Row"];
-  const possibleColumnNames = ["column", "col", "Column", "Col"];
+  const possibleRowNames = ["row"];
+  const possibleColumnNames = ["column", "col"];
 
-  const rowName = findColumnName(data, possibleRowNames);
-  const colName = findColumnName(data, possibleColumnNames);
+  const rowName = findColumnName(data, possibleRowNames, fileType);
+  const colName = findColumnName(data, possibleColumnNames, fileType);
 
   if (!rowName || !colName) {
     updateStatusMessage(
@@ -324,6 +333,7 @@ function validateMetadata(data) {
     "File successfully uploaded and validated.",
     "success-message"
   );
+  moveToCarouselItem("next");
 }
 
 // Function to get input parameters from the UI
@@ -389,20 +399,38 @@ const handleLoadImageUrlClick = async (state) => {
       .then((blob) => {
         let objectURL = URL.createObjectURL(blob);
         originalImageContainer.crossOrigin = "anonymous";
-        originalImageContainer.src = objectURL;
-        originalImageContainer.onload = async () => {
+
+        const img = new Image();
+        img.src = objectURL;
+        img.onload = async () => {
           // Check if the image needs to be scaled down
           if (
-            originalImageContainer.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
-            originalImageContainer.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+            img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
+            img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
           ) {
             scalingFactor = Math.min(
-              MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.width,
-              MAX_DIMENSION_FOR_DOWNSAMPLING / originalImageContainer.height
+              MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
+              MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
             );
+
             window.imageScalingFactor = scalingFactor;
+            // window.scalingFactor = scalingFactor;
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width * scalingFactor;
+            canvas.height = img.height * scalingFactor;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            originalImageContainer.src = canvas.toDataURL();
+          } else {
+            originalImageContainer.src = img.src;
+            scalingFactor = 1;
           }
 
+        }
+
+        // originalImageContainer.src = objectURL;
+        originalImageContainer.onload = async () => {
+    
           // Check if the image needs to be scaled down
           if (!width) {
             width = originalImageContainer.width;
@@ -425,6 +453,8 @@ const handleLoadImageUrlClick = async (state) => {
             "success-message"
           );
           await segmentImage(true);
+          moveToCarouselItem("next");
+
         };
       })
       .catch((error) => {
@@ -443,9 +473,10 @@ const handleLoadImageUrlClick = async (state) => {
     console.error("Please enter a valid image URL");
   }
 
-  moveToCarouselItem("next");
   window.imageSource = "URL";
 };
+
+
 
 async function segmentImage(initializeParams = false) {
   const { threshold, maskAlpha, minArea, maxArea, disTransformMultiplier } =
@@ -516,6 +547,15 @@ async function segmentImage(initializeParams = false) {
 }
 
 function bindEventListeners() {
+
+  document.querySelectorAll("input[type='number']").forEach((e) => {
+    e.onwheel = (e) => {
+      e.preventDefault();
+    };
+  });
+
+  
+
   // Event listener for the Apply Hyperparameters button
   document
     .getElementById("apply-hyperparameters")
@@ -722,34 +762,34 @@ const initSegmentation = async () => {
       .getElementById("maskAlphaSlider")
       .addEventListener(event, () => updateSliderUIText(state));
   });
-  document
-    .getElementById("downloadSegmentationResults")
-    .addEventListener("click", function () {
-      // Assuming `properties` is the variable holding your segmentation results
-      if (!window.properties) {
-        alert("Algorithm has not run yet!");
-        return;
-      }
+  // document
+  //   .getElementById("downloadSegmentationResults")
+  //   .addEventListener("click", function () {
+  //     // Assuming `properties` is the variable holding your segmentation results
+  //     if (!window.properties) {
+  //       alert("Algorithm has not run yet!");
+  //       return;
+  //     }
 
-      // Create finalSaveData by mapping over sortedCoresData
-      const finalSaveData = window.properties.map((core) => {
-        return {
-          ...core,
-          x: core.x / window.scalingFactor,
-          y: core.y / window.scalingFactor,
-          radius: core.radius / window.scalingFactor,
-        };
-      });
+  //     // Create finalSaveData by mapping over sortedCoresData
+  //     const finalSaveData = window.properties.map((core) => {
+  //       return {
+  //         ...core,
+  //         x: core.x / window.scalingFactor,
+  //         y: core.y / window.scalingFactor,
+  //         radius: core.radius / window.scalingFactor,
+  //       };
+  //     });
 
-      const propertiesJson = JSON.stringify(finalSaveData, null, 2);
-      const blob = new Blob([propertiesJson], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "segmentation-properties.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    });
+  //     const propertiesJson = JSON.stringify(finalSaveData, null, 2);
+  //     const blob = new Blob([propertiesJson], { type: "application/json" });
+  //     const url = URL.createObjectURL(blob);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = "segmentation-properties.json";
+  //     a.click();
+  //     URL.revokeObjectURL(url);
+  //   });
 
   document
     .getElementById("applySegmentation")
@@ -960,9 +1000,53 @@ function moveToCarouselItem(direction) {
   }
   items[nextIndex].classList.add("active");
 }
+function addDragAndDrop() {
+  var dropzones = document.querySelectorAll(".file-dropzone");
+
+  dropzones.forEach(function(dropzone) {
+    dropzone.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.style.borderColor = "green";
+    });
+
+    dropzone.addEventListener("dragleave", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.style.borderColor = "#ccc";
+    });
+
+    dropzone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.style.borderColor = "#ccc";
+
+      var files = e.dataTransfer.files;
+
+      if (files.length > 1) {
+        alert("Please drop only one file.");
+        return;
+      }
+
+      if (files.length === 1) {
+        // Simulate the file input selection
+        var fileInput = document.getElementById(dropzone.getAttribute('for'));
+        var dataTransfer = new DataTransfer();
+        dataTransfer.items.add(files[0]);
+        fileInput.files = dataTransfer.files;
+
+        // Manually trigger the change event on the input
+        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  });
+}
+
+
 
 // Main function that runs the application
 const run = async () => {
+  addDragAndDrop();
   bindEventListeners();
   // Run the app
   initSegmentation();
