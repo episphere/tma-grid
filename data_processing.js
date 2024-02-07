@@ -326,6 +326,7 @@ function saveUpdatedCores() {
     
   });
 
+
   // Check if there's uploaded metadata to update
   if (window.userUploadedMetadata && window.userUploadedMetadata.length > 0) {
     // Assuming the row and column names are stored in these variables
@@ -346,6 +347,12 @@ function saveUpdatedCores() {
 
       if (metadataEntry) {
         // Merge the core data into the metadata entry
+
+        core ["calculated_row"] = core.row;
+        core ["calculated_col"] = core.col;
+        delete core.row;
+        delete core.col;
+
         for (let key in core) {
           // You might want to exclude some properties that should not be merged
           // if (key !== 'propertyToExclude') {
