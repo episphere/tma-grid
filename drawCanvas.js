@@ -1,6 +1,6 @@
 import { getHyperparametersFromUI } from "./UI.js";
 import {
-  // rotatePoint,
+  rotatePoint,
   runTravelingAlgorithm,
   updateSpacingInVirtualGrid,
 } from "./data_processing.js";
@@ -532,6 +532,7 @@ const drawResizeHandles = (overlay, show = true) => {
               window.sortedCoresData[coreIndex]['y'] = overlayBoundsInImageCoords.y + overlayBoundsInImageCoords.height / 2
               window.sortedCoresData[coreIndex]['currentRadius'] = overlayBoundsInImageCoords.width / 2
               connectAdjacentCores(window.sortedCoresData[coreIndex], true)
+              updateSidebar(window.sortedCoresData[coreIndex]);
             }
           }
         },
@@ -658,23 +659,7 @@ function drawCore(core, index = -1) {
 
       overlay.element.style.cursor = "grabbing";
       overlay.update(overlay.location.plus(deltaViewport));
-      // } else {
-      //   overlay.element.style.cursor = "nwse-resize";
-      //   let { width, height } = overlay.bounds;
-      //   if (e.direction > 0 && e.direction)
-      //   let factorToResizeBy = Math.max(delta.x, delta.y)
-      //   width += factorToResizeBy
-      //   height += factorToResizeBy
-      //   console.log(delta, width, e.direction)
-      //   overlay.update(
-      //     new OpenSeadragon.Rect(
-      //       overlay.bounds.x,
-      //       overlay.bounds.y,
-      //       width,
-      //       height
-      //     )
-      //   );
-      // }
+
 
       overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport);
       const deltaImage = window.viewer.viewport.viewportToImageCoordinates(deltaViewport)
@@ -682,10 +667,7 @@ function drawCore(core, index = -1) {
       if (index !== -1) {
         window.sortedCoresData[index].x += deltaImage.x;
         window.sortedCoresData[index].y += deltaImage.y;
-        document.getElementById("editXInput").value =
-          window.sortedCoresData[index].x;
-        document.getElementById("editYInput").value =
-          window.sortedCoresData[index].y;
+        updateSidebar(window.sortedCoresData[index]);
 
         connectAdjacentCores(window.sortedCoresData[index], true);
       }
@@ -696,7 +678,11 @@ function drawCore(core, index = -1) {
       overlay.element.style.cursor = "grab";
       if (index !== -1) {
         connectAdjacentCores(window.sortedCoresData[index], true);
+
+        updateColumnsInRowAfterModification(window.sortedCoresData[index].row);
       }
+
+
     },
   });
 
@@ -1072,8 +1058,6 @@ function saveCore(core) {
     "editAnnotationsInput"
   ).value;
 
-  core.isTemporary = false;
-  core.isSelected = false;
   // Update the isImaginary property based on which radio button is checked
   core.isImaginary = document.getElementById(
     "editImaginaryInput"
@@ -1209,31 +1193,6 @@ function removeCoreFromGrid(core) {
 //     saveCore(window.sortedCoresData[selectedIndex])
 //   });
 
-// Function to rotate a point around the origin
-function rotatePoint(point, angle) {
-  const pivotX = window.loadedImg.width / 2 / window.scalingFactor;
-  const pivotY = window.loadedImg.height / 2 / window.scalingFactor;
-
-  // Translate point to origin (pivot point becomes the new origin)
-  const translatedX = point[0] - pivotX;
-  const translatedY = point[1] - pivotY;
-
-  // Convert angle to radians
-  const radians = (angle * Math.PI) / 180;
-
-  // Perform rotation around origin
-  const cos = Math.cos(radians);
-  const sin = Math.sin(radians);
-  const rotatedX = translatedX * cos - translatedY * sin;
-  const rotatedY = translatedX * sin + translatedY * cos;
-
-  // Translate point back
-  const newX = rotatedX + pivotX;
-  const newY = rotatedY + pivotY;
-
-  return [newX, newY];
-}
-
 function updateColumnsInRowAfterModification(row) {
   const imageRotation = parseFloat(
     document.getElementById("originAngle").value
@@ -1338,92 +1297,6 @@ const addCoreHandler = (e) => {
   }
 };
 
-// document
-//   .getElementById("addCoreButton")
-//   .addEventListener("click", function () {
-//     if (currentMode === "add" && tempCore) {
-//       // Add the temporary core to sortedCoresData
-//       tempCore.row =
-//         parseInt(document.getElementById("addRowInput").value, 10) - 1;
-//       tempCore.col =
-//         parseInt(document.getElementById("addColumnInput").value, 10) - 1;
-//       tempCore.x = parseFloat(document.getElementById("addXInput").value);
-//       tempCore.y = parseFloat(document.getElementById("addYInput").value);
-//       tempCore.currentRadius = parseFloat(
-//         document.getElementById("addRadiusInput").value
-//       );
-//       tempCore.annotations = document.getElementById(
-//         "addAnnotationsInput"
-//       ).value;
-//       tempCore.isImaginary =
-//         document.getElementById("addImaginaryInput").checked;
-//       tempCore.isTemporary = false; // Set the temporary flag to false
-
-//       window.sortedCoresData.push(tempCore);
-
-//       if (document.getElementById("addAutoUpdateColumnsCheckbox").checked) {
-//         updateColumnsInRowAfterModification(tempCore.row);
-//       }
-//       tempCore = null;
-//       drawCores(); // Redraw to update the canvas
-//     }
-//   });
-
-function updateCoreSize(event) {
-  const [adjustedX, adjustedY] = getMousePosition(event);
-
-  const dx = adjustedX - tempCore.x;
-  const dy = adjustedY - tempCore.y;
-  tempCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
-}
-
-function finalizeCoreSize(event) {
-  updateCoreSize(event);
-  isSettingSize = false;
-}
-// Function to cancel the drawing of the current core and reset for a new one
-function cancelCoreDrawing() {
-  tempCore = null;
-  isSettingSize = false;
-  updateSidebar(null);
-  drawCores();
-}
-
-// // Event listener for the cancel core drawing button
-// document
-//   .getElementById("cancelCoreDrawing")
-//   .addEventListener("click", cancelCoreDrawing);
-
-// var coreCanvasElement = window.viewer.canvas.firstElementChild;
-
-// Add event listeners for mode switching buttons (assumes buttons exist in your HTML)
-// Call clearTempCore when necessary, such as when switching modes
-// document
-//   .getElementById("switchToEditMode")
-//   .addEventListener("click", (event) => {
-//     event.target.classList.add("active");
-//     document.getElementById("switchToAddMode").classList.remove("active");
-//     switchMode("edit");
-//     isSettingSize = false;
-//     // clearTempCore();
-//     // Add 'edit-mode' class and remove 'add-mode' class
-//     coreCanvasElement.classList.add("edit-mode");
-//     coreCanvasElement.classList.remove("add-mode");
-//   });
-
-// document
-//   .getElementById("switchToAddMode")
-//   .addEventListener("click", (event) => {
-//     event.target.classList.add("active");
-//     document.getElementById("switchToEditMode").classList.remove("active");
-//     switchMode("add");
-//     isSettingSize = false;
-//     // clearTempCore();
-//     // Add 'add-mode' class and remove 'edit-mode' class
-//     coreCanvasElement.classList.add("add-mode");
-//     coreCanvasElement.classList.remove("edit-mode");
-//   });
-
 // Function to toggle the disabled state based on the checkbox
 function toggleColumnInput() {
   var editAutoUpdateColumnsCheckbox = document.getElementById(
@@ -1445,9 +1318,9 @@ document
 
 function toggleRowInput() {
   var editAutoUpdateRowsCheckbox = document.getElementById(
-    currentMode + "AutoUpdateRowsCheckbox"
+    "editAutoUpdateRowsCheckbox"
   );
-  var rowInput = document.getElementById(currentMode + "RowInput");
+  var rowInput = document.getElementById("editRowInput");
 
   // If the checkbox is checked, disable the column input
   if (editAutoUpdateRowsCheckbox.checked) {
@@ -1695,6 +1568,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
     };
   });
 
+  debugger;
   return medianValues;
 }
 
