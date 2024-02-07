@@ -1,6 +1,6 @@
 import { getHyperparametersFromUI } from "./UI.js";
 import {
-  rotatePoint,
+  // rotatePoint,
   runTravelingAlgorithm,
   updateSpacingInVirtualGrid,
 } from "./data_processing.js";
@@ -289,12 +289,12 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
 
   //   imageNeedsUpdate = false;
   document
-  .getElementById("osdViewerAddCoreBtn")
-  .removeEventListener("click", addCoreHandler)
+    .getElementById("osdViewerAddCoreBtn")
+    .removeEventListener("click", addCoreHandler)
 
   document
-  .getElementById("osdViewerAddCoreBtn")
-  .addEventListener("click", addCoreHandler);
+    .getElementById("osdViewerAddCoreBtn")
+    .addEventListener("click", addCoreHandler);
   drawCores();
   // };
 
@@ -576,31 +576,6 @@ function drawCores() {
     connectAdjacentCores(core, false);
   });
 }
-  function drawCores() {
-    window.viewer.clearOverlays();
-    window.viewer.svgOverlay().node().replaceChildren();
-    window.viewer.removeAllHandlers("zoom");
-    window.viewer.addHandler("zoom", (e) => {
-      window.viewer
-        .svgOverlay()
-        .node()
-        .querySelectorAll("line")
-        .forEach((element) => {
-          element.setAttribute(
-            "stroke-width",
-            Math.min(
-              window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
-                window.viewer.viewport.getZoom(),
-              0.001
-            )
-          );
-        });
-    });
-    window.sortedCoresData.forEach(drawCore);
-    window.sortedCoresData.forEach((core) => {
-      connectAdjacentCores(core, false);
-    });
-  }
 
 function drawCore(core, index = -1) {
   // Add overlay element on the OSD viewer
@@ -622,28 +597,28 @@ function drawCore(core, index = -1) {
   )}px`;
   overlayElement.appendChild(overlayTitleDiv);
 
-    if (core.isImaginary) {
-      overlayElement.classList.add("imaginary");
-    }
-    if (core.isTemporary) {
-      overlayElement.classList.add("temporary");
-    }
-    if (core.isSelected) {
-      overlayElement.classList.add("selected");
-    }
-    if (core.isMisaligned) {
-      overlayElement.classList.add("misaligned");
-    }
+  if (core.isImaginary) {
+    overlayElement.classList.add("imaginary");
+  }
+  if (core.isTemporary) {
+    overlayElement.classList.add("temporary");
+  }
+  if (core.isSelected) {
+    overlayElement.classList.add("selected");
+  }
+  if (core.isMisaligned) {
+    overlayElement.classList.add("misaligned");
+  }
 
-    const overlayRect = window.viewer.viewport.imageToViewportRectangle(
-      new OpenSeadragon.Rect(
-        core.x - core.currentRadius,
-        core.y - core.currentRadius,
-        core.currentRadius * 2,
-        core.currentRadius * 2
-      )
-    );
-    window.viewer.addOverlay(overlayElement, overlayRect);
+  const overlayRect = window.viewer.viewport.imageToViewportRectangle(
+    new OpenSeadragon.Rect(
+      core.x - core.currentRadius,
+      core.y - core.currentRadius,
+      core.currentRadius * 2,
+      core.currentRadius * 2
+    )
+  );
+  window.viewer.addOverlay(overlayElement, overlayRect);
 
   new OpenSeadragon.MouseTracker({
     element: overlayElement,
@@ -766,12 +741,12 @@ const keyPressHandler = (e) => {
       removeCoreFromGrid(core);
     } else if (overlay.element.classList.contains("temporary")) {
       const overlayBounds = window.viewer.viewport.viewportToImageRectangle(overlay.getBounds(window.viewer.viewport))
-      const core = window.sortedCoresData.find(core => Math.floor(core.x) === Math.floor(overlayBounds.x + overlayBounds.width/2) && Math.floor(core.y) === Math.floor(overlayBounds.y + overlayBounds.height/2))
+      const core = window.sortedCoresData.find(core => Math.floor(core.x) === Math.floor(overlayBounds.x + overlayBounds.width / 2) && Math.floor(core.y) === Math.floor(overlayBounds.y + overlayBounds.height / 2))
       removeCoreFromGrid(core)
     }
     document.removeEventListener('keydown', keyPressHandler)
   } else if (e.key === "Escape") {
-    overlayClickHandler({quick: true})
+    overlayClickHandler({ quick: true })
   }
 };
 
@@ -796,7 +771,7 @@ const overlayClickHandler = (e) => {
   } else {
     overlay = window.viewer.currentOverlays.find(overlay => overlay.element.classList.contains("selected"))
   }
-  
+
   if (e.quick && overlay) {
     if (overlay.element.classList.contains("selected")) {
       deselectOverlay(overlay)
@@ -807,7 +782,7 @@ const overlayClickHandler = (e) => {
           overlay.element.classList.contains("selected")
         )
         .forEach(deselectOverlay);
-      
+
       overlay.element.classList.add("selected");
 
       drawResizeHandles(overlay, true)
@@ -1068,10 +1043,10 @@ function updateSidebar(core) {
 function saveCore(core) {
   const oldRow = core?.row;
   if (
-      !oldRow &&
-      !document.getElementById("editRowInput").value &&
-      !document.getElementById("editAutoUpdateRowsCheckbox").checked
-    ) {
+    !oldRow &&
+    !document.getElementById("editRowInput").value &&
+    !document.getElementById("editAutoUpdateRowsCheckbox").checked
+  ) {
     alert("Please enter a value for the row");
     return false;
   }
@@ -1101,125 +1076,125 @@ function saveCore(core) {
     "editImaginaryInput"
   ).checked;
 
-    const coreIndex = window.sortedCoresData.findIndex(
-      (prevCore) => prevCore.x === core.x && prevCore.y === core.y
-    );
+  const coreIndex = window.sortedCoresData.findIndex(
+    (prevCore) => prevCore.x === core.x && prevCore.y === core.y
+  );
 
-    window.sortedCoresData[coreIndex] = core;
+  window.sortedCoresData[coreIndex] = core;
 
-    if (
-      document.getElementById(currentMode + "AutoUpdateRowsCheckbox").checked
-    ) {
-      core.row = determineCoreRow(core, window.sortedCoresData);
+  if (
+    document.getElementById(currentMode + "AutoUpdateRowsCheckbox").checked
+  ) {
+    core.row = determineCoreRow(core, window.sortedCoresData);
+  }
+
+  if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
+    updateColumnsInRowAfterModification(core.row);
+
+    if (oldRow !== core.row) {
+      updateColumnsInRowAfterModification(oldRow);
     }
+    updateSidebar(core);
+  }
 
-    if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
-      updateColumnsInRowAfterModification(core.row);
+  core.isTemporary = false;
+  core.isSelected = false;
 
-      if (oldRow !== core.row) {
-        updateColumnsInRowAfterModification(oldRow);
-      }
-      updateSidebar(core);
-    }
+  const imageRotation = parseFloat(
+    document.getElementById("originAngle").value
+  );
 
-    core.isTemporary = false;
-    core.isSelected = false;
-
-    const imageRotation = parseFloat(
-      document.getElementById("originAngle").value
-    );
-
-    // Reflag for misaligned cores
-    window.sortedCoresData = flagMisalignedCores(
-      window.sortedCoresData,
-      imageRotation
-    );
+  // Reflag for misaligned cores
+  window.sortedCoresData = flagMisalignedCores(
+    window.sortedCoresData,
+    imageRotation
+  );
 
   drawCores(); // Redraw the cores with the updated data
 
-    return true;
+  return true;
+}
+
+// Picks the row with the closest rotated median Y value to the rotated median Y value of the core
+function determineCoreRow(core, sortedCoresData) {
+  let imageRotation = parseFloat(
+    document.getElementById("originAngle").value
+  );
+
+  if (imageRotation < 10) {
+    imageRotation = 0;
   }
 
-  // Picks the row with the closest rotated median Y value to the rotated median Y value of the core
-  function determineCoreRow(core, sortedCoresData) {
-    let imageRotation = parseFloat(
-      document.getElementById("originAngle").value
-    );
+  // Determine rotated median Y value of each row
+  const medianRows = Object.values(
+    determineMedianRowColumnValues(sortedCoresData, imageRotation).rows
+  );
 
-    if (imageRotation < 10) {
-      imageRotation = 0;
+  // Determine the rotated Y value of the core
+  const rotatedY = rotatePoint([core.x, core.y], -imageRotation)[1];
+
+  // Determine the row with the closest rotated median Y value to the rotated median Y value of the core
+  let closestRow = 0;
+  let closestDistance = Infinity;
+  for (let i = 0; i < medianRows.length; i++) {
+    const distance = Math.abs(medianRows[i].medianY - rotatedY);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestRow = i;
     }
+  }
+  return closestRow;
+}
 
-    // Determine rotated median Y value of each row
-    const medianRows = Object.values(
-      determineMedianRowColumnValues(sortedCoresData, imageRotation).rows
-    );
+function removeCoreFromGrid(core) {
+  const resData = window.sortedCoresData.filter((core) => !core.isTemporary);
+  let coreIndex = window.sortedCoresData.findIndex(
+    (coreToRemove) => coreToRemove.x === core.x && coreToRemove.y === core.y
+  );
 
-    // Determine the rotated Y value of the core
-    const rotatedY = rotatePoint([core.x, core.y], -imageRotation)[1];
-
-    // Determine the row with the closest rotated median Y value to the rotated median Y value of the core
-    let closestRow = 0;
-    let closestDistance = Infinity;
-    for (let i = 0; i < medianRows.length; i++) {
-      const distance = Math.abs(medianRows[i].medianY - rotatedY);
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestRow = i;
-      }
-    }
-    return closestRow;
+  if (coreIndex === -1) {
+    console.log("Core not found in sortedCoresData");
+    return;
   }
 
-  function removeCoreFromGrid(core) {
-    const resData = window.sortedCoresData.filter((core) => !core.isTemporary);
-    let coreIndex = window.sortedCoresData.findIndex(
-      (coreToRemove) => coreToRemove.x === core.x && coreToRemove.y === core.y
-    );
+  if (!core.isTemporary) {
+    const modifiedRow = window.sortedCoresData[coreIndex].row;
+    // Check if the removed core was the last real core in the row
+    const isLastRealCore =
+      window.sortedCoresData.filter(
+        (core) => core.row === modifiedRow && !core.isImaginary
+      ).length === 0;
 
-    if (coreIndex === -1) {
-      console.log("Core not found in sortedCoresData");
-      return;
-    }
-
-    if (!core.isTemporary) {
-      const modifiedRow = window.sortedCoresData[coreIndex].row;
-      // Check if the removed core was the last real core in the row
-      const isLastRealCore =
-        window.sortedCoresData.filter(
-          (core) => core.row === modifiedRow && !core.isImaginary
-        ).length === 0;
-
-      if (isLastRealCore) {
-        // Remove all cores in the row
-        window.sortedCoresData = window.sortedCoresData.filter(
-          (core) => core.row !== modifiedRow
-        );
-        resData.forEach((core) => {
-          if (core.row > modifiedRow) {
-            core.row -= 1;
-          }
-        });
-      }
-
-      // Remove the selected core
-      window.sortedCoresData.splice(coreIndex, 1);
-
-      if (!isLastRealCore) {
-        // Update columns only if the row was not removed
-        updateColumnsInRowAfterModification(modifiedRow);
-      }
-
-      flagMisalignedCores(
-        window.sortedCoresData,
-        parseFloat(document.getElementById("originAngle").value)
+    if (isLastRealCore) {
+      // Remove all cores in the row
+      window.sortedCoresData = window.sortedCoresData.filter(
+        (core) => core.row !== modifiedRow
       );
-    } else {
-      // Remove the selected core
-      window.sortedCoresData.splice(coreIndex, 1);
+      resData.forEach((core) => {
+        if (core.row > modifiedRow) {
+          core.row -= 1;
+        }
+      });
     }
 
-    updateSidebar(null); // Update the sidebar to reflect no selection
+    // Remove the selected core
+    window.sortedCoresData.splice(coreIndex, 1);
+
+    if (!isLastRealCore) {
+      // Update columns only if the row was not removed
+      updateColumnsInRowAfterModification(modifiedRow);
+    }
+
+    flagMisalignedCores(
+      window.sortedCoresData,
+      parseFloat(document.getElementById("originAngle").value)
+    );
+  } else {
+    // Remove the selected core
+    window.sortedCoresData.splice(coreIndex, 1);
+  }
+
+  updateSidebar(null); // Update the sidebar to reflect no selection
 
   drawCores(); // Redraw the cores
 }
@@ -1231,60 +1206,69 @@ function saveCore(core) {
 //     saveCore(window.sortedCoresData[selectedIndex])
 //   });
 
-  // Function to rotate a point around the origin
-  function rotatePoint(point, angle) {
-    const pivotX = window.loadedImg.width / 2 / window.scalingFactor;
-    const pivotY = window.loadedImg.height / 2 / window.scalingFactor;
+// Function to rotate a point around the origin
+function rotatePoint(point, angle) {
+  const pivotX = window.loadedImg.width / 2 / window.scalingFactor;
+  const pivotY = window.loadedImg.height / 2 / window.scalingFactor;
 
-    // Translate point to origin (pivot point becomes the new origin)
-    const translatedX = point[0] - pivotX;
-    const translatedY = point[1] - pivotY;
+  // Translate point to origin (pivot point becomes the new origin)
+  const translatedX = point[0] - pivotX;
+  const translatedY = point[1] - pivotY;
 
-    // Convert angle to radians
-    const radians = (angle * Math.PI) / 180;
+  // Convert angle to radians
+  const radians = (angle * Math.PI) / 180;
 
-    // Perform rotation around origin
-    const cos = Math.cos(radians);
-    const sin = Math.sin(radians);
-    const rotatedX = translatedX * cos - translatedY * sin;
-    const rotatedY = translatedX * sin + translatedY * cos;
+  // Perform rotation around origin
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const rotatedX = translatedX * cos - translatedY * sin;
+  const rotatedY = translatedX * sin + translatedY * cos;
 
-    // Translate point back
-    const newX = rotatedX + pivotX;
-    const newY = rotatedY + pivotY;
+  // Translate point back
+  const newX = rotatedX + pivotX;
+  const newY = rotatedY + pivotY;
 
-    return [newX, newY];
-  }
+  return [newX, newY];
+}
 
-  function updateColumnsInRowAfterModification(row) {
-    const imageRotation = parseFloat(
-      document.getElementById("originAngle").value
-    );
-    // Create an array to hold the original cores with their rotated coordinates for sorting
-    const coresWithRotatedCoordinates = window.sortedCoresData
-      .filter((core) => core.row === row)
-      .map((core) => {
-        return {
-          originalCore: core,
-          rotatedCoordinates: rotatePoint([core.x, core.y], -imageRotation),
-        };
-      });
-
-    // Sort the array based on the x-value of the rotated coordinates
-    coresWithRotatedCoordinates.sort(
-      (a, b) => a.rotatedCoordinates[0] - b.rotatedCoordinates[0]
-    );
-
-    // Assign column values based on the sorted array, updating only the column in the original data
-    let currentColumn = 0;
-    coresWithRotatedCoordinates.forEach((item) => {
-      item.originalCore.col = currentColumn;
-      currentColumn++;
+function updateColumnsInRowAfterModification(row) {
+  const imageRotation = parseFloat(
+    document.getElementById("originAngle").value
+  );
+  // Create an array to hold the original cores with their rotated coordinates for sorting
+  const coresWithRotatedCoordinates = window.sortedCoresData
+    .filter((core) => core.row === row)
+    .map((core) => {
+      return {
+        originalCore: core,
+        rotatedCoordinates: rotatePoint([core.x, core.y], -imageRotation),
+      };
     });
 
-    drawCores(); // Redraw the cores
-    console.log(coresWithRotatedCoordinates);
+  // Sort the array based on the x-value of the rotated coordinates
+  coresWithRotatedCoordinates.sort(
+    (a, b) => a.rotatedCoordinates[0] - b.rotatedCoordinates[0]
+  );
+
+  // Assign column values based on the sorted array, updating only the column in the original data
+  let currentColumn = 0;
+  coresWithRotatedCoordinates.forEach((item) => {
+    item.originalCore.col = currentColumn;
+    currentColumn++;
+  });
+
+  drawCores(); // Redraw the cores
+  console.log(coresWithRotatedCoordinates);
+}
+
+
+const addCoreEscapeHandler = (e) => {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    addCoreHandler(e)
   }
+}
+
 
 const addCoreHandler = (e) => {
   const addCoreBtn = document.getElementById("osdViewerAddCoreBtn");
@@ -1297,7 +1281,7 @@ const addCoreHandler = (e) => {
     document.removeEventListener('keydown', addCoreEscapeHandler)
   } else {
     addCoreBtn.classList.add("active")
-    
+
     window.viewer.canvas.style.cursor = "crosshair"
 
     const tempCore = {
@@ -1310,7 +1294,7 @@ const addCoreHandler = (e) => {
 
     let overlayElement = undefined;
 
-    const  dragHandler = (e) => {
+    const dragHandler = (e) => {
       e.preventDefaultAction = true;
       const positionInImage =
         window.viewer.viewport.viewerElementToImageCoordinates(e.position);
@@ -1342,9 +1326,9 @@ const addCoreHandler = (e) => {
       positionSidebarNextToCore(e.originalEvent);
       addCoreHandler(e, dragHandler, dragEndHandler, addCoreEscapeHandler)
     }
-    
+
     document.addEventListener('keydown', addCoreEscapeHandler, { once: true })
-    
+
     window.viewer.addHandler("canvas-drag", dragHandler);
 
     window.viewer.addOnceHandler("canvas-drag-end", dragEndHandler);
@@ -1444,37 +1428,36 @@ function toggleColumnInput() {
   );
   var columnInput = document.getElementById(currentMode + "ColumnInput");
 
-    // If the checkbox is checked, disable the column input
-    if (editAutoUpdateColumnsCheckbox.checked) {
-      columnInput.disabled = true;
-    } else {
-      // Otherwise, enable it
-      columnInput.disabled = false;
-    }
+  // If the checkbox is checked, disable the column input
+  if (editAutoUpdateColumnsCheckbox.checked) {
+    columnInput.disabled = true;
+  } else {
+    // Otherwise, enable it
+    columnInput.disabled = false;
   }
-  document
-    .getElementById("editAutoUpdateColumnsCheckbox")
-    .addEventListener("change", toggleColumnInput);
-
-  function toggleRowInput() {
-    var editAutoUpdateRowsCheckbox = document.getElementById(
-      currentMode + "AutoUpdateRowsCheckbox"
-    );
-    var rowInput = document.getElementById(currentMode + "RowInput");
-
-    // If the checkbox is checked, disable the column input
-    if (editAutoUpdateRowsCheckbox.checked) {
-      rowInput.disabled = true;
-    } else {
-      // Otherwise, enable it
-      rowInput.disabled = false;
-    }
-  }
-
-  document
-    .getElementById("editAutoUpdateRowsCheckbox")
-    .addEventListener("change", toggleRowInput);
 }
+document
+  .getElementById("editAutoUpdateColumnsCheckbox")
+  .addEventListener("change", toggleColumnInput);
+
+function toggleRowInput() {
+  var editAutoUpdateRowsCheckbox = document.getElementById(
+    currentMode + "AutoUpdateRowsCheckbox"
+  );
+  var rowInput = document.getElementById(currentMode + "RowInput");
+
+  // If the checkbox is checked, disable the column input
+  if (editAutoUpdateRowsCheckbox.checked) {
+    rowInput.disabled = true;
+  } else {
+    // Otherwise, enable it
+    rowInput.disabled = false;
+  }
+}
+
+document
+  .getElementById("editAutoUpdateRowsCheckbox")
+  .addEventListener("change", toggleRowInput);
 // Function to find the optimal angle that minimizes imaginary cores
 async function findOptimalAngle(
   preprocessedCores,
@@ -1524,8 +1507,8 @@ async function findOptimalAngle(
   const medianAngle =
     anglesWithMinCores.length % 2 === 0
       ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
-          anglesWithMinCores[anglesWithMinCores.length / 2]) /
-        2
+        anglesWithMinCores[anglesWithMinCores.length / 2]) /
+      2
       : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 
   // If zero is among the optimal angles, return it as the optimal angle
@@ -1556,8 +1539,8 @@ async function findOptimalAngle(
   // Recalculate the median for the broader search
   return anglesWithMinCores.length % 2 === 0
     ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
-        anglesWithMinCores[anglesWithMinCores.length / 2]) /
-        2
+      anglesWithMinCores[anglesWithMinCores.length / 2]) /
+    2
     : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
 }
 
@@ -1739,7 +1722,7 @@ function flagMisalignedCores(coresData, imageRotation) {
 
     if (
       Math.abs(medianRotatedXValues[core.col] - rotatedX) >
-        1.25 * core.currentRadius ||
+      1.25 * core.currentRadius ||
       coreCounts[core.col] < 2
     ) {
       core.isMisaligned = true;
