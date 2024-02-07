@@ -88,36 +88,42 @@ const loadDependencies = async () => ({
 const getInputValue = (inputId) => document.getElementById(inputId).value;
 
 // Helper functions to abstract operations
-const loadImage = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = (event) => resolve(event.target.result);
-  reader.onerror = reject;
-  reader.readAsDataURL(file);
-});
+const loadImage = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => resolve(event.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
-const createImageElement = (src) => new Promise((resolve, reject) => {
-  const img = new Image();
-  img.src = src;
-  img.onload = () => resolve(img);
-  img.onerror = reject;
-});
+const createImageElement = (src) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+  });
 
 const scaleImageIfNeeded = (img) => {
-  const scalingFactor = img.width > MAX_DIMENSION_FOR_DOWNSAMPLING || img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
-    ? Math.min(MAX_DIMENSION_FOR_DOWNSAMPLING / img.width, MAX_DIMENSION_FOR_DOWNSAMPLING / img.height)
-    : 1;
+  const scalingFactor =
+    img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
+    img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+      ? Math.min(
+          MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
+          MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
+        )
+      : 1;
 
   if (scalingFactor === 1) {
     return { src: img.src, scalingFactor };
-  }else{
+  } else {
     window.imageScalingFactor = scalingFactor;
-
   }
 
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = img.width * scalingFactor;
   canvas.height = img.height * scalingFactor;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
   return { src: canvas.toDataURL(), scalingFactor };
@@ -125,14 +131,13 @@ const scaleImageIfNeeded = (img) => {
 
 const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
   originalImageContainer.src = src;
-  const osdCanvasParent = document.getElementById('osdViewer');
+  const osdCanvasParent = document.getElementById("osdViewer");
   osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
   osdCanvasParent.style.height = `${imgDimensions.height * scalingFactor}px`;
   document.getElementById("loadingSpinner").style.display = "none";
 };
 
 const handleSVSFile = async (file, processCallback) => {
-
   const imageInfo = await getWSIInfo(file);
   scalingFactor = Math.min(
     MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
@@ -168,7 +173,7 @@ const handleSVSFile = async (file, processCallback) => {
 
     window.loadedImg = originalImageContainer;
     document.getElementById("loadingSpinner").style.display = "none";
-  };  
+  };
 };
 
 // Updated handleImageLoad function to support .svs files
@@ -177,33 +182,51 @@ const handleImageLoad = (file, processCallback) => {
   document.getElementById("imageUrlInput").value = null;
   document.getElementById("loadingSpinner").style.display = "block";
 
-  if (file && file.type.startsWith('image/')) {
+  if (file && file.type.startsWith("image/")) {
     loadImage(file)
       .then(createImageElement)
-      .then(img => {
+      .then((img) => {
         const { src, scalingFactor } = scaleImageIfNeeded(img);
         originalImageContainer.onload = () => {
-          updateStatusMessage('imageLoadStatus', 'Image loaded successfully.', 'success-message');
+          updateStatusMessage(
+            "imageLoadStatus",
+            "Image loaded successfully.",
+            "success-message"
+          );
           processCallback();
           window.loadedImg = originalImageContainer;
           moveToCarouselItem("next");
-
         };
         originalImageContainer.onerror = () => {
-          updateStatusMessage('imageLoadStatus', 'Image failed to load.', 'error-message');
-          console.error('Image failed to load.');
+          updateStatusMessage(
+            "imageLoadStatus",
+            "Image failed to load.",
+            "error-message"
+          );
+          console.error("Image failed to load.");
         };
-        updateUIForScaledImage(src, scalingFactor, { width: img.width, height: img.height });
+        updateUIForScaledImage(src, scalingFactor, {
+          width: img.width,
+          height: img.height,
+        });
       })
       .catch(() => {
-        updateStatusMessage('imageLoadStatus', 'Image failed to load.', 'error-message');
-        console.error('Image failed to load.');
+        updateStatusMessage(
+          "imageLoadStatus",
+          "Image failed to load.",
+          "error-message"
+        );
+        console.error("Image failed to load.");
       });
-  } else if (file && file.name.endsWith('.svs')) {
+  } else if (file && file.name.endsWith(".svs")) {
     handleSVSFile(file, processCallback);
   } else {
-    updateStatusMessage('imageLoadStatus', 'File loaded is not an image.', 'error-message');
-    console.error('File loaded is not an image.');
+    updateStatusMessage(
+      "imageLoadStatus",
+      "File loaded is not an image.",
+      "error-message"
+    );
+    console.error("File loaded is not an image.");
   }
 
   document.getElementById("loadingSpinner").style.display = "none";
@@ -217,7 +240,6 @@ const handleImageInputChange = async (e, processCallback) => {
   const file = e.target.files[0];
   handleImageLoad(file, processCallback);
 };
-
 
 function handleMetadataFileSelect(event) {
   const file = event.target.files[0];
@@ -290,12 +312,9 @@ function validateMetadata(data, fileType = "csv") {
 
   // Helper function to find a column name considering case-insensitivity and abbreviations
   function findColumnName(data, possibleNames, fileType = "csv") {
-
     let columnNames;
     if (fileType === "csv") {
-
       columnNames = data[0];
-
     } else {
       columnNames = Object.keys(data[0]);
     }
@@ -326,7 +345,27 @@ function validateMetadata(data, fileType = "csv") {
   // Store the identified column names and the data
   window.metadataRowName = rowName;
   window.metadataColName = colName;
-  window.userUploadedMetadata = data;
+
+  debugger;
+
+  if (fileType == "csv") {
+    window.userUploadedMetadata = [];
+
+    let keys = [];
+    data.forEach((row, index) => {
+      if (index == 0) {
+        keys = row;
+      } else {
+        let obj = {};
+        keys.forEach((key, i) => {
+          obj[key] = row[i];
+        });
+        window.userUploadedMetadata.push(obj);
+      }
+    });
+  } else {
+    window.userUploadedMetadata = data;
+  }
 
   updateStatusMessage(
     "metadataLoadStatus",
@@ -425,12 +464,10 @@ const handleLoadImageUrlClick = async (state) => {
             originalImageContainer.src = img.src;
             scalingFactor = 1;
           }
-
-        }
+        };
 
         // originalImageContainer.src = objectURL;
         originalImageContainer.onload = async () => {
-    
           // Check if the image needs to be scaled down
           if (!width) {
             width = originalImageContainer.width;
@@ -454,7 +491,6 @@ const handleLoadImageUrlClick = async (state) => {
           );
           await segmentImage(true);
           moveToCarouselItem("next");
-
         };
       })
       .catch((error) => {
@@ -475,8 +511,6 @@ const handleLoadImageUrlClick = async (state) => {
 
   window.imageSource = "URL";
 };
-
-
 
 async function segmentImage(initializeParams = false) {
   const { threshold, maskAlpha, minArea, maxArea, disTransformMultiplier } =
@@ -547,14 +581,11 @@ async function segmentImage(initializeParams = false) {
 }
 
 function bindEventListeners() {
-
   document.querySelectorAll("input[type='number']").forEach((e) => {
     e.onwheel = (e) => {
       e.preventDefault();
     };
   });
-
-  
 
   // Event listener for the Apply Hyperparameters button
   document
@@ -979,7 +1010,7 @@ const initSegmentation = async () => {
 document.querySelectorAll("input[type='number']").forEach((e) => {
   e.onwheel = (e) => {
     if (document.activeElement === e.target) {
-      e.target.blur()
+      e.target.blur();
     }
   };
 });
@@ -1003,7 +1034,7 @@ function moveToCarouselItem(direction) {
 function addDragAndDrop() {
   var dropzones = document.querySelectorAll(".file-dropzone");
 
-  dropzones.forEach(function(dropzone) {
+  dropzones.forEach(function (dropzone) {
     dropzone.addEventListener("dragover", function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1030,19 +1061,17 @@ function addDragAndDrop() {
 
       if (files.length === 1) {
         // Simulate the file input selection
-        var fileInput = document.getElementById(dropzone.getAttribute('for'));
+        var fileInput = document.getElementById(dropzone.getAttribute("for"));
         var dataTransfer = new DataTransfer();
         dataTransfer.items.add(files[0]);
         fileInput.files = dataTransfer.files;
 
         // Manually trigger the change event on the input
-        fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+        fileInput.dispatchEvent(new Event("change", { bubbles: true }));
       }
     });
   });
 }
-
-
 
 // Main function that runs the application
 const run = async () => {
