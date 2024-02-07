@@ -460,20 +460,23 @@ const drawResizeHandles = (overlay, show = true) => {
         },
         dragHandler: (e) => {
           let { x, y, width, height } = overlay.getBounds(window.viewer.viewport)
+          
           const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta)
-          let factorToResizeBy = window.viewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(0.5 / window.scalingFactor, 0.5 / window.scalingFactor)).x
-          // const factorToResizeBy = 0.001
+          const factorToResizeBy = delta.y
+          
+          const viewportBounds = window.viewer.viewport.getConstrainedBounds()
           const resizeHandleLocation = resizeHandle.id.split("_").slice(-1)[0]
+          
           switch (resizeHandleLocation) {
             case 'topLeft':
               if (-Math.PI <= e.direction && e.direction <= -Math.PI / 2) {
-                x = Math.max(x - factorToResizeBy, 0)
-                y = Math.max(y - factorToResizeBy, 0)
-                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
-                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+                x = Math.max(x + factorToResizeBy, viewportBounds.x)
+                y = Math.max(y + factorToResizeBy, viewportBounds.y)
+                width = Math.min(width - factorToResizeBy, viewportBounds.width)
+                height = Math.min(height - factorToResizeBy, viewportBounds.height)
               } else if (0 <= e.direction && e.direction <= Math.PI / 2) {
-                x = Math.min(x + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width - MIN_CORE_WIDTH_PROPORTION)
-                y = Math.min(y + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height - MIN_CORE_WIDTH_PROPORTION)
+                x = Math.min(x + factorToResizeBy, viewportBounds.width - MIN_CORE_WIDTH_PROPORTION)
+                y = Math.min(y + factorToResizeBy, viewportBounds.height - MIN_CORE_WIDTH_PROPORTION)
                 width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
                 height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
               }
@@ -481,11 +484,11 @@ const drawResizeHandles = (overlay, show = true) => {
 
             case 'topRight':
               if (-Math.PI / 2 <= e.direction && e.direction <= 0) {
-                y = Math.max(y - factorToResizeBy, 0)
-                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
-                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+                y = Math.max(y + factorToResizeBy, viewportBounds.y)
+                width = Math.min(width - factorToResizeBy, viewportBounds.width)
+                height = Math.min(height - factorToResizeBy, viewportBounds.height)
               } else if (Math.PI / 2 <= e.direction && e.direction <= Math.PI) {
-                y = Math.min(y + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height - MIN_CORE_WIDTH_PROPORTION)
+                y = Math.min(y + factorToResizeBy, viewportBounds.height - MIN_CORE_WIDTH_PROPORTION)
                 width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
                 height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
               }
@@ -493,23 +496,23 @@ const drawResizeHandles = (overlay, show = true) => {
 
             case 'bottomRight':
               if (0 <= e.direction && e.direction <= Math.PI / 2) {
-                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
-                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+                width = Math.min(width + factorToResizeBy, viewportBounds.width)
+                height = Math.min(height + factorToResizeBy, viewportBounds.height)
               } else if (-Math.PI <= e.direction && e.direction <= -Math.PI / 2) {
-                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
-                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                width = Math.max(width + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                height = Math.max(height + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
               }
               break
 
             case 'bottomLeft':
               if (Math.PI / 2 <= e.direction && e.direction <= Math.PI) {
-                x = Math.max(x - factorToResizeBy, 0)
-                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
-                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+                x = Math.max(x - factorToResizeBy, viewportBounds.x)
+                width = Math.min(width + factorToResizeBy, viewportBounds.width)
+                height = Math.min(height + factorToResizeBy, viewportBounds.height)
               } else if (-Math.PI / 2 <= e.direction && e.direction <= 0) {
-                x = Math.min(x + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width - MIN_CORE_WIDTH_PROPORTION)
-                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
-                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                x = Math.min(x - factorToResizeBy, viewportBounds.width - MIN_CORE_WIDTH_PROPORTION)
+                width = Math.max(width + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                height = Math.max(height + factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
               }
               break
 
