@@ -1083,7 +1083,7 @@ function saveCore(core) {
   window.sortedCoresData[coreIndex] = core;
 
   if (
-    document.getElementById(currentMode + "AutoUpdateRowsCheckbox").checked
+    document.getElementById("editAutoUpdateRowsCheckbox").checked
   ) {
     core.row = determineCoreRow(core, window.sortedCoresData);
   }
