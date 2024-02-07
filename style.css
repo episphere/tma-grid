@@ -1118,6 +1118,7 @@ label:disabled {
 }
 
 .core-overlay-for-gridding {
+  box-sizing: border-box;
   border-style: solid;
   border-width: 1px;
   border-radius: 50%;
@@ -1126,8 +1127,8 @@ label:disabled {
 }
 
 .core-overlay-for-gridding:hover {
-  border-width: 2px;
-  /* border-color:#007bff; */
+  border-width: 1px;
+  border-color:#308cee;
 }
 
 .core-overlay-for-gridding.imaginary {
@@ -1140,9 +1141,11 @@ label:disabled {
 }
 
 .core-overlay-for-gridding.selected {
-  border-width: 3px;
-  border-color: #FFD700;
-  box-shadow:0px 0px 10px rgba(0, 0, 0, 0.5);
+  /* border-width: 2px; */
+  /* border-color: ; */
+  border: none;
+  box-shadow:0px 0px 0px 2px #FFD700;
+  z-index: 100;
 }
 
 .core-overlay-title-div {
@@ -1151,12 +1154,29 @@ label:disabled {
   width: fit-content;
   font-size: 12px;
   margin: 0 auto;
+  pointer-events: none;
 }
 
 .core-overlay-for-gridding.selected>.core-overlay-title-div {
   font-size: 16px;
   text-decoration: underline;
   color: maroon;
+}
+
+.coreResizeHandle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: red;
+  z-index: 1000;
+}
+
+.coreResizeHandle.topLeft,.coreResizeHandle.bottomRight {
+  cursor: nwse-resize
+}
+
+.coreResizeHandle.topRight,.coreResizeHandle.bottomLeft {
+  cursor: nesw-resize
 }
 
 svg {

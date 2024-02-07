@@ -19,6 +19,8 @@ const getInputValue = (inputId) => document.getElementById(inputId).value;
 window.actionHistory = [];
 let currentActionIndex = -1;
 
+let MIN_CORE_WIDTH_PROPORTION = 0.01
+
 function getMousePosition(event, canvasID = "coreCanvas") {
   const canvas = document.getElementById(canvasID);
   // Calculate scale factors based on the actual size of the canvas
@@ -298,891 +300,1085 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   //   // canvas.height = img.height;
 
   //   imageNeedsUpdate = false;
+  document
+  .getElementById("osdViewerAddCoreBtn")
+  .removeEventListener("click", addCoreHandler)
+
+  document
+  .getElementById("osdViewerAddCoreBtn")
+  .addEventListener("click", addCoreHandler);
   drawCores();
   // };
 
-  function updateImageSource() {
-    if (window.loadedImg.src !== img.src) {
-      img.src = window.loadedImg.src;
-      imageNeedsUpdate = true;
-    }
+
+  // function updateImageSource() {
+  //   if (window.loadedImg.src !== img.src) {
+  //     img.src = window.loadedImg.src;
+  //     imageNeedsUpdate = true;
+  //   }
+  // }
+}
+function connectAdjacentCores(core, updateSurroundings = false) {
+  // Helper function to calculate the edge point
+  // function calculateEdgePoint(center1, center2, r1, r2) {
+  //   const angle = Math.atan2(center2.y - center1.y, center2.x - center1.x);
+  //   return {
+  //     start: {
+  //       x: center1.x + Math.cos(angle) * r1,
+  //       y: center1.y + Math.sin(angle) * r1,
+  //     },
+  //     end: {
+  //       x: center2.x - Math.cos(angle) * r2,
+  //       y: center2.y - Math.sin(angle) * r2,
+  //     },
+  //   };
+  // }
+
+  if (!document.getElementById("connectCoresCheckbox").checked) {
+    // If the checkbox is checked, draw lines between adjacent cores
+    return;
+
   }
-  function connectAdjacentCores(core, updateSurroundings = false) {
-    // Helper function to calculate the edge point
-    // function calculateEdgePoint(center1, center2, r1, r2) {
-    //   const angle = Math.atan2(center2.y - center1.y, center2.x - center1.x);
-    //   return {
-    //     start: {
-    //       x: center1.x + Math.cos(angle) * r1,
-    //       y: center1.y + Math.sin(angle) * r1,
-    //     },
-    //     end: {
-    //       x: center2.x - Math.cos(angle) * r2,
-    //       y: center2.y - Math.sin(angle) * r2,
-    //     },
-    //   };
-    // }
 
-    if (!document.getElementById("connectCoresCheckbox").checked) {
-      // If the checkbox is checked, draw lines between adjacent cores
-      return;
+  if (
+    isNaN(parseInt(core.row)) ||
+    isNaN(parseInt(core.col)) ||
+    core.isTemporary
+  ) {
+    return;
+  }
+  // Find adjacent cores based on row and column
+  const adjacentPositions = [
+    [1, 0],
+    [0, 1],
+  ];
 
-    }
-    
-    if (
-      isNaN(parseInt(core.row)) ||
-      isNaN(parseInt(core.col)) ||
-      core.isTemporary
-    ) {
-      return;
-    }
-    // Find adjacent cores based on row and column
-    const adjacentPositions = [
-      [1, 0],
-      [0, 1],
-    ];
+  if (updateSurroundings) {
+    adjacentPositions.push([-1, 0]);
+    adjacentPositions.push([0, -1]);
+  }
 
-    if (updateSurroundings) {
-      adjacentPositions.push([-1, 0]);
-      adjacentPositions.push([0, -1]);
-    }
+  adjacentPositions.forEach((pos) => {
+    const adjacentCore = window.sortedCoresData.find(
+      (c) => c.row === core.row + pos[0] && c.col === core.col + pos[1]
+    );
+    if (adjacentCore) {
+      const startCore =
+        core.row <= adjacentCore.row && core.col <= adjacentCore.col
+          ? core
+          : adjacentCore;
+      const endCore = startCore === adjacentCore ? core : adjacentCore;
 
-    adjacentPositions.forEach((pos) => {
-      const adjacentCore = window.sortedCoresData.find(
-        (c) => c.row === core.row + pos[0] && c.col === core.col + pos[1]
+      const svgOverlay = window.viewer.svgOverlay();
+
+      const point1 = window.viewer.viewport.imageToViewportCoordinates(
+        new OpenSeadragon.Point(
+          startCore.x +
+          (endCore.col - startCore.col) * startCore.currentRadius,
+          startCore.y +
+          (endCore.row - startCore.row) * startCore.currentRadius
+        )
       );
-      if (adjacentCore) {
-        const startCore =
-          core.row <= adjacentCore.row && core.col <= adjacentCore.col
-            ? core
-            : adjacentCore;
-        const endCore = startCore === adjacentCore ? core : adjacentCore;
+      const point2 = window.viewer.viewport.imageToViewportCoordinates(
+        new OpenSeadragon.Point(
+          endCore.x - (endCore.col - startCore.col) * endCore.currentRadius,
+          endCore.y - (endCore.row - startCore.row) * endCore.currentRadius
+        )
+      );
+      const id = `line_rowStart_${startCore.row}_colStart_${startCore.col}_rowEnd_${endCore.row}_colEnd_${endCore.col}`;
+      let line = svgOverlay.node().querySelector(`line#${id}`);
 
-        const svgOverlay = window.viewer.svgOverlay();
+      if (!line) {
+        line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        svgOverlay.node().appendChild(line);
+      }
 
-        const point1 = window.viewer.viewport.imageToViewportCoordinates(
-          new OpenSeadragon.Point(
-            startCore.x +
-              (endCore.col - startCore.col) * startCore.currentRadius,
-            startCore.y +
-              (endCore.row - startCore.row) * startCore.currentRadius
-          )
-        );
-        const point2 = window.viewer.viewport.imageToViewportCoordinates(
-          new OpenSeadragon.Point(
-            endCore.x - (endCore.col - startCore.col) * endCore.currentRadius,
-            endCore.y - (endCore.row - startCore.row) * endCore.currentRadius
-          )
-        );
-        const id = `line_rowStart_${startCore.row}_colStart_${startCore.col}_rowEnd_${endCore.row}_colEnd_${endCore.col}`;
-        let line = svgOverlay.node().querySelector(`line#${id}`);
+      line.id = id;
+      line.setAttribute("x1", point1.x);
+      line.setAttribute("y1", point1.y);
+      line.setAttribute("x2", point2.x);
+      line.setAttribute("y2", point2.y);
+      line.setAttribute("stroke", "black");
+      line.setAttribute(
+        "stroke-width",
+        Math.min(
+          window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
+          window.viewer.viewport.getZoom(),
+          0.001
+        )
+      );
+    }
+  });
+}
 
-        if (!line) {
-          line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          svgOverlay.node().appendChild(line);
+const drawResizeHandles = (overlay, show = true) => {
+
+  const resizeHandleTL_Id = `coreResizeHandle_topLeft`
+  const resizeHandleTR_Id = `coreResizeHandle_topRight`
+  const resizeHandleBL_Id = `coreResizeHandle_bottomLeft`
+  const resizeHandleBR_Id = `coreResizeHandle_bottomRight`
+
+  let overlayResizeHandleTL = overlay.element.querySelector(`#${resizeHandleTL_Id}`)
+  let overlayResizeHandleTR = overlay.element.querySelector(`#${resizeHandleTR_Id}`)
+  let overlayResizeHandleBL = overlay.element.querySelector(`#${resizeHandleBL_Id}`)
+  let overlayResizeHandleBR = overlay.element.querySelector(`#${resizeHandleBR_Id}`)
+
+  overlayResizeHandleTL?.parentElement.removeChild(overlayResizeHandleTL)
+  overlayResizeHandleTR?.parentElement.removeChild(overlayResizeHandleTR)
+  overlayResizeHandleBL?.parentElement.removeChild(overlayResizeHandleBL)
+  overlayResizeHandleBR?.parentElement.removeChild(overlayResizeHandleBR)
+
+  overlay['trackers']?.forEach(tracker => tracker.destroy())
+  overlay['trackers'] = []
+
+  if (show) {
+    overlayResizeHandleTL = document.createElement("div")
+    overlayResizeHandleTL.className = "coreResizeHandle topLeft"
+    overlayResizeHandleTL.id = resizeHandleTL_Id
+    overlayResizeHandleTL.style.top = "-5px"
+    overlayResizeHandleTL.style.left = "-5px"
+    overlayResizeHandleTL.style.pointerEvents = "auto"
+
+    overlayResizeHandleTR = document.createElement("div")
+    overlayResizeHandleTR.className = "coreResizeHandle topRight"
+    overlayResizeHandleTR.id = resizeHandleTR_Id
+    overlayResizeHandleTR.style.top = "-5px"
+    overlayResizeHandleTR.style.right = "-5px"
+    overlayResizeHandleTR.style.pointerEvents = "auto"
+
+    overlayResizeHandleBL = document.createElement("div")
+    overlayResizeHandleBL.className = "coreResizeHandle bottomLeft"
+    overlayResizeHandleBL.id = resizeHandleBL_Id
+    overlayResizeHandleBL.style.bottom = "-5px"
+    overlayResizeHandleBL.style.left = "-5px"
+    overlayResizeHandleBL.style.pointerEvents = "auto"
+
+    overlayResizeHandleBR = document.createElement("div")
+    overlayResizeHandleBR.className = "coreResizeHandle bottomRight"
+    overlayResizeHandleBR.id = resizeHandleBR_Id
+    overlayResizeHandleBR.style.bottom = "-5px"
+    overlayResizeHandleBR.style.right = "-5px"
+    overlayResizeHandleBR.style.pointerEvents = "auto";
+
+    [overlayResizeHandleTL, overlayResizeHandleTR, overlayResizeHandleBL, overlayResizeHandleBR].forEach(resizeHandle => {
+      const tracker = new OpenSeadragon.MouseTracker({
+        element: resizeHandle,
+        userData: overlay.getBounds(window.viewer.viewport),
+        preprocessEventHandler: (e) => {
+          if (e.eventType === "drag") {
+            e.stopPropagation = true;
+            e.preventDefault = true;
+          }
+        },
+        dragHandler: (e) => {
+          let { x, y, width, height } = overlay.getBounds(window.viewer.viewport)
+          const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta)
+          let factorToResizeBy = window.viewer.viewport.imageToViewportCoordinates(new OpenSeadragon.Point(0.5 / window.scalingFactor, 0.5 / window.scalingFactor)).x
+          // const factorToResizeBy = 0.001
+          const resizeHandleLocation = resizeHandle.id.split("_").slice(-1)[0]
+          switch (resizeHandleLocation) {
+            case 'topLeft':
+              if (-Math.PI <= e.direction && e.direction <= -Math.PI / 2) {
+                x = Math.max(x - factorToResizeBy, 0)
+                y = Math.max(y - factorToResizeBy, 0)
+                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
+                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+              } else if (0 <= e.direction && e.direction <= Math.PI / 2) {
+                x = Math.min(x + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width - MIN_CORE_WIDTH_PROPORTION)
+                y = Math.min(y + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height - MIN_CORE_WIDTH_PROPORTION)
+                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+              }
+              break
+
+            case 'topRight':
+              if (-Math.PI / 2 <= e.direction && e.direction <= 0) {
+                y = Math.max(y - factorToResizeBy, 0)
+                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
+                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+              } else if (Math.PI / 2 <= e.direction && e.direction <= Math.PI) {
+                y = Math.min(y + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height - MIN_CORE_WIDTH_PROPORTION)
+                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+              }
+              break
+
+            case 'bottomRight':
+              if (0 <= e.direction && e.direction <= Math.PI / 2) {
+                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
+                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+              } else if (-Math.PI <= e.direction && e.direction <= -Math.PI / 2) {
+                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+              }
+              break
+
+            case 'bottomLeft':
+              if (Math.PI / 2 <= e.direction && e.direction <= Math.PI) {
+                x = Math.max(x - factorToResizeBy, 0)
+                width = Math.min(width + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width)
+                height = Math.min(height + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().height)
+              } else if (-Math.PI / 2 <= e.direction && e.direction <= 0) {
+                x = Math.min(x + factorToResizeBy, window.viewer.viewport.getConstrainedBounds().width - MIN_CORE_WIDTH_PROPORTION)
+                width = Math.max(width - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+                height = Math.max(height - factorToResizeBy, MIN_CORE_WIDTH_PROPORTION)
+              }
+              break
+
+            default:
+              break
+          }
+          overlay.update(new OpenSeadragon.Rect(x, y, width, height))
+          overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport)
+
+          if (!overlay.element.classList.contains("temporary")) {
+            const row = parseInt(overlay.element.id.split("_")[2])
+            const col = parseInt(overlay.element.id.split("_")[4])
+            const coreIndex = window.sortedCoresData.findIndex(core => core.row === row && core.col === col)
+            if (coreIndex !== -1) {
+              const overlayBoundsInImageCoords = window.viewer.viewport.viewportToImageRectangle(overlay.getBounds(window.viewer.viewport))
+              window.sortedCoresData[coreIndex]['x'] = overlayBoundsInImageCoords.x + overlayBoundsInImageCoords.width / 2
+              window.sortedCoresData[coreIndex]['y'] = overlayBoundsInImageCoords.y + overlayBoundsInImageCoords.height / 2
+              window.sortedCoresData[coreIndex]['currentRadius'] = overlayBoundsInImageCoords.width / 2
+              connectAdjacentCores(window.sortedCoresData[coreIndex], true)
+            }
+          }
+        },
+        dragEndHandler: (e) => {
         }
+      })
+      overlay['trackers'].push(tracker)
+      overlay.element.appendChild(resizeHandle)
+    })
+  }
+}
 
-        line.id = id;
-        line.setAttribute("x1", point1.x);
-        line.setAttribute("y1", point1.y);
-        line.setAttribute("x2", point2.x);
-        line.setAttribute("y2", point2.y);
-        line.setAttribute("stroke", "black");
-        line.setAttribute(
+function drawCores() {
+  // if (imageNeedsUpdate) {
+  //   updateImageSource();
+  //   return; // Exit the function and wait for the image to load
+  // }
+  // ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // if (img.src !== window.loadedImg.src) {
+  //   img.src = window.loadedImg.src;
+  // }
+
+  window.viewer.clearOverlays();
+  window.viewer.svgOverlay().node().replaceChildren();
+  window.viewer.removeAllHandlers("zoom");
+  window.viewer.addHandler("zoom", (e) => {
+    window.viewer
+      .svgOverlay()
+      .node()
+      .querySelectorAll("line")
+      .forEach((element) => {
+        element.setAttribute(
           "stroke-width",
           Math.min(
             window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
-              window.viewer.viewport.getZoom(),
+            window.viewer.viewport.getZoom(),
             0.001
           )
         );
+      });
+  });
+  window.sortedCoresData.forEach(drawCore);
+  window.sortedCoresData.forEach((core) => {
+    connectAdjacentCores(core, false);
+  });
+}
+
+function drawCore(core, index = -1) {
+  // Add overlay element on the OSD viewer
+
+  const overlayElement = document.createElement("div");
+  overlayElement.className = "core-overlay-for-gridding";
+
+  const overlayTitleDiv = document.createElement("div");
+  overlayTitleDiv.className = "core-overlay-title-div";
+
+  if (core.row >= 0 && core.col >= 0) {
+    overlayElement.id = `core_row_${core.row}_col_${core.col}`
+    overlayTitleDiv.innerText = `${core.row + 1},${core.col + 1}`;
+  }
+  overlayTitleDiv.style.top = `-${Math.floor(
+    window.viewer.viewport.imageToViewportCoordinates(
+      new OpenSeadragon.Point(core.currentRadius / 2, core.currentRadius / 2)
+    ).x
+  )}px`;
+  overlayElement.appendChild(overlayTitleDiv);
+
+  if (core.isImaginary) {
+    overlayElement.classList.add("imaginary");
+  }
+  if (core.isTemporary) {
+    overlayElement.classList.add("temporary");
+  }
+  if (core.isSelected) {
+    overlayElement.classList.add("selected");
+  }
+
+  const overlayRect = window.viewer.viewport.imageToViewportRectangle(
+    new OpenSeadragon.Rect(
+      core.x - core.currentRadius,
+      core.y - core.currentRadius,
+      core.currentRadius * 2,
+      core.currentRadius * 2
+    )
+  );
+
+  window.viewer.addOverlay(overlayElement, overlayRect);
+
+  new OpenSeadragon.MouseTracker({
+    element: overlayElement,
+
+    clickTimeThreshold: 200,
+    clickDistThreshold: 50,
+
+    preProcessEventHandler: (e) => {
+      if (
+        e.eventType === "click" ||
+        e.eventType === "drag" ||
+        e.eventType === "dragEnd"
+      ) {
+        e.stopPropagation = true;
+        e.preventDefault = true;
       }
-    });
-  }
+    },
 
-  function drawCores() {
-    // if (imageNeedsUpdate) {
-    //   updateImageSource();
-    //   return; // Exit the function and wait for the image to load
-    // }
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
+    clickHandler: overlayClickHandler,
 
-    // if (img.src !== window.loadedImg.src) {
-    //   img.src = window.loadedImg.src;
-    // }
-
-    window.viewer.clearOverlays();
-    window.viewer.svgOverlay().node().replaceChildren();
-    window.viewer.removeAllHandlers("zoom");
-    window.viewer.addHandler("zoom", (e) => {
-      window.viewer
-        .svgOverlay()
-        .node()
-        .querySelectorAll("line")
-        .forEach((element) => {
-          element.setAttribute(
-            "stroke-width",
-            Math.min(
-              window.viewer.viewport.imageToViewportCoordinates(100, 100).x /
-                window.viewer.viewport.getZoom(),
-              0.001
-            )
-          );
-        });
-    });
-    window.sortedCoresData.forEach(drawCore);
-    window.sortedCoresData.forEach((core) => {
-      connectAdjacentCores(core, false);
-    });
-  }
-
-  function drawCore(core, index = -1) {
-    // Add overlay element on the OSD viewer
-
-    const overlayElement = document.createElement("div");
-    overlayElement.className = "core-overlay-for-gridding";
-
-    const overlayTitleDiv = document.createElement("div");
-    overlayTitleDiv.className = "core-overlay-title-div";
-    if (core.row >= 0 && core.col >= 0) {
-      overlayTitleDiv.innerText = `${core.row + 1},${core.col + 1}`;
-    }
-    overlayTitleDiv.style.top = `-${Math.floor(
-      window.viewer.viewport.imageToViewportCoordinates(
-        new OpenSeadragon.Point(core.currentRadius / 2, core.currentRadius / 2)
-      ).x
-    )}px`;
-    overlayElement.appendChild(overlayTitleDiv);
-
-    if (core.isImaginary) {
-      overlayElement.classList.add("imaginary");
-    }
-    if (core.isTemporary) {
-      overlayElement.classList.add("temporary");
-    }
-    if (core.isSelected) {
+    dblClickHandler: (e) => {
+      const overlay = window.viewer.getOverlayById(overlayElement);
+      // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
       overlayElement.classList.add("selected");
-    }
-    const overlayRect = window.viewer.viewport.imageToViewportRectangle(
-      new OpenSeadragon.Rect(
-        core.x - core.currentRadius,
-        core.y - core.currentRadius,
-        core.currentRadius * 2,
-        core.currentRadius * 2
-      )
-    );
-    window.viewer.addOverlay(overlayElement, overlayRect);
-
-    new OpenSeadragon.MouseTracker({
-      element: overlayElement,
-
-      clickTimeThreshold: 200,
-      clickDistThreshold: 50,
-
-      preProcessEventHandler: (e) => {
-        if (
-          e.eventType === "click" ||
-          e.eventType === "drag" ||
-          e.eventType === "dragEnd"
-        ) {
-          e.stopPropagation = true;
-          e.preventDefault = true;
-        }
-      },
-
-      clickHandler: (e) => {
-        if (e.quick) {
-          const overlay = window.viewer.getOverlayById(overlayElement);
-          const deleteBtnHandler = (e) => {
-            if (e.key === "Delete" || e.key === "Backspace") {
-              removeCoreFromGrid(core);
-            }
-          };
-          if (!overlayElement.classList.contains("selected")) {
-            window.viewer.currentOverlays
-              .filter((overlay) =>
-                overlay.element.classList.contains("selected")
-              )
-              .forEach((selectedOverlay) => {
-                selectedOverlay.element.classList.remove("selected");
-              });
-            overlayElement.classList.add("selected");
-            document.addEventListener("keydown", deleteBtnHandler, {
-              once: true,
-            });
-            // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
-          } else {
-            overlayElement.classList.remove("selected");
-            document.removeEventListener("keydown", deleteBtnHandler);
-            // selectedIndex = null
-          }
-        }
-      },
-
-      dblClickHandler: (e) => {
-        const overlay = window.viewer.getOverlayById(overlayElement);
-        // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
-        overlayElement.classList.add("selected");
-        updateSidebar(core);
-        positionSidebarNextToCore(e.originalEvent);
-        // drawCores()
-      },
-
-      dragHandler: (e) => {
-        const overlay = window.viewer.getOverlayById(overlayElement);
-        const delta = window.viewer.viewport.deltaPointsFromPixels(e.delta);
-
-        if (!e.shift) {
-          overlay.element.style.cursor = "grabbing";
-          overlay.update(overlay.location.plus(delta));
-        } else {
-          overlay.element.style.cursor = "nwse-resize";
-          let { width, height } = overlay.bounds;
-          const factorToResizeBy = Math.max(delta.x, delta.y);
-          width += factorToResizeBy;
-          height += factorToResizeBy;
-          overlay.update(
-            new OpenSeadragon.Rect(
-              overlay.bounds.x,
-              overlay.bounds.y,
-              width,
-              height
-            )
-          );
-        }
-
-        overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport);
-
-        const deltaPosInImageCoords =
-          window.viewer.viewport.viewportToImageCoordinates(delta);
-        if (index !== -1) {
-          window.sortedCoresData[index].x += deltaPosInImageCoords.x;
-          window.sortedCoresData[index].y += deltaPosInImageCoords.y;
-          document.getElementById("editXInput").value =
-            window.sortedCoresData[index].x;
-          document.getElementById("editYInput").value =
-            window.sortedCoresData[index].y;
-
-          connectAdjacentCores(window.sortedCoresData[index], true);
-        }
-      },
-
-      dragEndHandler: (e) => {
-        const overlay = window.viewer.getOverlayById(overlayElement);
-        overlay.element.style.cursor = "auto";
-        if (index !== -1) {
-          connectAdjacentCores(window.sortedCoresData[index], true);
-        }
-      },
-    });
-
-    return overlayElement;
-    // ctx.lineWidth = 2;
-    // ctx.setLineDash([]); // Reset line dash for all cores
-
-    // // Core circle
-    // ctx.beginPath();
-    // ctx.arc(core.x, core.y, core.currentRadius, 0, Math.PI * 2);
-
-    // Style settings for a selected core
-    // if (isSelected) {
-    //   ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-    //   ctx.shadowBlur = 30; // More pronounced shadow for a glow effect
-    //   ctx.shadowOffsetX = 0;
-    //   ctx.shadowOffsetY = 0;
-    //   ctx.strokeStyle = "#FFD700"; // Gold color for selection
-    //   ctx.lineWidth = 5; // Thicker line for selected core
-    // } else if (core.isTemporary) {
-    //   ctx.strokeStyle = "#808080";
-    //   ctx.setLineDash([5, 5]); // Dashed line for temporary core
-    // } else {
-    //   ctx.strokeStyle = core.isImaginary ? ; // Default color logic
-    // }
-
-    // Core labels
-    // ctx.fillStyle = isSelected ? "#333" : "#333"; // Use the same gold color for selected core labels
-    // ctx.font = isSelected ? "bold 14px Arial" : "12px Arial";
-    // const textMetrics = ctx.measureText(`(${core.row + 1},${core.col + 1})`);
-    // ctx.fillText(
-    //   `(${core.row + 1},${core.col + 1})`,
-    //   core.x - textMetrics.width / 2,
-    //   core.y - core.currentRadius - 10
-    // );
-  }
-
-  // Function to switch modes
-  function switchMode(newMode) {
-    selectedCore = null;
-    currentMode = newMode;
-
-    // Reset selected index when switching modes
-    selectedIndex = null;
-    updateSidebar(null);
-  }
-
-  // Modified updateSidebar function to handle add mode
-  function updateSidebar(core) {
-    const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
-
-    document.getElementById(sidebarPrefix + "RowInput").value = core
-      ? core.row + 1
-      : "";
-    document.getElementById(sidebarPrefix + "ColumnInput").value = core
-      ? core.col + 1
-      : "";
-    document.getElementById(sidebarPrefix + "XInput").value = core
-      ? core.x * window.scalingFactor
-      : "";
-    document.getElementById(sidebarPrefix + "YInput").value = core
-      ? core.y * window.scalingFactor
-      : "";
-    document.getElementById(sidebarPrefix + "RadiusInput").value = core
-      ? core.currentRadius * window.scalingFactor
-      : "";
-    document.getElementById(sidebarPrefix + "AnnotationsInput").value =
-      core?.annotations ? core.annotations : "";
-    document.getElementById(sidebarPrefix + "RealInput").checked =
-      !core?.isImaginary;
-    document.getElementById(sidebarPrefix + "ImaginaryInput").checked =
-      core?.isImaginary;
-
-    const saveHandler = (e) => {
-      if (saveCore(core)) {
-        document
-          .getElementById("saveCoreEdits")
-          .removeEventListener("click", saveHandler);
-        hideSidebar();
-      }
-    };
-    document.getElementById("saveCoreEdits").onclick = saveHandler;
-
-    const removeHandler = (e) => {
-      removeCoreFromGrid(core);
-      document
-        .getElementById("removeCoreButton")
-        .removeEventListener("click", removeHandler);
-      hideSidebar();
-    };
-
-    document.getElementById("removeCoreButton").onclick = removeHandler;
-  }
-
-  // window.viewer.canvas.firstElementChild.addEventListener("mousedown", (event) => {x
-  //   mouseDown = true; // Set the mouseDown flag to true
-
-  //   const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //   if (currentMode === "add") {
-  //     if (tempCore && !isSettingSize) {
-  //       const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //       if (
-  //         Math.sqrt(
-  //           (tempCore.x - adjustedX) ** 2 + (tempCore.y - adjustedY) ** 2
-  //         ) < tempCore.currentRadius
-  //       ) {
-  //         isDraggingTempCore = true;
-  //       }
-  //     }
-  //   } else {
-  //     const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //     selectedIndex = window.sortedCoresData.findIndex(
-  //       (core) =>
-  //         Math.sqrt((core.x - adjustedX) ** 2 + (core.y - adjustedY) ** 2) <
-  //         core.currentRadius
-  //     );
-
-  //     if (selectedIndex !== -1) {
-  //       selectedCore = window.sortedCoresData[selectedIndex];
-  //       // Store the initial mouse position
-  //       initialMouseX = event.clientX;
-  //       initialMouseY = event.clientY;
-
-  //       // Store the initial core position
-  //       initialCoreX = selectedCore.x;
-  //       initialCoreY = selectedCore.y;
-
-  //       updateSidebar(selectedCore);
-  //       drawCores();
-  //     } else {
-
-  //       selectedCore = null;
-  //       updateSidebar(null);
-  //       hideSidebar();
-  //       drawCores();
-  //     }
-  //   }
-  // });
-
-  // canvas.addEventListener("click", (event) => {
-  //   const currentTime = Date.now();
-  //   if (currentTime - lastActionTime > actionDebounceInterval) {
-  //     if (currentMode === "add") {
-  //       if (!tempCore) {
-  //         const [adjustedX, adjustedY] = getMousePosition(event);
-
-  //         // First click - set position
-  //         tempCore = {
-  //           x: adjustedX,
-  //           y: adjustedY,
-  //           row: 0,
-  //           col: 0,
-  //           currentRadius: 5, // Set a default radius
-  //           annotations: "",
-  //           isImaginary: true,
-  //           isTemporary: true,
-  //         };
-  //         isSettingSize = true;
-  //       } else if (isSettingSize) {
-  //         // Second click - set size
-  //         finalizeCoreSize(event);
-  //         updateSidebar(tempCore);
-  //       }
-  //       drawCores(); // Redraw to show or update the temporary core
-  //     }
-  //     lastActionTime = currentTime;
-  //   }
-  // });
-
-  // canvas.addEventListener("dblclick", (event) => {
-  //   // Calculate scale factors based on the actual size of the canvas
-  //   const rect = canvas.getBoundingClientRect();
-  //   const scaleX = canvas.width / rect.width;
-  //   const scaleY = canvas.height / rect.height;
-
-  //   // Adjust mouse coordinates with scale factors
-  //   const adjustedX = (event.clientX - rect.left) * scaleX;
-  //   const adjustedY = (event.clientY - rect.top) * scaleY;
-
-  //   selectedIndex = window.sortedCoresData.findIndex(
-  //     (core) =>
-  //       Math.sqrt((core.x - adjustedX) ** 2 + (core.y - adjustedY) ** 2) <
-  //       core.currentRadius
-  //   );
-
-  //   if (selectedIndex !== -1) {
-  //     selectedCore = window.sortedCoresData[selectedIndex];
-  //     updateSidebar(selectedCore);
-  //     positionSidebarNextToCore(event);
-
-  //     drawCores();
-  //   } else {
-  //     updateSidebar(null);
-  //     hideSidebar();
-  //   }
-  // });
-
-  // canvas.addEventListener("mousemove", (event) => {
-  //   const [adjustedX, adjustedY] = getMousePosition(event);
-  //   if (currentMode === "add") {
-  //     if (isSettingSize) {
-  //       // Dynamically update the size of the temporary core
-  //       updateCoreSize(event);
-  //       drawCores();
-  //     } else if (isDraggingTempCore) {
-  //       tempCore.x = adjustedX;
-  //       tempCore.y = adjustedY;
-  //       updateSidebar(tempCore);
-  //       drawCores();
-  //     } else if (tempCore && isAltDown) {
-  //       // Logic for setting or adjusting the size of the temporary core
-  //       const dx = event.offsetX - tempCore.x;
-  //       const dy = event.offsetY - tempCore.y;
-  //       tempCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
-  //       updateSidebar(tempCore);
-  //       drawCores();
-  //     }
-  //   } else {
-  //     if (!selectedCore) return;
-
-  //     if (isAltDown) {
-  //       // Resizing logic when Alt key is down
-  //       let dx = event.clientX - initialMouseX;
-  //       let dy = event.clientY - initialMouseY;
-  //       selectedCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
-  //     } else if (mouseDown && selectedIndex !== null) {
-  //       // Dragging logic
-  //       // Calculate the distance the mouse has moved
-  //       let dx = event.clientX - initialMouseX;
-  //       let dy = event.clientY - initialMouseY;
-
-  //       // Set the new position of the core
-  //       selectedCore.x = initialCoreX + dx;
-  //       selectedCore.y = initialCoreY + dy;
-  //       isDragging = true;
-  //       updateSidebar(window.sortedCoresData[selectedIndex]); // Update sidebar during dragging
-  //     }
-
-  //     drawCores();
-  //   }
-  // });
-
-  // canvas.addEventListener("mouseup", (event) => {
-  //   mouseDown = false; // Set the mouseDown flag to false
-  //   isDragging = false;
-
-  //   if (currentMode === "add") {
-  //     if (isDraggingTempCore) {
-  //       isDraggingTempCore = false;
-  //     }
-  //   } else {
-  //     if (selectedIndex !== null) {
-  //       updateSidebar(window.sortedCoresData[selectedIndex]); // Update sidebar on mouseup
-  //     }
-  //   }
-  // });
-
-  // window.addEventListener("keydown", (event) => {
-  //   if (event.key === "Alt") {
-  //     isAltDown = true;
-  //   } else if (
-  //     (event.key === "Backspace" || event.key === "Delete") &&
-  //     selectedIndex !== null
-  //   ) {
-  //     const currentTime = Date.now();
-  //     if (currentTime - lastActionTime > actionDebounceInterval) {
-  //       // Prevent default behavior to avoid navigating back in browser
-  //       event.preventDefault();
-  //       removeSelectedCore();
-  //     }
-  //     lastActionTime = currentTime;
-  //   }
-  // });
-
-  // window.addEventListener("keyup", (event) => {
-  //   if (event.key === "Alt") {
-  //     isAltDown = false;
-  //   }
-  // });
-
-  function saveCore(core) {
-    const oldRow = core?.row;
-    if (!oldRow && !document.getElementById(currentMode + "RowInput").value) {
-      alert("Please enter a value for the row");
-      return false;
-    }
-
-    core.row =
-      parseInt(document.getElementById(currentMode + "RowInput").value, 10) - 1;
-    core.col =
-      parseInt(document.getElementById(currentMode + "ColumnInput").value, 10) -
-      1;
-    core.x =
-      parseFloat(document.getElementById(currentMode + "XInput").value) /
-      window.scalingFactor;
-    core.y =
-      parseFloat(document.getElementById(currentMode + "YInput").value) /
-      window.scalingFactor;
-    core.currentRadius =
-      parseFloat(document.getElementById(currentMode + "RadiusInput").value) /
-      window.scalingFactor;
-    core.annotations = document.getElementById(
-      currentMode + "AnnotationsInput"
-    ).value;
-
-    core.isTemporary = false;
-    core.isSelected = false;
-    // Update the isImaginary property based on which radio button is checked
-    core.isImaginary = document.getElementById(
-      currentMode + "ImaginaryInput"
-    ).checked;
-
-    const coreIndex = window.sortedCoresData.findIndex(
-      (prevCore) => prevCore.x === core.x && prevCore.y === core.y
-    );
-    // if (coreIndex === -1) {
-    //   // Possibly new core, so col might be undefined.
-    //   window.sortedCoresData.push(core)
-    //   window.sortedCoresData = window.sortedCoresData.sort((a, b) => a.row - b.row || a.col - b.col)
-    // } else {
-    //   // Likely old core with just a change to class or annotation value.
-    window.sortedCoresData[coreIndex] = core;
-    // }
-
-    if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
-      updateColumnsInRowAfterModification(core.row);
-      updateColumnsInRowAfterModification(oldRow);
       updateSidebar(core);
+      positionSidebarNextToCore(e.originalEvent);
+      // drawCores()
+    },
+
+    dragHandler: (e) => {
+      // console.log(e)
+      const overlay = window.viewer.getOverlayById(overlayElement);
+      const deltaViewport = window.viewer.viewport.deltaPointsFromPixels(e.delta)
+
+      overlay.element.style.cursor = "grabbing";
+      overlay.update(overlay.location.plus(deltaViewport));
+      // } else {
+      //   overlay.element.style.cursor = "nwse-resize";
+      //   let { width, height } = overlay.bounds;
+      //   if (e.direction > 0 && e.direction)
+      //   let factorToResizeBy = Math.max(delta.x, delta.y)
+      //   width += factorToResizeBy
+      //   height += factorToResizeBy
+      //   console.log(delta, width, e.direction)
+      //   overlay.update(
+      //     new OpenSeadragon.Rect(
+      //       overlay.bounds.x,
+      //       overlay.bounds.y,
+      //       width,
+      //       height
+      //     )
+      //   );
+      // }
+
+      overlay.drawHTML(overlay.element.parentElement, window.viewer.viewport);
+      const deltaImage = window.viewer.viewport.viewportToImageCoordinates(deltaViewport)
+
+      if (index !== -1) {
+        window.sortedCoresData[index].x += deltaImage.x;
+        window.sortedCoresData[index].y += deltaImage.y;
+        document.getElementById("editXInput").value =
+          window.sortedCoresData[index].x;
+        document.getElementById("editYInput").value =
+          window.sortedCoresData[index].y;
+
+        connectAdjacentCores(window.sortedCoresData[index], true);
+      }
+    },
+
+    dragEndHandler: (e) => {
+      const overlay = window.viewer.getOverlayById(overlayElement);
+      overlay.element.style.cursor = "grab";
+      if (index !== -1) {
+        connectAdjacentCores(window.sortedCoresData[index], true);
+      }
+    },
+  });
+
+  return overlayElement;
+  // ctx.lineWidth = 2;
+  // ctx.setLineDash([]); // Reset line dash for all cores
+
+  // // Core circle
+  // ctx.beginPath();
+  // ctx.arc(core.x, core.y, core.currentRadius, 0, Math.PI * 2);
+
+  // Style settings for a selected core
+  // if (isSelected) {
+  //   ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+  //   ctx.shadowBlur = 30; // More pronounced shadow for a glow effect
+  //   ctx.shadowOffsetX = 0;
+  //   ctx.shadowOffsetY = 0;
+  //   ctx.strokeStyle = "#FFD700"; // Gold color for selection
+  //   ctx.lineWidth = 5; // Thicker line for selected core
+  // } else if (core.isTemporary) {
+  //   ctx.strokeStyle = "#808080";
+  //   ctx.setLineDash([5, 5]); // Dashed line for temporary core
+  // } else {
+  //   ctx.strokeStyle = core.isImaginary ? ; // Default color logic
+  // }
+
+  // Core labels
+  // ctx.fillStyle = isSelected ? "#333" : "#333"; // Use the same gold color for selected core labels
+  // ctx.font = isSelected ? "bold 14px Arial" : "12px Arial";
+  // const textMetrics = ctx.measureText(`(${core.row + 1},${core.col + 1})`);
+  // ctx.fillText(
+  //   `(${core.row + 1},${core.col + 1})`,
+  //   core.x - textMetrics.width / 2,
+  //   core.y - core.currentRadius - 10
+  // );
+}
+
+const keyPressHandler = (e) => {
+  if (e.key === "Delete" || e.key === "Backspace") {
+    const overlay = window.viewer.currentOverlays.find(overlay => overlay.element.classList.contains("selected"))
+    const row = parseInt(overlay.element.id.split("_")[2])
+    const col = parseInt(overlay.element.id.split("_")[4])
+    if (!isNaN(row) && !isNaN(col)) {
+      const core = window.sortedCoresData.find(core => core.row === row && core.col === col)
+      removeCoreFromGrid(core);
+    } else if (overlay.element.classList.contains("temporary")) {
+      const overlayBounds = window.viewer.viewport.viewportToImageRectangle(overlay.getBounds(window.viewer.viewport))
+      const core = window.sortedCoresData.find(core => Math.floor(core.x) === Math.floor(overlayBounds.x + overlayBounds.width/2) && Math.floor(core.y) === Math.floor(overlayBounds.y + overlayBounds.height/2))
+      removeCoreFromGrid(core)
     }
-
-    drawCores(); // Redraw the cores with the updated data
-
-    return true;
+    document.removeEventListener('keydown', keyPressHandler)
+  } else if (e.key === "Escape") {
+    overlayClickHandler({quick: true})
   }
+};
 
-  function removeCoreFromGrid(core) {
-    const coreIndex = window.sortedCoresData.findIndex(
-      (coreToRemove) =>
-        coreToRemove.x === core.x &&
-        coreToRemove.y === core.y &&
-        coreToRemove.row === core.row &&
-        coreToRemove.col === core.col
-    );
-    const modifiedRow = window.sortedCoresData[coreIndex].row;
+const zoomHandlerForResizeHandles = (e) => {
+  const overlay = window.viewer.currentOverlays.find(overlay => overlay.element.classList.contains("selected"))
+  drawResizeHandles(overlay, true)
+}
 
-    // Remove the selected core
-    window.sortedCoresData.splice(coreIndex, 1);
+const deselectOverlay = (overlay) => {
+  overlay.element.classList.remove("selected");
+  window.viewer.removeHandler('canvas-click', overlayClickHandler)
+  window.viewer.removeHandler('zoom', zoomHandlerForResizeHandles)
+  document.removeEventListener('keydown', keyPressHandler)
+  hideSidebar()
+  drawResizeHandles(overlay, false)
+}
 
-    // Check if the removed core was the last real core in the row
-    const isLastRealCore =
-      window.sortedCoresData.filter(
-        (core) => core.row === modifiedRow && !core.isImaginary
-      ).length === 0;
-
-    if (isLastRealCore) {
-      // Remove all cores in the row
-      window.sortedCoresData = window.sortedCoresData.filter(
-        (core) => core.row !== modifiedRow
-      );
-
-      // Update row numbers for cores in rows below the removed row
-      window.sortedCoresData.forEach((core) => {
-        if (core.row > modifiedRow) {
-          core.row -= 1;
-        }
-      });
-    }
-
-    updateSidebar(null); // Update the sidebar to reflect no selection
-
-    if (!isLastRealCore) {
-      // Update columns only if the row was not removed
-      updateColumnsInRowAfterModification(modifiedRow);
-    }
-
-    drawCores(); // Redraw the cores
+const overlayClickHandler = (e) => {
+  let overlay = undefined
+  if (e.originalTarget?.classList.contains("core-overlay-for-gridding")) {
+    overlay = window.viewer.getOverlayById(e.originalTarget)
+  } else {
+    overlay = window.viewer.currentOverlays.find(overlay => overlay.element.classList.contains("selected"))
   }
-
-  // document
-  //   .getElementById("saveCoreEdits")
-  //   .addEventListener("click", function () {
-  //     console.log("CLICK EVENT LISTENER")
-  //     saveCore(window.sortedCoresData[selectedIndex])
-  //   });
-
-  // Function to clear the temporary core
-  function clearTempCore() {
-    tempCore = null;
-    isSettingSize = false;
-    drawCores();
-  }
-
-  function updateColumnsInRowAfterModification(row) {
-    const imageRotation = parseFloat(
-      document.getElementById("originAngle").value
-    );
-
-    // Function to rotate a point around the origin
-    function rotatePoint(x, y, angle) {
-      const radians = (angle * Math.PI) / 180;
-      return {
-        x: x * Math.cos(radians) - y * Math.sin(radians),
-        y: x * Math.sin(radians) + y * Math.cos(radians),
-      };
-    }
-
-    // Create an array to hold the original cores with their rotated coordinates for sorting
-    const coresWithRotatedCoordinates = window.sortedCoresData
-      .filter((core) => core.row === row)
-      .map((core) => {
-        return {
-          originalCore: core,
-          rotatedCoordinates: rotatePoint(core.x, core.y, imageRotation),
-        };
-      });
-
-    // Sort the array based on the x-value of the rotated coordinates
-    coresWithRotatedCoordinates.sort(
-      (a, b) => a.rotatedCoordinates.x - b.rotatedCoordinates.x
-    );
-
-    // Assign column values based on the sorted array, updating only the column in the original data
-    let currentColumn = 0;
-    coresWithRotatedCoordinates.forEach((item) => {
-      item.originalCore.col = currentColumn;
-      currentColumn++;
-    });
-  }
-
-  const addCoreHandler = (e) => {
-    const addCoreBtn = document.getElementById("osdViewerAddCoreBtn");
-    if (addCoreBtn.classList.contains("active")) {
-      addCoreBtn.classList.remove("active");
-      window.viewer.canvas.style.cursor = "auto";
-      window.viewer.removeAllHandlers("canvas-drag");
-      window.viewer.removeAllHandlers("canvas-drag-end");
+  
+  if (e.quick && overlay) {
+    if (overlay.element.classList.contains("selected")) {
+      deselectOverlay(overlay)
     } else {
-      document.addEventListener("keydown", (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault()
-          addCoreHandler()
-        }
-      })
-      addCoreBtn.classList.add("active")
-      window.viewer.canvas.style.cursor = "crosshair"
+      // selectedIndex = null
+      window.viewer.currentOverlays
+        .filter((overlay) =>
+          overlay.element.classList.contains("selected")
+        )
+        .forEach(deselectOverlay);
+      
+      overlay.element.classList.add("selected");
 
-      const core = {
-        x: -1,
-        y: -1,
-        currentRadius: -1,
-        isTemporary: true,
-        isSelected: false,
-      };
+      drawResizeHandles(overlay, true)
+      document.addEventListener('keydown', keyPressHandler);
+      window.viewer.addHandler('zoom', zoomHandlerForResizeHandles)
+      window.viewer.addOnceHandler('canvas-click', overlayClickHandler);
+    }
+  }
+}
 
-      let overlayElement = undefined;
+// Function to switch modes
+function switchMode(newMode) {
+  selectedCore = null;
+  currentMode = newMode;
 
-      const dragHandler = (e) => {
-        e.preventDefaultAction = true;
-        const positionInImage =
-          window.viewer.viewport.viewerElementToImageCoordinates(e.position);
+  // Reset selected index when switching modes
+  selectedIndex = null;
+  updateSidebar(null);
+}
 
-        if (core.x === -1) {
-          core.x = positionInImage.x;
-        }
-        if (core.y === -1) {
-          core.y = positionInImage.y;
-        }
+// Modified updateSidebar function to handle add mode
+function updateSidebar(core) {
+  // const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
+  const sidebarPrefix = "edit"
 
-        core.currentRadius = Math.abs(
-          Math.max(core.x - positionInImage.x, core.y - positionInImage.y)
-        );
+  document.getElementById(sidebarPrefix + "RowInput").value = core
+    ? core.row + 1
+    : "";
+  document.getElementById(sidebarPrefix + "ColumnInput").value = core
+    ? core.col + 1
+    : "";
+  document.getElementById(sidebarPrefix + "XInput").value = core
+    ? core.x * window.scalingFactor
+    : "";
+  document.getElementById(sidebarPrefix + "YInput").value = core
+    ? core.y * window.scalingFactor
+    : "";
+  document.getElementById(sidebarPrefix + "RadiusInput").value = core
+    ? core.currentRadius * window.scalingFactor
+    : "";
+  document.getElementById(sidebarPrefix + "AnnotationsInput").value =
+    core?.annotations ? core.annotations : "";
+  document.getElementById(sidebarPrefix + "RealInput").checked =
+    !core?.isImaginary;
+  document.getElementById(sidebarPrefix + "ImaginaryInput").checked =
+    core?.isImaginary;
 
-        if (overlayElement) {
-          window.viewer.removeOverlay(overlayElement);
-          window.sortedCoresData[window.sortedCoresData.length - 1] = core;
-        } else {
-          window.sortedCoresData.push(core);
-        }
-        overlayElement = drawCore(core, window.sortedCoresData.length - 1);
-      };
-
-      window.viewer.addHandler("canvas-drag", dragHandler);
-
-      window.viewer.addOnceHandler("canvas-drag-end", (e) => {
-        window.viewer.removeHandler("canvas-drag", dragHandler);
-        window.viewer.canvas.style.cursor = "auto";
-        addCoreBtn.classList.remove("active");
-        core.isSelected = true;
-        dragHandler(e);
-        updateSidebar(core);
-        positionSidebarNextToCore(e.originalEvent);
-      });
+  const saveHandler = (e) => {
+    if (saveCore(core)) {
+      document
+        .getElementById("saveCoreEdits")
+        .removeEventListener("click", saveHandler);
+      hideSidebar();
     }
   };
+  document.getElementById("saveCoreEdits").onclick = saveHandler;
 
-  document
-    .getElementById("osdViewerAddCoreBtn")
-    .addEventListener("click", addCoreHandler);
+  const removeHandler = (e) => {
+    removeCoreFromGrid(core);
+    document
+      .getElementById("removeCoreButton")
+      .removeEventListener("click", removeHandler);
+    hideSidebar();
+  };
 
-  // document
-  //   .getElementById("addCoreButton")
-  //   .addEventListener("click", function () {
-  //     if (currentMode === "add" && tempCore) {
-  //       // Add the temporary core to sortedCoresData
-  //       tempCore.row =
-  //         parseInt(document.getElementById("addRowInput").value, 10) - 1;
-  //       tempCore.col =
-  //         parseInt(document.getElementById("addColumnInput").value, 10) - 1;
-  //       tempCore.x = parseFloat(document.getElementById("addXInput").value);
-  //       tempCore.y = parseFloat(document.getElementById("addYInput").value);
-  //       tempCore.currentRadius = parseFloat(
-  //         document.getElementById("addRadiusInput").value
-  //       );
-  //       tempCore.annotations = document.getElementById(
-  //         "addAnnotationsInput"
-  //       ).value;
-  //       tempCore.isImaginary =
-  //         document.getElementById("addImaginaryInput").checked;
-  //       tempCore.isTemporary = false; // Set the temporary flag to false
-
-  //       window.sortedCoresData.push(tempCore);
-
-  //       if (document.getElementById("addAutoUpdateColumnsCheckbox").checked) {
-  //         updateColumnsInRowAfterModification(tempCore.row);
-  //       }
-  //       tempCore = null;
-  //       drawCores(); // Redraw to update the canvas
-  //     }
-  //   });
-
-  function updateCoreSize(event) {
-    const [adjustedX, adjustedY] = getMousePosition(event);
-
-    const dx = adjustedX - tempCore.x;
-    const dy = adjustedY - tempCore.y;
-    tempCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
-  }
-
-  function finalizeCoreSize(event) {
-    updateCoreSize(event);
-    isSettingSize = false;
-  }
-  // Function to cancel the drawing of the current core and reset for a new one
-  function cancelCoreDrawing() {
-    tempCore = null;
-    isSettingSize = false;
-    updateSidebar(null);
-    drawCores();
-  }
-
-  // // Event listener for the cancel core drawing button
-  // document
-  //   .getElementById("cancelCoreDrawing")
-  //   .addEventListener("click", cancelCoreDrawing);
-
-  var coreCanvasElement = window.viewer.canvas.firstElementChild;
-
-  // Add event listeners for mode switching buttons (assumes buttons exist in your HTML)
-  // Call clearTempCore when necessary, such as when switching modes
-  // document
-  //   .getElementById("switchToEditMode")
-  //   .addEventListener("click", (event) => {
-  //     event.target.classList.add("active");
-  //     document.getElementById("switchToAddMode").classList.remove("active");
-  //     switchMode("edit");
-  //     isSettingSize = false;
-  //     // clearTempCore();
-  //     // Add 'edit-mode' class and remove 'add-mode' class
-  //     coreCanvasElement.classList.add("edit-mode");
-  //     coreCanvasElement.classList.remove("add-mode");
-  //   });
-
-  // document
-  //   .getElementById("switchToAddMode")
-  //   .addEventListener("click", (event) => {
-  //     event.target.classList.add("active");
-  //     document.getElementById("switchToEditMode").classList.remove("active");
-  //     switchMode("add");
-  //     isSettingSize = false;
-  //     // clearTempCore();
-  //     // Add 'add-mode' class and remove 'edit-mode' class
-  //     coreCanvasElement.classList.add("add-mode");
-  //     coreCanvasElement.classList.remove("edit-mode");
-  //   });
-
-  // Function to toggle the disabled state based on the checkbox
-  function toggleColumnInput() {
-    var editAutoUpdateColumnsCheckbox = document.getElementById(
-      currentMode + "AutoUpdateColumnsCheckbox"
-    );
-    var columnInput = document.getElementById(currentMode + "ColumnInput");
-
-    // If the checkbox is checked, disable the column input
-    if (editAutoUpdateColumnsCheckbox.checked) {
-      columnInput.disabled = true;
-    } else {
-      // Otherwise, enable it
-      columnInput.disabled = false;
-    }
-  }
-  document
-    .getElementById("editAutoUpdateColumnsCheckbox")
-    .addEventListener("change", toggleColumnInput);
-  // document
-  //   .getElementById("addAutoUpdateColumnsCheckbox")
-  //   .addEventListener("change", toggleColumnInput);
+  document.getElementById("removeCoreButton").onclick = removeHandler;
 }
+
+// window.viewer.canvas.firstElementChild.addEventListener("mousedown", (event) => {x
+//   mouseDown = true; // Set the mouseDown flag to true
+
+//   const [adjustedX, adjustedY] = getMousePosition(event);
+
+//   if (currentMode === "add") {
+//     if (tempCore && !isSettingSize) {
+//       const [adjustedX, adjustedY] = getMousePosition(event);
+
+//       if (
+//         Math.sqrt(
+//           (tempCore.x - adjustedX) ** 2 + (tempCore.y - adjustedY) ** 2
+//         ) < tempCore.currentRadius
+//       ) {
+//         isDraggingTempCore = true;
+//       }
+//     }
+//   } else {
+//     const [adjustedX, adjustedY] = getMousePosition(event);
+
+//     selectedIndex = window.sortedCoresData.findIndex(
+//       (core) =>
+//         Math.sqrt((core.x - adjustedX) ** 2 + (core.y - adjustedY) ** 2) <
+//         core.currentRadius
+//     );
+
+//     if (selectedIndex !== -1) {
+//       selectedCore = window.sortedCoresData[selectedIndex];
+//       // Store the initial mouse position
+//       initialMouseX = event.clientX;
+//       initialMouseY = event.clientY;
+
+//       // Store the initial core position
+//       initialCoreX = selectedCore.x;
+//       initialCoreY = selectedCore.y;
+
+//       updateSidebar(selectedCore);
+//       drawCores();
+//     } else {
+
+//       selectedCore = null;
+//       updateSidebar(null);
+//       hideSidebar();
+//       drawCores();
+//     }
+//   }
+// });
+
+// canvas.addEventListener("click", (event) => {
+//   const currentTime = Date.now();
+//   if (currentTime - lastActionTime > actionDebounceInterval) {
+//     if (currentMode === "add") {
+//       if (!tempCore) {
+//         const [adjustedX, adjustedY] = getMousePosition(event);
+
+//         // First click - set position
+//         tempCore = {
+//           x: adjustedX,
+//           y: adjustedY,
+//           row: 0,
+//           col: 0,
+//           currentRadius: 5, // Set a default radius
+//           annotations: "",
+//           isImaginary: true,
+//           isTemporary: true,
+//         };
+//         isSettingSize = true;
+//       } else if (isSettingSize) {
+//         // Second click - set size
+//         finalizeCoreSize(event);
+//         updateSidebar(tempCore);
+//       }
+//       drawCores(); // Redraw to show or update the temporary core
+//     }
+//     lastActionTime = currentTime;
+//   }
+// });
+
+// canvas.addEventListener("dblclick", (event) => {
+//   // Calculate scale factors based on the actual size of the canvas
+//   const rect = canvas.getBoundingClientRect();
+//   const scaleX = canvas.width / rect.width;
+//   const scaleY = canvas.height / rect.height;
+
+//   // Adjust mouse coordinates with scale factors
+//   const adjustedX = (event.clientX - rect.left) * scaleX;
+//   const adjustedY = (event.clientY - rect.top) * scaleY;
+
+//   selectedIndex = window.sortedCoresData.findIndex(
+//     (core) =>
+//       Math.sqrt((core.x - adjustedX) ** 2 + (core.y - adjustedY) ** 2) <
+//       core.currentRadius
+//   );
+
+//   if (selectedIndex !== -1) {
+//     selectedCore = window.sortedCoresData[selectedIndex];
+//     updateSidebar(selectedCore);
+//     positionSidebarNextToCore(event);
+
+//     drawCores();
+//   } else {
+//     updateSidebar(null);
+//     hideSidebar();
+//   }
+// });
+
+// canvas.addEventListener("mousemove", (event) => {
+//   const [adjustedX, adjustedY] = getMousePosition(event);
+//   if (currentMode === "add") {
+//     if (isSettingSize) {
+//       // Dynamically update the size of the temporary core
+//       updateCoreSize(event);
+//       drawCores();
+//     } else if (isDraggingTempCore) {
+//       tempCore.x = adjustedX;
+//       tempCore.y = adjustedY;
+//       updateSidebar(tempCore);
+//       drawCores();
+//     } else if (tempCore && isAltDown) {
+//       // Logic for setting or adjusting the size of the temporary core
+//       const dx = event.offsetX - tempCore.x;
+//       const dy = event.offsetY - tempCore.y;
+//       tempCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
+//       updateSidebar(tempCore);
+//       drawCores();
+//     }
+//   } else {
+//     if (!selectedCore) return;
+
+//     if (isAltDown) {
+//       // Resizing logic when Alt key is down
+//       let dx = event.clientX - initialMouseX;
+//       let dy = event.clientY - initialMouseY;
+//       selectedCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
+//     } else if (mouseDown && selectedIndex !== null) {
+//       // Dragging logic
+//       // Calculate the distance the mouse has moved
+//       let dx = event.clientX - initialMouseX;
+//       let dy = event.clientY - initialMouseY;
+
+//       // Set the new position of the core
+//       selectedCore.x = initialCoreX + dx;
+//       selectedCore.y = initialCoreY + dy;
+//       isDragging = true;
+//       updateSidebar(window.sortedCoresData[selectedIndex]); // Update sidebar during dragging
+//     }
+
+//     drawCores();
+//   }
+// });
+
+// canvas.addEventListener("mouseup", (event) => {
+//   mouseDown = false; // Set the mouseDown flag to false
+//   isDragging = false;
+
+//   if (currentMode === "add") {
+//     if (isDraggingTempCore) {
+//       isDraggingTempCore = false;
+//     }
+//   } else {
+//     if (selectedIndex !== null) {
+//       updateSidebar(window.sortedCoresData[selectedIndex]); // Update sidebar on mouseup
+//     }
+//   }
+// });
+
+// window.addEventListener("keydown", (event) => {
+//   if (event.key === "Alt") {
+//     isAltDown = true;
+//   } else if (
+//     (event.key === "Backspace" || event.key === "Delete") &&
+//     selectedIndex !== null
+//   ) {
+//     const currentTime = Date.now();
+//     if (currentTime - lastActionTime > actionDebounceInterval) {
+//       // Prevent default behavior to avoid navigating back in browser
+//       event.preventDefault();
+//       removeSelectedCore();
+//     }
+//     lastActionTime = currentTime;
+//   }
+// });
+
+// window.addEventListener("keyup", (event) => {
+//   if (event.key === "Alt") {
+//     isAltDown = false;
+//   }
+// });
+
+function saveCore(core) {
+  const oldRow = core?.row;
+  if (!oldRow && !document.getElementById("editRowInput").value) {
+    alert("Please enter a value for the row");
+    return false;
+  }
+
+  core.row =
+    parseInt(document.getElementById("editRowInput").value, 10) - 1;
+  core.col =
+    parseInt(document.getElementById("editColumnInput").value, 10) -
+    1;
+  core.x =
+    parseFloat(document.getElementById("editXInput").value) /
+    window.scalingFactor;
+  core.y =
+    parseFloat(document.getElementById("editYInput").value) /
+    window.scalingFactor;
+  core.currentRadius =
+    parseFloat(document.getElementById("editRadiusInput").value) /
+    window.scalingFactor;
+  core.annotations = document.getElementById(
+    "editAnnotationsInput"
+  ).value;
+
+  core.isTemporary = false;
+  core.isSelected = false;
+  // Update the isImaginary property based on which radio button is checked
+  core.isImaginary = document.getElementById(
+    "editImaginaryInput"
+  ).checked;
+
+  const coreIndex = window.sortedCoresData.findIndex(
+    (prevCore) => prevCore.x === core.x && prevCore.y === core.y
+  );
+  // if (coreIndex === -1) {
+  //   // Possibly new core, so col might be undefined.
+  //   window.sortedCoresData.push(core)
+  //   window.sortedCoresData = window.sortedCoresData.sort((a, b) => a.row - b.row || a.col - b.col)
+  // } else {
+  //   // Likely old core with just a change to class or annotation value.
+  window.sortedCoresData[coreIndex] = core;
+  // }
+
+  if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
+    updateColumnsInRowAfterModification(core.row);
+    updateColumnsInRowAfterModification(oldRow);
+    updateSidebar(core);
+  }
+
+  drawCores(); // Redraw the cores with the updated data
+
+  return true;
+}
+
+function removeCoreFromGrid(core) {
+  const coreIndex = window.sortedCoresData.findIndex(
+    (coreToRemove) =>
+      coreToRemove.x === core.x &&
+      coreToRemove.y === core.y &&
+      coreToRemove.row === core.row &&
+      coreToRemove.col === core.col
+  );
+  const modifiedRow = window.sortedCoresData[coreIndex].row;
+
+  // Remove the selected core
+  window.sortedCoresData.splice(coreIndex, 1);
+
+  // Check if the removed core was the last real core in the row
+  const isLastRealCore =
+    window.sortedCoresData.filter(
+      (core) => core.row === modifiedRow && !core.isImaginary
+    ).length === 0;
+
+  if (isLastRealCore) {
+    // Remove all cores in the row
+    window.sortedCoresData = window.sortedCoresData.filter(
+      (core) => core.row !== modifiedRow
+    );
+
+    // Update row numbers for cores in rows below the removed row
+    window.sortedCoresData.forEach((core) => {
+      if (core.row > modifiedRow) {
+        core.row -= 1;
+      }
+    });
+  }
+
+  updateSidebar(null); // Update the sidebar to reflect no selection
+
+  if (!isLastRealCore) {
+    // Update columns only if the row was not removed
+    updateColumnsInRowAfterModification(modifiedRow);
+  }
+
+  drawCores(); // Redraw the cores
+}
+
+// document
+//   .getElementById("saveCoreEdits")
+//   .addEventListener("click", function () {
+//     console.log("CLICK EVENT LISTENER")
+//     saveCore(window.sortedCoresData[selectedIndex])
+//   });
+
+// Function to clear the temporary core
+function clearTempCore() {
+  tempCore = null;
+  isSettingSize = false;
+  drawCores();
+}
+
+function updateColumnsInRowAfterModification(row) {
+  const imageRotation = parseFloat(
+    document.getElementById("originAngle").value
+  );
+
+  // Function to rotate a point around the origin
+  function rotatePoint(x, y, angle) {
+    const radians = (angle * Math.PI) / 180;
+    return {
+      x: x * Math.cos(radians) - y * Math.sin(radians),
+      y: x * Math.sin(radians) + y * Math.cos(radians),
+    };
+  }
+
+  // Create an array to hold the original cores with their rotated coordinates for sorting
+  const coresWithRotatedCoordinates = window.sortedCoresData
+    .filter((core) => core.row === row)
+    .map((core) => {
+      return {
+        originalCore: core,
+        rotatedCoordinates: rotatePoint(core.x, core.y, imageRotation),
+      };
+    });
+
+  // Sort the array based on the x-value of the rotated coordinates
+  coresWithRotatedCoordinates.sort(
+    (a, b) => a.rotatedCoordinates.x - b.rotatedCoordinates.x
+  );
+
+  // Assign column values based on the sorted array, updating only the column in the original data
+  let currentColumn = 0;
+  coresWithRotatedCoordinates.forEach((item) => {
+    item.originalCore.col = currentColumn;
+    currentColumn++;
+  });
+}
+
+const addCoreEscapeHandler = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      addCoreHandler(e)
+    }
+}
+
+const addCoreHandler = (e) => {
+  const addCoreBtn = document.getElementById("osdViewerAddCoreBtn");
+
+  if (addCoreBtn.classList.contains("active")) {
+    addCoreBtn.classList.remove("active");
+    window.viewer.canvas.style.cursor = "auto";
+    window.viewer.removeAllHandlers("canvas-drag");
+    window.viewer.removeAllHandlers("canvas-drag-end");
+    document.removeEventListener('keydown', addCoreEscapeHandler)
+  } else {
+    addCoreBtn.classList.add("active")
+    
+    window.viewer.canvas.style.cursor = "crosshair"
+
+    const tempCore = {
+      x: -1,
+      y: -1,
+      currentRadius: -1,
+      isTemporary: true,
+      isSelected: false,
+    };
+
+    let overlayElement = undefined;
+
+    const  dragHandler = (e) => {
+      e.preventDefaultAction = true;
+      const positionInImage =
+        window.viewer.viewport.viewerElementToImageCoordinates(e.position);
+
+      if (tempCore.x === -1) {
+        tempCore.x = positionInImage.x;
+      }
+      if (tempCore.y === -1) {
+        tempCore.y = positionInImage.y;
+      }
+
+      tempCore.currentRadius = Math.abs(
+        Math.max(tempCore.x - positionInImage.x, tempCore.y - positionInImage.y)
+      );
+
+      if (overlayElement) {
+        window.viewer.removeOverlay(overlayElement);
+        window.sortedCoresData[window.sortedCoresData.length - 1] = tempCore;
+      } else {
+        window.sortedCoresData.push(tempCore);
+      }
+      overlayElement = drawCore(tempCore, window.sortedCoresData.length - 1);
+    };
+
+    const dragEndHandler = (e) => {
+      tempCore.isSelected = true;
+      dragHandler(e);
+      updateSidebar(tempCore);
+      positionSidebarNextToCore(e.originalEvent);
+      addCoreHandler(e, dragHandler, dragEndHandler, addCoreEscapeHandler)
+    }
+    
+    document.addEventListener('keydown', addCoreEscapeHandler, { once: true })
+    
+    window.viewer.addHandler("canvas-drag", dragHandler);
+
+    window.viewer.addOnceHandler("canvas-drag-end", dragEndHandler);
+  }
+};
+
+// document
+//   .getElementById("addCoreButton")
+//   .addEventListener("click", function () {
+//     if (currentMode === "add" && tempCore) {
+//       // Add the temporary core to sortedCoresData
+//       tempCore.row =
+//         parseInt(document.getElementById("addRowInput").value, 10) - 1;
+//       tempCore.col =
+//         parseInt(document.getElementById("addColumnInput").value, 10) - 1;
+//       tempCore.x = parseFloat(document.getElementById("addXInput").value);
+//       tempCore.y = parseFloat(document.getElementById("addYInput").value);
+//       tempCore.currentRadius = parseFloat(
+//         document.getElementById("addRadiusInput").value
+//       );
+//       tempCore.annotations = document.getElementById(
+//         "addAnnotationsInput"
+//       ).value;
+//       tempCore.isImaginary =
+//         document.getElementById("addImaginaryInput").checked;
+//       tempCore.isTemporary = false; // Set the temporary flag to false
+
+//       window.sortedCoresData.push(tempCore);
+
+//       if (document.getElementById("addAutoUpdateColumnsCheckbox").checked) {
+//         updateColumnsInRowAfterModification(tempCore.row);
+//       }
+//       tempCore = null;
+//       drawCores(); // Redraw to update the canvas
+//     }
+//   });
+
+function updateCoreSize(event) {
+  const [adjustedX, adjustedY] = getMousePosition(event);
+
+  const dx = adjustedX - tempCore.x;
+  const dy = adjustedY - tempCore.y;
+  tempCore.currentRadius = Math.sqrt(dx * dx + dy * dy);
+}
+
+function finalizeCoreSize(event) {
+  updateCoreSize(event);
+  isSettingSize = false;
+}
+// Function to cancel the drawing of the current core and reset for a new one
+function cancelCoreDrawing() {
+  tempCore = null;
+  isSettingSize = false;
+  updateSidebar(null);
+  drawCores();
+}
+
+// // Event listener for the cancel core drawing button
+// document
+//   .getElementById("cancelCoreDrawing")
+//   .addEventListener("click", cancelCoreDrawing);
+
+// var coreCanvasElement = window.viewer.canvas.firstElementChild;
+
+// Add event listeners for mode switching buttons (assumes buttons exist in your HTML)
+// Call clearTempCore when necessary, such as when switching modes
+// document
+//   .getElementById("switchToEditMode")
+//   .addEventListener("click", (event) => {
+//     event.target.classList.add("active");
+//     document.getElementById("switchToAddMode").classList.remove("active");
+//     switchMode("edit");
+//     isSettingSize = false;
+//     // clearTempCore();
+//     // Add 'edit-mode' class and remove 'add-mode' class
+//     coreCanvasElement.classList.add("edit-mode");
+//     coreCanvasElement.classList.remove("add-mode");
+//   });
+
+// document
+//   .getElementById("switchToAddMode")
+//   .addEventListener("click", (event) => {
+//     event.target.classList.add("active");
+//     document.getElementById("switchToEditMode").classList.remove("active");
+//     switchMode("add");
+//     isSettingSize = false;
+//     // clearTempCore();
+//     // Add 'add-mode' class and remove 'edit-mode' class
+//     coreCanvasElement.classList.add("add-mode");
+//     coreCanvasElement.classList.remove("edit-mode");
+//   });
+
+// Function to toggle the disabled state based on the checkbox
+function toggleColumnInput() {
+  var editAutoUpdateColumnsCheckbox = document.getElementById(
+    currentMode + "AutoUpdateColumnsCheckbox"
+  );
+  var columnInput = document.getElementById(currentMode + "ColumnInput");
+
+  // If the checkbox is checked, disable the column input
+  if (editAutoUpdateColumnsCheckbox.checked) {
+    columnInput.disabled = true;
+  } else {
+    // Otherwise, enable it
+    columnInput.disabled = false;
+  }
+}
+document
+  .getElementById("editAutoUpdateColumnsCheckbox")
+  .addEventListener("change", toggleColumnInput);
+// document
+//   .getElementById("addAutoUpdateColumnsCheckbox")
+//   .addEventListener("change", toggleColumnInput);
+
 // Function to find the optimal angle that minimizes imaginary cores
 async function findOptimalAngle(preprocessedCores, getHyperparameters, runAlgorithm, updateUI) {
   let targetRange = { start: -10, end: 10 };
@@ -1358,8 +1554,8 @@ function createVirtualGrid(
   const imageSrc = window.loadedImg
     ? window.loadedImg.src
     : document.getElementById("fileInput").files.length > 0
-    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
-    : "path/to/default/image.jpg";
+      ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+      : "path/to/default/image.jpg";
 
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
   if (!virtualGridCanvas) {
@@ -1460,8 +1656,8 @@ function redrawCoresForTravelingAlgorithm() {
   const imageFile = window.loadedImg
     ? window.loadedImg.src
     : document.getElementById("fileInput").files.length > 0
-    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
-    : "path/to/default/image.jpg";
+      ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+      : "path/to/default/image.jpg";
 
   if (imageFile && window.preprocessedCores) {
     drawCoresOnCanvasForTravelingAlgorithm();

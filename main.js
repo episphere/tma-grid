@@ -881,17 +881,6 @@ const initSegmentation = async () => {
             //     // showPopup("popupSegmentation");
             //     document.getElementById("rawDataTabButton").click();
             //     setTimeout(() => {
-            window.viewer.addHandler("canvas-click", (e) => {
-              if (e.quick) {
-                window.viewer.currentOverlays
-                  .filter((overlay) =>
-                    overlay.element.classList.contains("selected")
-                  )
-                  .forEach((selectedOverlay) => {
-                    selectedOverlay.element.classList.remove("selected");
-                  });
-              }
-            });
             //       window.viewer.viewport.goHome(true);
             //       setTimeout(preprocessForTravelingAlgorithm, 0)
             //     }, 100)
@@ -949,7 +938,9 @@ const initSegmentation = async () => {
 
 document.querySelectorAll("input[type='number']").forEach((e) => {
   e.onwheel = (e) => {
-    e.preventDefault();
+    if (document.activeElement === e.target) {
+      e.target.blur()
+    }
   };
 });
 
