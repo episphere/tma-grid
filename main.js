@@ -704,6 +704,16 @@ function bindEventListeners() {
     }
   });
 
+  document.getElementById("originAngle").addEventListener("input", function () {
+
+    const angleValue = document.getElementById("originAngle");
+
+    document.getElementById("originAngleValue").textContent = angleValue.value;
+    window.viewer.viewport.setRotation(parseFloat(angleValue.value));
+  });
+
+
+
   // makeElementDraggable(document.getElementById("addSidebar"));
   makeElementDraggable(document.getElementById("editSidebar"));
 

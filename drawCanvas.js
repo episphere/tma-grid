@@ -277,17 +277,7 @@ function addSegmentationCanvasEventListeners(canvas) {
 }
 
 function drawCoresOnCanvasForTravelingAlgorithm() {
-  let currentMode = "edit"; // Possible values: 'edit', 'add'
 
-  let tempCore = null; // Temporary core for add mode
-  let isSettingSize = false; // Track whether setting position or size
-
-  // let isDraggingTempCore = false;
-
-  // img.onload = () => {
-  //   // canvas.height = img.height;
-
-  //   imageNeedsUpdate = false;
   document
     .getElementById("osdViewerAddCoreBtn")
     .removeEventListener("click", addCoreHandler);
@@ -296,30 +286,10 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     .getElementById("osdViewerAddCoreBtn")
     .addEventListener("click", addCoreHandler);
   drawCores();
-  // };
 
-  // function updateImageSource() {
-  //   if (window.loadedImg.src !== img.src) {
-  //     img.src = window.loadedImg.src;
-  //     imageNeedsUpdate = true;
-  //   }
-  // }
 }
 function connectAdjacentCores(core, updateSurroundings = false) {
-  // Helper function to calculate the edge point
-  // function calculateEdgePoint(center1, center2, r1, r2) {
-  //   const angle = Math.atan2(center2.y - center1.y, center2.x - center1.x);
-  //   return {
-  //     start: {
-  //       x: center1.x + Math.cos(angle) * r1,
-  //       y: center1.y + Math.sin(angle) * r1,
-  //     },
-  //     end: {
-  //       x: center2.x - Math.cos(angle) * r2,
-  //       y: center2.y - Math.sin(angle) * r2,
-  //     },
-  //   };
-  // }
+
 
   if (!document.getElementById("connectCoresCheckbox").checked) {
     // If the checkbox is checked, draw lines between adjacent cores
@@ -631,15 +601,6 @@ const drawResizeHandles = (overlay, show = true) => {
 };
 
 function drawCores() {
-  // if (imageNeedsUpdate) {
-  //   updateImageSource();
-  //   return; // Exit the function and wait for the image to load
-  // }
-  // ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // if (img.src !== window.loadedImg.src) {
-  //   img.src = window.loadedImg.src;
-  // }
 
   window.viewer.clearOverlays();
   window.viewer.svgOverlay().node().replaceChildren();
@@ -664,6 +625,7 @@ function drawCores() {
   window.sortedCoresData.forEach((core) => {
     connectAdjacentCores(core, false);
   });
+
 }
 
 function drawCore(core, index = -1) {
@@ -698,8 +660,11 @@ function drawCore(core, index = -1) {
   if (core.isSelected) {
     overlayElement.classList.add("selected");
   }
-  if (core.isMisaligned) {
-    overlayElement.classList.add("misaligned");
+
+  if (document.getElementById("flagMisalignmentCheckbox").checked) {
+    if (core.isMisaligned) {
+      overlayElement.classList.add("misaligned");
+    }
   }
 
   const overlayRect = window.viewer.viewport.imageToViewportRectangle(
@@ -1406,7 +1371,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
   // Calculate rotated values and separate X and Y for each row and column
   coresData.forEach((core) => {
-    if (!core.isTemporary && !core.isImaginary ) {
+    if (!core.isTemporary) {
       const [rotatedX, rotatedY] = rotatePoint(
         [core.x, core.y],
         -imageRotation
@@ -1430,12 +1395,12 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
   // Function to calculate median of a sorted array
   const calculateMedian = (arr) => {
-    // const mid = Math.floor(arr.length / 2);
-    // arr.sort((a, b) => a - b);
-    // return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    const mid = Math.floor(arr.length / 2);
+    arr.sort((a, b) => a - b);
+    return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
   
     // Calculate average
-    return arr.reduce((a, b) => a + b, 0) / arr.length;
+    // return arr.reduce((a, b) => a + b, 0) / arr.length;
   };
 
   // Calculate medians for each column and row
@@ -1603,8 +1568,6 @@ function filterAndReassignCores(coresData, imageRotation) {
   filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
   filteredCores = removeImaginaryCoresFilledRowsAndColumns(filteredCores);
-
-  filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
   filteredCores = reassignCoreIndices(filteredCores);
 
