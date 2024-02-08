@@ -1000,6 +1000,10 @@ function removeCoreFromGrid(core) {
 
   if (!core.isTemporary) {
     const modifiedRow = window.sortedCoresData[coreIndex].row;
+
+    // Remove the selected core
+    window.sortedCoresData.splice(coreIndex, 1);
+
     // Check if the removed core was the last real core in the row
     const isLastRealCore =
       window.sortedCoresData.filter(
@@ -1018,8 +1022,7 @@ function removeCoreFromGrid(core) {
       });
     }
 
-    // Remove the selected core
-    window.sortedCoresData.splice(coreIndex, 1);
+
 
     if (!isLastRealCore) {
       // Update columns only if the row was not removed
