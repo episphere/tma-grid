@@ -275,7 +275,7 @@ function resetApplication() {
   window.viewer = null
   window.imageSource = "";
   window.scalingFactor = 1;
-  window.imageScalingFactor = null;
+  window.uploadedImageFileType = null;
 
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();

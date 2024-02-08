@@ -7,6 +7,33 @@
   --hover-color: #003d82; /* Darker Blue */
   --background-color: #f7f7f7; /* Light Grey */
 }
+.toggle-editor-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-editor-button:hover {
+  background-color: #0056b3;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  height: 00vh;
+  margin: 0;
+}
+
+#jsoneditor {
+  flex-grow: 1;
+}
 
 body,
 html {

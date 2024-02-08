@@ -15,8 +15,8 @@ import { applyAndVisualizeTravelingAlgorithm } from "./drawCanvas.js";
 import { getHyperparametersFromUI } from "./UI.js";
 
 function rotatePoint(point, angle) {
-  const pivotX = window.loadedImg.width/2;
-  const pivotY = window.loadedImg.height/2;
+  const pivotX = window.loadedImg.width / 2;
+  const pivotY = window.loadedImg.height / 2;
 
   // Translate point to origin (pivot point becomes the new origin)
   const translatedX = point[0] - pivotX;
@@ -127,7 +127,7 @@ function normalizeRowsByAddingImaginaryPoints(
 // Function to transpose a jagged array
 function transposeJaggedArray(jaggedArray) {
   let result = [];
-  jaggedArray.forEach(row => {
+  jaggedArray.forEach((row) => {
     row.forEach((item, columnIndex) => {
       if (!result[columnIndex]) {
         result[columnIndex] = []; // Create a new row if it doesn't exist
@@ -205,7 +205,6 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.radiusMultiplier
   );
 
-
   // Extract the original rows in sorted order
   let sortedRows = sortRowsByRotatedPoints(rows, params.originAngle);
   // Calculate the median x coordinate for the first column
@@ -217,7 +216,6 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.gridWidth,
     0
   );
-  
 
   const userRadius = document.getElementById("userRadius").value;
 
@@ -263,7 +261,12 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
     params.thresholdMultiplier
   );
 
-  const bestEdgeSet = filterEdgesByAngle(lengthFilteredEdges, normalizedCores, params.thresholdAngle, params.originAngle);
+  const bestEdgeSet = filterEdgesByAngle(
+    lengthFilteredEdges,
+    normalizedCores,
+    params.thresholdAngle,
+    params.originAngle
+  );
 
   let coordinatesInput = bestEdgeSet.map(([start, end]) => {
     return [
@@ -287,14 +290,17 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
   params.imageWidth = imageWidth;
   params.gamma = 1.25 * d;
 
-  // Update radius 
-  document.getElementById("userRadius").value = window.preprocessedCores[0].radius;
-  document.getElementById("radiusValue").value = Math.round(window.preprocessedCores[0].radius);
+  // Update radius
+  document.getElementById("userRadius").value =
+    window.preprocessedCores[0].radius;
+  document.getElementById("radiusValue").value = Math.round(
+    window.preprocessedCores[0].radius
+  );
 
   return params;
 }
 
-function saveUpdatedCores() {
+function saveUpdatedCores(format) {
   if (!window.sortedCoresData) {
     alert("No data available to save.");
     return;
@@ -302,30 +308,16 @@ function saveUpdatedCores() {
 
   // Create finalSaveData by mapping over sortedCoresData
   const finalSaveData = window.sortedCoresData.map((core) => {
-
-    if (imageScalingFactor !== null) {
-      return {
-        ...core,
-        x: core.x / (window.imageScalingFactor),
-        y: core.y / (window.imageScalingFactor),
-        currentRadius: core.currentRadius / (window.imageScalingFactor),
-        row: core.row + 1,
-        col: core.col + 1
-      };
-    }else{
+    
       return {
         ...core,
         x: core.x,
         y: core.y,
         currentRadius: core.currentRadius,
         row: core.row + 1,
-        col: core.col + 1
+        col: core.col + 1,
       };
-    }
-
-    
   });
-
 
   // Check if there's uploaded metadata to update
   if (window.userUploadedMetadata && window.userUploadedMetadata.length > 0) {
@@ -340,16 +332,16 @@ function saveUpdatedCores() {
         // Ensure both row and column values match
         // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
         return (
-          entry[metadataRowName] == core.row  &&
-          entry[metadataColName] == core.col 
+          entry[metadataRowName] == core.row &&
+          entry[metadataColName] == core.col
         );
       });
 
       if (metadataEntry) {
         // Merge the core data into the metadata entry
 
-        core ["calculated_row"] = core.row;
-        core ["calculated_col"] = core.col;
+        core["calculated_row"] = core.row;
+        core["calculated_col"] = core.col;
         delete core.row;
         delete core.col;
 
@@ -361,32 +353,47 @@ function saveUpdatedCores() {
         }
       }
     });
-
-    // Now userUploadedMetadata has been updated with the sortedCoresData
-    // You can process or save this updated metadata as needed
-
-    // For example, you might want to save it to a JSON file
-    const updatedMetadataStr =
-      "data:text/json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(window.userUploadedMetadata));
-    const downloadAnchorNode = document.createElement("a");
-    downloadAnchorNode.setAttribute("href", updatedMetadataStr);
-    downloadAnchorNode.setAttribute("download", "updated_metadata.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  } else {
-    // Download the sorted cores data as a JSON file if no metadata was uploaded
-    const dataStr =
-      "data:text/json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(finalSaveData));
-    const downloadAnchorNode = document.createElement("a");
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "sorted_cores.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
   }
+  // Save data as JSON or CSV
+  if (format === "json") {
+    const dataStr = JSON.stringify(finalSaveData);
+    const dataUri =
+      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+
+    let downloadAnchorNode = document.createElement("a");
+    downloadAnchorNode.setAttribute("href", dataUri);
+    downloadAnchorNode.setAttribute("download", "data.json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  } else if (format === "csv") {
+    let csvStr = convertToCSV(finalSaveData);
+    let blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" });
+    let url = URL.createObjectURL(blob);
+
+    let downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = "data.csv";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  }
+}
+
+// Function to convert JSON to CSV
+function convertToCSV(objArray) {
+  const array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+  let str = `${Object.keys(array[0]).map(value => `"${value}"`).join(",")}\r\n`;
+
+  for (let i = 0; i < array.length; i++) {
+    let line = '';
+    for (let index in array[i]) {
+      if (line != '') line += ','
+      line += `"${array[i][index]}"`;
+    }
+    str += line + '\r\n';
+  }
+  return str;
 }
 
 export {
@@ -396,5 +403,4 @@ export {
   saveUpdatedCores,
   preprocessForTravelingAlgorithm,
   updateSpacingInVirtualGrid,
-  
 };

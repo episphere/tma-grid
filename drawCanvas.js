@@ -11,6 +11,9 @@ import { positionSidebarNextToCore, hideSidebar, showPopup } from "./UI.js";
 
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/+esm";
 
+import { getRegionFromWSI } from "./wsi.js";
+
+
 // const OSD_WIDTH_SCALEDOWN_FACTOR_FOR_EDIT_SIDEBAR = 0.8; // Adjust for the 20% width of the add core sidebar.
 
 let lastActionTime = 0;
@@ -822,6 +825,15 @@ const overlayClickHandler = (e) => {
       document.addEventListener("keydown", keyPressHandler);
       window.viewer.addHandler("zoom", zoomHandlerForResizeHandles);
       window.viewer.addOnceHandler("canvas-click", overlayClickHandler);
+
+      // Get the core data from the sortedCoresData array
+      const row = parseInt(overlay.element.id.split("_")[2]);
+      const col = parseInt(overlay.element.id.split("_")[4]);
+      const coreData = window.sortedCoresData.find(
+        (core) => core.row === row && core.col === col
+      );
+      // Set the core data in the JSONEditor
+      window.jsonEditor.set(coreData);
     }
   }
 };
@@ -1607,9 +1619,8 @@ async function createVirtualGrid(
   startingX,
   startingY
 ) {
-  // If window.imageScalingFactror is not defined
 
-  if (!window.imageScalingFactror) {
+  if (window.uploadedImageFileType === "svs") {
     const imageInfo = await getWSIInfo(imageUrl);
     width = imageInfo.width;
     height = imageInfo.height;
@@ -1620,8 +1631,6 @@ async function createVirtualGrid(
     // Store the scaling factor
     window.scalingFactor = scalingFactor;
     imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
-
-    debugger
 
 
   } else {

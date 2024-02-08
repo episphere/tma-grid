@@ -114,12 +114,6 @@ const scaleImageIfNeeded = (img) => {
         )
       : 1;
 
-  if (scalingFactor === 1) {
-    return { src: img.src, scalingFactor };
-  } else {
-    window.imageScalingFactor = scalingFactor;
-  }
-
   const canvas = document.createElement("canvas");
   canvas.width = img.width * scalingFactor;
   canvas.height = img.height * scalingFactor;
@@ -218,8 +212,11 @@ const handleImageLoad = (file, processCallback) => {
         );
         console.error("Image failed to load.");
       });
+
+    window.uploadedImageFileType = "simple";
   } else if (file && file.name.endsWith(".svs")) {
     handleSVSFile(file, processCallback);
+    window.uploadedImageFileType = "svs";
   } else {
     updateStatusMessage(
       "imageLoadStatus",
@@ -407,6 +404,7 @@ const handleLoadImageUrlClick = async (state) => {
     if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
       imageResp = fetch(imageUrl);
       window.scalingFactor = 1;
+      window.uploadedImageFileType = "simple";
     } else {
       const imageInfo = await getWSIInfo(imageUrl);
       width = imageInfo.width;
@@ -418,6 +416,7 @@ const handleLoadImageUrlClick = async (state) => {
       // Store the scaling factor
       window.scalingFactor = scalingFactor;
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
+      window.uploadedImageFileType = "svs";
     }
 
     imageResp
@@ -450,7 +449,6 @@ const handleLoadImageUrlClick = async (state) => {
               MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
             );
 
-            window.imageScalingFactor = scalingFactor;
             // window.scalingFactor = scalingFactor;
             const canvas = document.createElement("canvas");
             canvas.width = img.width * scalingFactor;
@@ -579,6 +577,16 @@ async function segmentImage(initializeParams = false) {
 }
 
 function bindEventListeners() {
+
+  document.getElementById("toggleEditor").addEventListener("click", function() {
+    var editorDiv = document.getElementById("jsoneditor-dialog");
+    if ($(editorDiv).dialog("isOpen")) {
+      $(editorDiv).dialog("close");
+    } else {
+      $(editorDiv).dialog("open");
+    }
+  });
+
   document.querySelectorAll("input[type='number']").forEach((e) => {
     e.onwheel = (e) => {
       e.preventDefault();
@@ -669,9 +677,13 @@ function bindEventListeners() {
       );
     });
 
+    document
+    .getElementById("saveResultsAsJson")
+    .addEventListener("click", function() { saveUpdatedCores('json'); });
+  
   document
-    .getElementById("saveResults")
-    .addEventListener("click", saveUpdatedCores);
+    .getElementById("saveResultsAsCsv")
+    .addEventListener("click", function() { saveUpdatedCores('csv'); });
 
   document
     .getElementById("toggle-advanced-settings")
@@ -1081,10 +1093,42 @@ function addDragAndDrop() {
   });
 }
 
+function setUpJSONEditor() {
+  var container = document.getElementById("jsoneditor");
+  var options = {
+    onChange: function () {
+      // Get the updated core data from the JSONEditor
+      var updatedCoreData = window.jsonEditor.get();
+
+      // Find the corresponding core in sortedCoresData and update it
+      var core = window.sortedCoresData.find(
+        (core) =>
+          core.row == updatedCoreData.row && core.col == updatedCoreData.col
+      );
+      if (core) {
+        Object.assign(core, updatedCoreData);
+      }
+    },
+  };
+
+  $("#jsoneditor-dialog").dialog({
+    width: 500,
+    height: 500,
+    resizable: true,
+    draggable: true,
+    closeOnEscape: true,
+    autoOpen: false,
+  });
+
+  window.jsonEditor = new JSONEditor(container, options);
+
+}
+
 // Main function that runs the application
 const run = async () => {
   addDragAndDrop();
   bindEventListeners();
+  setUpJSONEditor();
   // Run the app
   initSegmentation();
 };
