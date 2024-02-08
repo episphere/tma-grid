@@ -578,6 +578,13 @@ async function segmentImage(initializeParams = false) {
 
 function bindEventListeners() {
 
+  document.getElementById('downloadAllCoresButton').addEventListener('click', () => {
+    // Assuming coreOverlays is an array of your core overlay elements
+    for (const overlay of coreOverlays) {
+      initiateDownload(overlay);
+    }
+  });
+
   document.getElementById("toggleEditor").addEventListener("click", function() {
     var editorDiv = document.getElementById("jsoneditor-dialog");
     if ($(editorDiv).dialog("isOpen")) {

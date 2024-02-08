@@ -1701,6 +1701,31 @@ async function createVirtualGrid(
 //   });
 // }
 
+// Move the initiateDownload function outside of createImageForCore
+async function initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileName) {
+  const downloadLink = document.createElement('a');
+
+  // Use the getRegionFromWSI function to download the full resolution version of the image
+  const fullResTileParams = {
+    tileX: core.x - core.currentRadius,
+    tileY: core.y - core.currentRadius,
+    tileWidth: coreWidth,
+    tileHeight: coreHeight,
+    tileSize: coreWidth,
+  };
+
+  const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+  const blob = await fullSizeImageResp.blob();
+
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = fileName;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+// Create an array to store all the core containers
+const coreContainers = [];
+
 async function createImageForCore(svsImageURL, core, coreSize = 64) {
   const coreWidth = core.currentRadius * 2;
   const coreHeight = core.currentRadius * 2;
@@ -1733,39 +1758,18 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
 
   // Double-click event for initiating download
   container.ondblclick = () => {
-    const blobUrl = img.src; // Assuming this is accessible and not revoked
     const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`; // Construct file name
 
-    // Function to initiate download
-    const initiateDownload = async (blobUrl, fileName) => {
-      const downloadLink = document.createElement('a');
-
-      // Use the getRegionFromWSI function to download the full resolution version of the image
-      const fullResTileParams = {
-        tileX: core.x - core.currentRadius,
-        tileY: core.y - core.currentRadius,
-        tileWidth: coreWidth,
-        tileHeight: coreHeight,
-        tileSize: coreWidth,
-      };
-
-      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
-      const blob = await fullSizeImageResp.blob();
-
-      downloadLink.href = URL.createObjectURL(blob);
-      downloadLink.download = fileName;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-    };
-
-    initiateDownload(blobUrl, fileName);
+    initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileName);
   };
   
 
   // Append children to the container
   container.appendChild(img);
   container.appendChild(overlay);
+
+    // Add the container to the array of core containers
+    coreContainers.push(container);
 
   return new Promise((resolve, reject) => {
     // Adjust the img.onload function as necessary to handle the blob URL...
@@ -1777,6 +1781,13 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
   });
 }
 
+// Add an event listener to the "Download All Cores" button
+document.getElementById('downloadAllCoresButton').addEventListener('click', () => {
+  for (const container of coreContainers) {
+    // Trigger the double-click event on each container
+    container.ondblclick();
+  }
+});
 
 function updateGridSpacingInVirtualGridForSVS(horizontalSpacing, verticalSpacing, startingX, startingY) {
   const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
