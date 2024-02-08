@@ -1734,9 +1734,22 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
     const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`; // Construct file name
 
     // Function to initiate download
-    const initiateDownload = (blobUrl, fileName) => {
+    const initiateDownload = async (blobUrl, fileName) => {
       const downloadLink = document.createElement('a');
-      downloadLink.href = blobUrl;
+
+      // Use the getRegionFromWSI function to download the full resolution version of the image
+      const fullResTileParams = {
+        tileX: core.x - core.currentRadius,
+        tileY: core.y - core.currentRadius,
+        tileWidth: coreWidth,
+        tileHeight: coreHeight,
+        tileSize: coreWidth,
+      };
+
+      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+      const blob = await fullSizeImageResp.blob();
+
+      downloadLink.href = URL.createObjectURL(blob);
       downloadLink.download = fileName;
       document.body.appendChild(downloadLink);
       downloadLink.click();
