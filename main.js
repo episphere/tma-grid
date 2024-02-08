@@ -724,6 +724,15 @@ function bindEventListeners() {
     window.viewer.viewport.setRotation(-parseFloat(angleValue.value));
   });
 
+  document.getElementById("originAngle").addEventListener("mousedown", function () {
+    const svgOverlay = window.viewer.svgOverlay();
+    svgOverlay.node().style.display = 'none'; // Hide the SVG overlay
+  });
+  
+  document.getElementById("originAngle").addEventListener("mouseup", function () {
+    const svgOverlay = window.viewer.svgOverlay();
+    svgOverlay.node().style.display = ''; // Show the SVG overlay
+  });
 
 
   // makeElementDraggable(document.getElementById("addSidebar"));

@@ -1624,7 +1624,7 @@ async function createVirtualGrid(
   const imageSrc = document.getElementById("imageUrlInput").value
     ? document.getElementById("imageUrlInput").value 
     : document.getElementById("fileInput").files.length > 0
-    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+    ? document.getElementById("fileInput").files[0]
     : "path/to/default/image.jpg";
 
 
@@ -1635,7 +1635,8 @@ async function createVirtualGrid(
       horizontalSpacing,
       verticalSpacing,
       startingX,
-      startingY
+      startingY,
+      256
     );
   
   } else {
@@ -1646,41 +1647,60 @@ async function createVirtualGrid(
       startingY)
   }
 }
+function createCanvasForCore(svsImageURL, core, coreSize = 256) {
+  const coreWidth = core.currentRadius * 2;
+  const coreHeight = core.currentRadius * 2;
 
-function createCanvasForCore(URL, core) {
+  return new Promise((resolve, reject) => {
   // Create a new canvas element
-  var canvas = document.createElement("canvas");
-  canvas.id = "core-" + core.id;
-  canvas.width = core.width;
-  canvas.height = core.height;
+  // var canvas = document.createElement("canvas");
+  // canvas.id = "core-" + core.row + "-" + core.col;
+  // canvas.width = coreWidth;
+  // canvas.height = coreHeight;
+
 
   const tileParams = {
-    tileX: core.x - core.radius,
-    tileY: core.y - core.radius,
-    tileWidth: core.radius * 2,
-    tileHeight: core.radius * 2,
+    tileX: core.x - core.currentRadius,
+    tileY: core.y - core.currentRadius,
+    tileWidth: coreWidth,
+    tileHeight: coreHeight,
+    tileSize: coreSize,
   };
+  
   // Get the zoomed in version of the core from the .svs image
-  var imageUrl = getRegionFromWSI(URL, tileParams, 1);
+  getRegionFromWSI(svsImageURL, tileParams, 1).then(async imageResp => {
+    console.log("HERE")
+      // .then(async imageUrl => {
+        // Draw the image on the canvas
+        // var ctx = canvas.getContext('2d');
+        var img = new Image();
+        img.width = 40
+        img.height = 40
+        img.onload = function() {
+          // ctx.drawImage(img, 0, 0, core.width, core.height);
+          resolve(img);
+        };
+        // img.onerror = reject;
 
-  // Draw the image on the canvas
-  var ctx = canvas.getContext("2d");
-  var img = new Image();
-  img.onload = function () {
-    ctx.drawImage(img, 0, 0, core.width, core.height);
-  };
-  img.src = imageUrl;
-
-  return canvas;
+        const objectURL = await imageResp.blob();
+        img.src = URL.createObjectURL(objectURL);
+        // return img 
+      })
+    })
+      // })
+      // .catch(reject);
+  // });
 }
 
-function drawVirtualGridFromWSI(
-  URL,
+
+async function drawVirtualGridFromWSI(
+  svsImageURL,
   sortedCoresData,
   horizontalSpacing,
   verticalSpacing,
   startingX,
-  startingY
+  startingY,
+  coreSize = 256,
 ) {
   var virtualGridDiv = document.getElementById("VirtualGrid");
 
@@ -1691,15 +1711,26 @@ function drawVirtualGridFromWSI(
   virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, minmax(${horizontalSpacing}px, 1fr))`;
 
   // Set the grid-gap property based on the vertical spacing
-  virtualGridDiv.style.gap = `${verticalSpacing}px`;
+  virtualGridDiv.style.gridGap = `${verticalSpacing}px`;
 
   // Set the padding property based on the starting values
   virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
 
-  sortedCoresData.forEach((core) => {
-    var canvas = createCanvasForCore(URL, core);
-    virtualGridDiv.appendChild(canvas);
-  });
+  // Create a canvas for each core and append it to the VirtualGrid div
+  // Promise.all(
+    sortedCoresData.forEach(core => {
+  // for (let core of sortedCoresData) {
+    createCanvasForCore(svsImageURL, core, coreSize).then(img => 
+     virtualGridDiv.appendChild(img)
+     )
+  // }
+    // .then(canvases => {
+    //   canvases.forEach(canvas => {
+    //   });
+    // })
+    // .catch(error => {
+    //   console.error('Error creating canvases:', error);
+    });
 }
 
 
