@@ -21,16 +21,9 @@ export const getPNGFromWSI = async (imageURL, maxDimension) => {
   return imageThumbnail
 }
 
-export const getRegionFromWSI = async (imageURL, tileParams, downsampledMaxDimension) => {
+export const getRegionFromWSI = async (imageURL, tileParams) => {
   const { default: imagebox3 } = await import("https://episphere.github.io/imagebox3/imagebox3.mjs")
-  const { width, height } = await (await imagebox3.getImageInfo(imageURL)).json()
-  const magnificationFactor = Math.max(width, height) / downsampledMaxDimension
-
-  tileParams.tileX = tileParams.tileX * magnificationFactor
-  tileParams.tileY = tileParams.tileY * magnificationFactor
-  tileParams.tileWidth = tileParams.tileWidth * magnificationFactor
-  tileParams.tileHeight = tileParams.tileHeight * magnificationFactor
-
+  
   const imageTile = await imagebox3.getImageTile(imageURL, tileParams, true)
   return imageTile
 
