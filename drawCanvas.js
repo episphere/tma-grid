@@ -1620,98 +1620,171 @@ async function createVirtualGrid(
   startingY
 ) {
 
+  // Get image URL from the input tag with id imageUrlInput if it is not empty. If it is empty, get the image URL from the input tag with id fileInput 
+  const imageSrc = document.getElementById("imageUrlInput").value
+    ? document.getElementById("imageUrlInput").value 
+    : document.getElementById("fileInput").files.length > 0
+    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+    : "path/to/default/image.jpg";
+
+
   if (window.uploadedImageFileType === "svs") {
-    const imageInfo = await getWSIInfo(imageUrl);
-    width = imageInfo.width;
-    height = imageInfo.height;
-    const scalingFactor = Math.min(
-      MAX_DIMENSION_FOR_DOWNSAMPLING / width,
-      MAX_DIMENSION_FOR_DOWNSAMPLING / height
+    drawVirtualGridFromWSI(
+      imageSrc,
+      sortedCoresData,
+      horizontalSpacing,
+      verticalSpacing,
+      startingX,
+      startingY
     );
-    // Store the scaling factor
-    window.scalingFactor = scalingFactor;
-    imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
-
-
+  
   } else {
-    // Use the loaded image if available, otherwise use default or file input image
-    const imageSrc = window.loadedImg
-      ? window.loadedImg.src
-      : document.getElementById("fileInput").files.length > 0
-      ? URL.createObjectURL(document.getElementById("fileInput").files[0])
-      : "path/to/default/image.jpg";
-
-    const virtualGridCanvas = document.getElementById("virtualGridCanvas");
-    if (!virtualGridCanvas) {
-      console.error("Virtual grid canvas not found");
-      return;
-    }
-
-    const rows =
-      sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
-    const cols =
-      sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
-    const defaultRadius = parseInt(document.getElementById("userRadius").value);
-    virtualGridCanvas.width =
-      cols * horizontalSpacing + defaultRadius * 2 + startingX;
-    virtualGridCanvas.height =
-      rows * verticalSpacing + defaultRadius * 2 + startingY;
-
-    const vctx = virtualGridCanvas.getContext("2d");
-    const img = new Image();
-    img.src = imageSrc;
-
-    img.onload = () => {
-      vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
-
-      sortedCoresData.forEach((core) => {
-        const idealX = startingX + core.col * horizontalSpacing;
-        const idealY = startingY + core.row * verticalSpacing;
-        const userRadius = core.currentRadius * window.scalingFactor;
-
-        vctx.save();
-        vctx.beginPath();
-        vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
-        vctx.closePath();
-
-        // Use the isImaginary flag to determine the stroke style
-        vctx.strokeStyle = core.isImaginary ? "red" : "green";
-        vctx.lineWidth = 2; // Adjust line width as needed
-        vctx.stroke();
-
-        vctx.clip();
-
-        const sourceX = core.x * window.scalingFactor - userRadius;
-        const sourceY = core.y * window.scalingFactor - userRadius;
-
-        vctx.drawImage(
-          img,
-          sourceX,
-          sourceY,
-          userRadius * 2,
-          userRadius * 2,
-          idealX - userRadius,
-          idealY - userRadius,
-          userRadius * 2,
-          userRadius * 2
-        );
-
-        vctx.restore();
-
-        vctx.fillStyle = "black"; // Text color
-        vctx.font = "12px Arial"; // Text font and size
-        vctx.fillText(
-          `(${core.row + 1},${core.col + 1})`,
-          idealX - userRadius / 2,
-          idealY - userRadius / 2
-        );
-      });
-    };
-
-    img.onerror = () => {
-      console.error("Image failed to load.");
-    };
+    drawVirtualGridFromPNG (  sortedCoresData,
+      horizontalSpacing,
+      verticalSpacing,
+      startingX,
+      startingY)
   }
+}
+
+function createCanvasForCore(URL, core) {
+  // Create a new canvas element
+  var canvas = document.createElement("canvas");
+  canvas.id = "core-" + core.id;
+  canvas.width = core.width;
+  canvas.height = core.height;
+
+  const tileParams = {
+    tileX: core.x - core.radius,
+    tileY: core.y - core.radius,
+    tileWidth: core.radius * 2,
+    tileHeight: core.radius * 2,
+  };
+  // Get the zoomed in version of the core from the .svs image
+  var imageUrl = getRegionFromWSI(URL, tileParams, 1);
+
+  // Draw the image on the canvas
+  var ctx = canvas.getContext("2d");
+  var img = new Image();
+  img.onload = function () {
+    ctx.drawImage(img, 0, 0, core.width, core.height);
+  };
+  img.src = imageUrl;
+
+  return canvas;
+}
+
+function drawVirtualGridFromWSI(
+  URL,
+  sortedCoresData,
+  horizontalSpacing,
+  verticalSpacing,
+  startingX,
+  startingY
+) {
+  var virtualGridDiv = document.getElementById("VirtualGrid");
+
+  // Set the display property to grid
+  virtualGridDiv.style.display = 'grid';
+
+  // Set the grid-template-columns property based on the horizontal spacing
+  virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, minmax(${horizontalSpacing}px, 1fr))`;
+
+  // Set the grid-gap property based on the vertical spacing
+  virtualGridDiv.style.gap = `${verticalSpacing}px`;
+
+  // Set the padding property based on the starting values
+  virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
+
+  sortedCoresData.forEach((core) => {
+    var canvas = createCanvasForCore(URL, core);
+    virtualGridDiv.appendChild(canvas);
+  });
+}
+
+
+function drawVirtualGridFromPNG(  sortedCoresData,
+  horizontalSpacing,
+  verticalSpacing,
+  startingX,
+  startingY){
+  // Use the loaded image if available, otherwise use default or file input image
+  const imageSrc = window.loadedImg
+  ? window.loadedImg.src
+  : document.getElementById("fileInput").files.length > 0
+  ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+  : "path/to/default/image.jpg";
+
+const virtualGridCanvas = document.getElementById("virtualGridCanvas");
+if (!virtualGridCanvas) {
+  console.error("Virtual grid canvas not found");
+  return;
+}
+
+const rows =
+  sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
+const cols =
+  sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
+const defaultRadius = parseInt(document.getElementById("userRadius").value);
+virtualGridCanvas.width =
+  cols * horizontalSpacing + defaultRadius * 2 + startingX;
+virtualGridCanvas.height =
+  rows * verticalSpacing + defaultRadius * 2 + startingY;
+
+const vctx = virtualGridCanvas.getContext("2d");
+const img = new Image();
+img.src = imageSrc;
+
+img.onload = () => {
+  vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
+
+  sortedCoresData.forEach((core) => {
+    const idealX = startingX + core.col * horizontalSpacing;
+    const idealY = startingY + core.row * verticalSpacing;
+    const userRadius = core.currentRadius * window.scalingFactor;
+
+    vctx.save();
+    vctx.beginPath();
+    vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
+    vctx.closePath();
+
+    // Use the isImaginary flag to determine the stroke style
+    vctx.strokeStyle = core.isImaginary ? "red" : "green";
+    vctx.lineWidth = 2; // Adjust line width as needed
+    vctx.stroke();
+
+    vctx.clip();
+
+    const sourceX = core.x * window.scalingFactor - userRadius;
+    const sourceY = core.y * window.scalingFactor - userRadius;
+
+    vctx.drawImage(
+      img,
+      sourceX,
+      sourceY,
+      userRadius * 2,
+      userRadius * 2,
+      idealX - userRadius,
+      idealY - userRadius,
+      userRadius * 2,
+      userRadius * 2
+    );
+
+    vctx.restore();
+
+    vctx.fillStyle = "black"; // Text color
+    vctx.font = "12px Arial"; // Text font and size
+    vctx.fillText(
+      `(${core.row + 1},${core.col + 1})`,
+      idealX - userRadius / 2,
+      idealY - userRadius / 2
+    );
+  });
+};
+
+img.onerror = () => {
+  console.error("Image failed to load.");
+};
 }
 
 function updateVirtualGridSpacing(

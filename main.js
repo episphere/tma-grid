@@ -721,7 +721,7 @@ function bindEventListeners() {
     const angleValue = document.getElementById("originAngle");
 
     document.getElementById("originAngleValue").textContent = angleValue.value;
-    window.viewer.viewport.setRotation(parseFloat(angleValue.value));
+    window.viewer.viewport.setRotation(-parseFloat(angleValue.value));
   });
 
 
@@ -858,7 +858,6 @@ const initSegmentation = async () => {
   document
     .getElementById("finalizeSegmentation")
     .addEventListener("click", async function () {
-      document.getElementById("rawDataTabButton").disabled = false;
 
       // Assuming `properties` is the variable holding your segmentation results
       if (!window.properties) {
@@ -977,6 +976,8 @@ const initSegmentation = async () => {
             //     }, 100)
           });
       });
+      document.getElementById("rawDataTabButton").disabled = false;
+
     });
 
   // Navigation buttons
