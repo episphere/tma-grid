@@ -709,7 +709,6 @@ function drawCore(core, index = -1) {
     },
 
     dragHandler: (e) => {
-      // console.log(e)
       const overlay = window.viewer.getOverlayById(overlayElement);
       const deltaViewport = window.viewer.viewport.deltaPointsFromPixels(
         e.delta
@@ -745,7 +744,6 @@ function drawCore(core, index = -1) {
         // drawCore(window.sortedCoresData[index], index);
 
         drawCores();
-        console.log();
       }
     },
   });
@@ -1081,7 +1079,6 @@ function updateColumnsInRowAfterModification(row) {
   });
 
   drawCores(); // Redraw the cores
-  console.log(coresWithRotatedCoordinates);
 }
 
 const addCoreEscapeHandler = (e) => {
@@ -1291,6 +1288,10 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
     // Helper function to update the angle in the UI and return updated hyperparameters
     const updateUIAndHyperparameters = (angle) => {
       document.getElementById("originAngle").value = angle.toString();
+      document.getElementById("originAngleValue").innerText = angle.toString();
+
+      // Update OSD viewer to be rotated with the optimal angle
+      window.viewer.viewport.setRotation(-angle);
       return {
         ...getHyperparametersFromUI(),
         originAngle: angle,
@@ -1308,6 +1309,10 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
 
     // Update UI with the optimal angle
     hyperparameters = updateUIAndHyperparameters(optimalAngle);
+
+
+    // 
+
   } else {
     hyperparameters = getHyperparametersFromUI();
   }
@@ -1605,7 +1610,8 @@ function obtainHyperparametersAndDrawVirtualGrid() {
     horizontalSpacing,
     verticalSpacing,
     startingX,
-    startingY
+    startingY,
+    true
   );
 
   showPopup("popupGridding");
@@ -1617,205 +1623,306 @@ async function createVirtualGrid(
   horizontalSpacing,
   verticalSpacing,
   startingX,
-  startingY
+  startingY,
+  firstRun = false
 ) {
-
-  // Get image URL from the input tag with id imageUrlInput if it is not empty. If it is empty, get the image URL from the input tag with id fileInput 
   const imageSrc = document.getElementById("imageUrlInput").value
-    ? document.getElementById("imageUrlInput").value 
+    ? document.getElementById("imageUrlInput").value
     : document.getElementById("fileInput").files.length > 0
-    ? document.getElementById("fileInput").files[0]
+    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
     : "path/to/default/image.jpg";
 
-
   if (window.uploadedImageFileType === "svs") {
-    drawVirtualGridFromWSI(
-      imageSrc,
+    if (firstRun) {
+      // Hide the virtual grid canvas
+      const virtualGridCanvas = document.getElementById("virtualGridCanvas");
+      virtualGridCanvas.style.display = "none";
+
+
+      // Update the grid spacing and starting position
+      updateGridSpacingInVirtualGridForSVS(horizontalSpacing, verticalSpacing, startingX, startingY);
+
+      await drawVirtualGridFromWSI(
+        imageSrc,
+        sortedCoresData,
+        horizontalSpacing,
+        verticalSpacing,
+        startingX,
+        startingY,
+        64
+      );
+    } else {
+
+      updateGridSpacingInVirtualGridForSVS(horizontalSpacing, verticalSpacing, startingX, startingY);
+
+    }
+  } else {
+    // Hide the virtual grid container
+    const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
+    virtualGridDiv.style.display = "none";
+
+    await drawVirtualGridFromPNG(
       sortedCoresData,
       horizontalSpacing,
       verticalSpacing,
       startingX,
-      startingY,
-      256
+      startingY
     );
-  
-  } else {
-    drawVirtualGridFromPNG (  sortedCoresData,
-      horizontalSpacing,
-      verticalSpacing,
-      startingX,
-      startingY)
   }
 }
-function createCanvasForCore(svsImageURL, core, coreSize = 256) {
+
+// async function createImageForCore(svsImageURL, core, coreSize = 64) {
+//   const coreWidth = core.currentRadius * 2;
+//   const coreHeight = core.currentRadius * 2;
+
+  
+
+//   const tileParams = {
+//     tileX: core.x - core.currentRadius,
+//     tileY: core.y - core.currentRadius,
+//     tileWidth: coreWidth,
+//     tileHeight: coreHeight,
+//     tileSize: 128,
+//   };
+
+//   const imageResp = await getRegionFromWSI(svsImageURL, tileParams, 1);
+//   const blob = await imageResp.blob();
+//   const img = new Image(coreSize, coreSize);
+//   return new Promise((resolve, reject) => {
+//     img.onload = function () {
+//       URL.revokeObjectURL(img.src); // Free memory
+//       resolve(img);
+//     };
+//     img.onerror = reject;
+//     img.src = URL.createObjectURL(blob);
+//   });
+// }
+
+async function createImageForCore(svsImageURL, core, coreSize = 64) {
   const coreWidth = core.currentRadius * 2;
   const coreHeight = core.currentRadius * 2;
-
-  return new Promise((resolve, reject) => {
-  // Create a new canvas element
-  // var canvas = document.createElement("canvas");
-  // canvas.id = "core-" + core.row + "-" + core.col;
-  // canvas.width = coreWidth;
-  // canvas.height = coreHeight;
-
 
   const tileParams = {
     tileX: core.x - core.currentRadius,
     tileY: core.y - core.currentRadius,
     tileWidth: coreWidth,
     tileHeight: coreHeight,
-    tileSize: coreSize,
+    tileSize: 128,
+  };
+
+  const imageResp = await getRegionFromWSI(svsImageURL, tileParams, 1);
+  const blob = await imageResp.blob();
+  const img = new Image(coreSize, coreSize);
+
+  // Set the width and height of the image to fill the container
+  img.style.width = "100%";
+  img.style.height = "100%";
+
+  // Create container div to hold the image and overlay
+  const container = document.createElement('div');
+  container.classList.add('image-container');
+  
+  // Create overlay div for displaying row and column
+  const overlay = document.createElement('div');
+  overlay.classList.add('image-overlay');
+  overlay.innerHTML = `(${core.row + 1}, ${core.col + 1})`;
+  
+
+  // Double-click event for initiating download
+  container.ondblclick = () => {
+    const blobUrl = img.src; // Assuming this is accessible and not revoked
+    const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`; // Construct file name
+
+    // Function to initiate download
+    const initiateDownload = (blobUrl, fileName) => {
+      const downloadLink = document.createElement('a');
+      downloadLink.href = blobUrl;
+      downloadLink.download = fileName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    };
+
+    initiateDownload(blobUrl, fileName);
   };
   
-  // Get the zoomed in version of the core from the .svs image
-  getRegionFromWSI(svsImageURL, tileParams, 1).then(async imageResp => {
-    console.log("HERE")
-      // .then(async imageUrl => {
-        // Draw the image on the canvas
-        // var ctx = canvas.getContext('2d');
-        var img = new Image();
-        img.width = 40
-        img.height = 40
-        img.onload = function() {
-          // ctx.drawImage(img, 0, 0, core.width, core.height);
-          resolve(img);
-        };
-        // img.onerror = reject;
 
-        const objectURL = await imageResp.blob();
-        img.src = URL.createObjectURL(objectURL);
-        // return img 
-      })
-    })
-      // })
-      // .catch(reject);
-  // });
+  // Append children to the container
+  container.appendChild(img);
+  container.appendChild(overlay);
+
+  return new Promise((resolve, reject) => {
+    // Adjust the img.onload function as necessary to handle the blob URL...
+    img.onload = function () {
+      resolve(container); // Resolve with the container
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(blob); // Create a blob URL from the blob
+  });
 }
 
 
+function updateGridSpacingInVirtualGridForSVS(horizontalSpacing, verticalSpacing, startingX, startingY) {
+  const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
+  virtualGridDiv.style.display = "grid";
+
+  // Here we ensure that the gridTemplateColumns property sets the width of the grid items,
+  virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, 1fr)`;
+  
+  // Adjusting the gap property: first value for vertical spacing between rows, second value for horizontal spacing between columns
+  virtualGridDiv.style.gap = `${verticalSpacing}px ${horizontalSpacing}px`;
+  
+  virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
+  virtualGridDiv.style.width = '100%';
+}
+  
 async function drawVirtualGridFromWSI(
   svsImageURL,
+  sortedCoresData,
+  coreSize = 256
+) {
+
+
+  const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
+  virtualGridDiv.innerHTML = ''; // Clear existing content
+
+  // Calculate grid dimensions
+  const maxRow = Math.max(...sortedCoresData.map(core => core.row)) + 1;
+  const maxCol = Math.max(...sortedCoresData.map(core => core.col)) + 1;
+
+  // Create and append column headers
+  for (let col = 0; col < maxCol; col++) {
+    const columnHeader = document.createElement('div');
+    columnHeader.textContent = `${col + 1}`;
+    columnHeader.style.gridRow = 1; // Place in the first row
+    columnHeader.style.gridColumn = col + 2; // Offset by 1 for headers
+    columnHeader.classList.add('grid-header');
+    virtualGridDiv.appendChild(columnHeader);
+  }
+
+  // Create and append row headers
+  for (let row = 0; row < maxRow; row++) {
+    const rowHeader = document.createElement('div');
+    rowHeader.textContent = `${row + 1}`;
+    rowHeader.style.gridColumn = 1; // Place in the first column
+    rowHeader.style.gridRow = row + 2; // Offset by 1 for headers
+    rowHeader.classList.add('grid-header');
+    virtualGridDiv.appendChild(rowHeader);
+  }
+
+  // Adjust the container to include headers in its grid template
+  virtualGridDiv.style.gridTemplateColumns = `auto repeat(${maxCol}, 1fr)`;
+  virtualGridDiv.style.gridTemplateRows = `auto repeat(${maxRow}, 1fr)`;
+
+
+  const concurrencyLimit = 10;
+  let activePromises = [];
+  for (const core of sortedCoresData) {
+    const promise = createImageForCore(svsImageURL, core, coreSize).then((img) => {
+      // Position the image in the grid based on the core's row and col properties
+      img.style.gridColumn = core.col + 2; // CSS grid lines are 1-based
+      img.style.gridRow = core.row + 2;
+      return img;
+    });
+    activePromises.push(promise);
+
+    if (activePromises.length >= concurrencyLimit) {
+      await Promise.all(activePromises).then((images) => {
+        images.forEach((img) => virtualGridDiv.appendChild(img));
+      });
+      activePromises = [];
+    }
+  }
+  await Promise.all(activePromises).then((images) => {
+    images.forEach((img) => virtualGridDiv.appendChild(img));
+  });
+}
+
+
+function drawVirtualGridFromPNG(
   sortedCoresData,
   horizontalSpacing,
   verticalSpacing,
   startingX,
-  startingY,
-  coreSize = 256,
+  startingY
 ) {
-  var virtualGridDiv = document.getElementById("VirtualGrid");
-
-  // Set the display property to grid
-  virtualGridDiv.style.display = 'grid';
-
-  // Set the grid-template-columns property based on the horizontal spacing
-  virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, minmax(${horizontalSpacing}px, 1fr))`;
-
-  // Set the grid-gap property based on the vertical spacing
-  virtualGridDiv.style.gridGap = `${verticalSpacing}px`;
-
-  // Set the padding property based on the starting values
-  virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
-
-  // Create a canvas for each core and append it to the VirtualGrid div
-  // Promise.all(
-    sortedCoresData.forEach(core => {
-  // for (let core of sortedCoresData) {
-    createCanvasForCore(svsImageURL, core, coreSize).then(img => 
-     virtualGridDiv.appendChild(img)
-     )
-  // }
-    // .then(canvases => {
-    //   canvases.forEach(canvas => {
-    //   });
-    // })
-    // .catch(error => {
-    //   console.error('Error creating canvases:', error);
-    });
-}
-
-
-function drawVirtualGridFromPNG(  sortedCoresData,
-  horizontalSpacing,
-  verticalSpacing,
-  startingX,
-  startingY){
   // Use the loaded image if available, otherwise use default or file input image
   const imageSrc = window.loadedImg
-  ? window.loadedImg.src
-  : document.getElementById("fileInput").files.length > 0
-  ? URL.createObjectURL(document.getElementById("fileInput").files[0])
-  : "path/to/default/image.jpg";
+    ? window.loadedImg.src
+    : document.getElementById("fileInput").files.length > 0
+    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+    : "path/to/default/image.jpg";
 
-const virtualGridCanvas = document.getElementById("virtualGridCanvas");
-if (!virtualGridCanvas) {
-  console.error("Virtual grid canvas not found");
-  return;
-}
+  const virtualGridCanvas = document.getElementById("virtualGridCanvas");
+  if (!virtualGridCanvas) {
+    console.error("Virtual grid canvas not found");
+    return;
+  }
 
-const rows =
-  sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
-const cols =
-  sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
-const defaultRadius = parseInt(document.getElementById("userRadius").value);
-virtualGridCanvas.width =
-  cols * horizontalSpacing + defaultRadius * 2 + startingX;
-virtualGridCanvas.height =
-  rows * verticalSpacing + defaultRadius * 2 + startingY;
+  const rows =
+    sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
+  const cols =
+    sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
+  const defaultRadius = parseInt(document.getElementById("userRadius").value);
+  virtualGridCanvas.width =
+    cols * horizontalSpacing + defaultRadius * 2 + startingX;
+  virtualGridCanvas.height =
+    rows * verticalSpacing + defaultRadius * 2 + startingY;
 
-const vctx = virtualGridCanvas.getContext("2d");
-const img = new Image();
-img.src = imageSrc;
+  const vctx = virtualGridCanvas.getContext("2d");
+  const img = new Image();
+  img.src = imageSrc;
 
-img.onload = () => {
-  vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
+  img.onload = () => {
+    vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
 
-  sortedCoresData.forEach((core) => {
-    const idealX = startingX + core.col * horizontalSpacing;
-    const idealY = startingY + core.row * verticalSpacing;
-    const userRadius = core.currentRadius * window.scalingFactor;
+    sortedCoresData.forEach((core) => {
+      const idealX = startingX + core.col * horizontalSpacing;
+      const idealY = startingY + core.row * verticalSpacing;
+      const userRadius = core.currentRadius * window.scalingFactor;
 
-    vctx.save();
-    vctx.beginPath();
-    vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
-    vctx.closePath();
+      vctx.save();
+      vctx.beginPath();
+      vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
+      vctx.closePath();
 
-    // Use the isImaginary flag to determine the stroke style
-    vctx.strokeStyle = core.isImaginary ? "red" : "green";
-    vctx.lineWidth = 2; // Adjust line width as needed
-    vctx.stroke();
+      // Use the isImaginary flag to determine the stroke style
+      vctx.strokeStyle = core.isImaginary ? "red" : "green";
+      vctx.lineWidth = 2; // Adjust line width as needed
+      vctx.stroke();
 
-    vctx.clip();
+      vctx.clip();
 
-    const sourceX = core.x * window.scalingFactor - userRadius;
-    const sourceY = core.y * window.scalingFactor - userRadius;
+      const sourceX = core.x * window.scalingFactor - userRadius;
+      const sourceY = core.y * window.scalingFactor - userRadius;
 
-    vctx.drawImage(
-      img,
-      sourceX,
-      sourceY,
-      userRadius * 2,
-      userRadius * 2,
-      idealX - userRadius,
-      idealY - userRadius,
-      userRadius * 2,
-      userRadius * 2
-    );
+      vctx.drawImage(
+        img,
+        sourceX,
+        sourceY,
+        userRadius * 2,
+        userRadius * 2,
+        idealX - userRadius,
+        idealY - userRadius,
+        userRadius * 2,
+        userRadius * 2
+      );
 
-    vctx.restore();
+      vctx.restore();
 
-    vctx.fillStyle = "black"; // Text color
-    vctx.font = "12px Arial"; // Text font and size
-    vctx.fillText(
-      `(${core.row + 1},${core.col + 1})`,
-      idealX - userRadius / 2,
-      idealY - userRadius / 2
-    );
-  });
-};
+      vctx.fillStyle = "black"; // Text color
+      vctx.font = "12px Arial"; // Text font and size
+      vctx.fillText(
+        `(${core.row + 1},${core.col + 1})`,
+        idealX - userRadius / 2,
+        idealY - userRadius / 2
+      );
+    });
+  };
 
-img.onerror = () => {
-  console.error("Image failed to load.");
-};
+  img.onerror = () => {
+    console.error("Image failed to load.");
+  };
 }
 
 function updateVirtualGridSpacing(

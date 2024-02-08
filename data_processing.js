@@ -241,15 +241,23 @@ async function runTravelingAlgorithm(normalizedCores, params) {
 // Function to update the horizontal and vertical spacing based on the calculated distance between cores
 
 function updateSpacingInVirtualGrid(distance) {
-  document.getElementById("horizontalSpacing").value = distance.toFixed(2);
+  if (window.uploadedImageFileType === "svs") {
+    document.getElementById("horizontalSpacing").value = 0;
+    document.getElementById("verticalSpacing").value = 0;
 
-  document.getElementById("horizontalSpacingValue").textContent =
-    distance.toFixed(2);
+    document.getElementById("horizontalSpacingValue").textContent = "0";
 
-  document.getElementById("verticalSpacing").value = distance.toFixed(2);
+    document.getElementById("verticalSpacingValue").textContent = 0;
+  } else {
+    document.getElementById("horizontalSpacing").value = distance.toFixed(2);
+    document.getElementById("verticalSpacing").value = distance.toFixed(2);
 
-  document.getElementById("verticalSpacingValue").textContent =
-    distance.toFixed(2);
+    document.getElementById("horizontalSpacingValue").textContent =
+      distance.toFixed(2);
+
+    document.getElementById("verticalSpacingValue").textContent =
+      distance.toFixed(2);
+  }
 }
 
 // Updated function to accept hyperparameters and cores data

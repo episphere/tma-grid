@@ -1214,3 +1214,53 @@ label:disabled {
 svg {
   pointer-events: none;
 }
+
+
+#VirtualGridSVSContainer {
+  display: grid;
+  gap: 10px; /* Increased gap for better visual separation */
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.grid-header {
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: bold;
+  user-select: none;
+}
+
+.image-container {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.image-container:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(33, 37, 41, 0.55); /* Dark overlay with increased opacity */
+  color: white;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s;
+}
+
+.image-container:hover .image-overlay {
+  display: flex;
+  opacity: 1;
+}
