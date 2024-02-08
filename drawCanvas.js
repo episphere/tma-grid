@@ -1602,9 +1602,9 @@ function filterAndReassignCores(coresData, imageRotation) {
 
   filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
-  filteredCores = removeImaginaryCoresFilledRowsAndColumns(coresData);
+  filteredCores = removeImaginaryCoresFilledRowsAndColumns(filteredCores);
 
-  // filteredCores = alignMisalignedCores(filteredCores, imageRotation);
+  filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
   filteredCores = reassignCoreIndices(filteredCores);
 

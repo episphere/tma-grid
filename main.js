@@ -346,8 +346,6 @@ function validateMetadata(data, fileType = "csv") {
   window.metadataRowName = rowName;
   window.metadataColName = colName;
 
-  debugger;
-
   if (fileType == "csv") {
     window.userUploadedMetadata = [];
 
