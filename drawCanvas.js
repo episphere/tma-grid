@@ -736,7 +736,13 @@ function drawCore(core, index = -1) {
       if (index !== -1) {
         connectAdjacentCores(window.sortedCoresData[index], true);
 
-        updateColumnsInRowAfterModification(window.sortedCoresData[index].row);
+        const newRow = determineCoreRow(window.sortedCoresData[index], window.sortedCoresData);
+        const oldRow = window.sortedCoresData[index].row;
+
+        // Set new row of selected core
+        window.sortedCoresData[index].row = newRow;
+
+        updateRowsInGridAfterMovement(oldRow, newRow);
 
         const imageRotation = document.getElementById("originAngle").value;
         flagMisalignedCores(window.sortedCoresData, imageRotation);
@@ -973,8 +979,40 @@ function determineCoreRow(core, sortedCoresData) {
   return closestRow;
 }
 
+function updateRowsInGridAfterRemoval (modifiedRow) {
+
+  // Check if the removed core was the last real core in the row
+  const isLastRealCore =
+  window.sortedCoresData.filter(
+    (core) => core.row === modifiedRow && !core.isImaginary
+  ).length === 0;
+
+  if (isLastRealCore) {
+  // Remove all cores in the row
+  window.sortedCoresData = window.sortedCoresData.filter(
+    (core) => core.row !== modifiedRow
+  );
+  window.sortedCoresData.forEach((core) => {
+    if (core.row > modifiedRow) {
+      core.row -= 1;
+    }
+  });
+  }
+
+  if (!isLastRealCore) {
+  // Update columns only if the row was not removed
+  updateColumnsInRowAfterModification(modifiedRow);
+  }
+};
+
+function updateRowsInGridAfterMovement(oldRow, newRow) {
+  updateRowsInGridAfterRemoval(oldRow);
+  updateColumnsInRowAfterModification(newRow);
+
+}
+
+
 function removeCoreFromGrid(core) {
-  const resData = window.sortedCoresData.filter((core) => !core.isTemporary);
   let coreIndex = window.sortedCoresData.findIndex(
     (coreToRemove) => coreToRemove.x === core.x && coreToRemove.y === core.y
   );
@@ -986,34 +1024,12 @@ function removeCoreFromGrid(core) {
 
   if (!core.isTemporary) {
     const modifiedRow = window.sortedCoresData[coreIndex].row;
-
     // Remove the selected core
     window.sortedCoresData.splice(coreIndex, 1);
 
-    // Check if the removed core was the last real core in the row
-    const isLastRealCore =
-      window.sortedCoresData.filter(
-        (core) => core.row === modifiedRow && !core.isImaginary
-      ).length === 0;
-
-    if (isLastRealCore) {
-      // Remove all cores in the row
-      window.sortedCoresData = window.sortedCoresData.filter(
-        (core) => core.row !== modifiedRow
-      );
-      resData.forEach((core) => {
-        if (core.row > modifiedRow) {
-          core.row -= 1;
-        }
-      });
-    }
+    updateRowsInGridAfterRemoval(modifiedRow);
 
 
-
-    if (!isLastRealCore) {
-      // Update columns only if the row was not removed
-      updateColumnsInRowAfterModification(modifiedRow);
-    }
 
     flagMisalignedCores(
       window.sortedCoresData,
