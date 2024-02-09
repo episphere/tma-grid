@@ -289,7 +289,10 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
   drawCores();
 }
 function connectAdjacentCores(core, updateSurroundings = false) {
-  if (!document.getElementById("connectCoresCheckbox").checked) {
+  if (
+    !document.getElementById("connectCoresCheckbox").checked ||
+    core.isMarker
+  ) {
     // If the checkbox is checked, draw lines between adjacent cores
     return;
   }
@@ -730,7 +733,7 @@ function drawCore(core, index = -1) {
     dragEndHandler: (e) => {
       const overlay = window.viewer.getOverlayById(overlayElement);
       overlay.element.style.cursor = "grab";
-      if (index !== -1 ) {
+      if (index !== -1 && !core.isMarker) {
         connectAdjacentCores(window.sortedCoresData[index], true);
 
         const newRow = determineCoreRow(
@@ -743,15 +746,12 @@ function drawCore(core, index = -1) {
         window.sortedCoresData[index].row = newRow;
 
         // Only update if the core isn't a marker
-        if (!window.sortedCoresData[index].isMarker) {
-          updateRowsInGridAfterMovement(oldRow, newRow);
-        }
+        updateRowsInGridAfterMovement(oldRow, newRow);
 
         const imageRotation = document.getElementById("originAngle").value;
-        flagMisalignedCores(window.sortedCoresData, imageRotation);
-
-        // drawCore(window.sortedCoresData[index], index);
-
+        flagMisalignedCores(window.sortedCoresData, imageRotation, false);
+      } 
+      if (index !== -1) {
         drawCores();
       }
     },
@@ -850,12 +850,22 @@ function updateSidebar(core) {
   // const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
   const sidebarPrefix = "edit";
 
-  document.getElementById(sidebarPrefix + "RowInput").value = core
-    ? core.row + 1
-    : "";
-  document.getElementById(sidebarPrefix + "ColumnInput").value = core
-    ? core.col + 1
-    : "";
+  if (!core.isMarker) {
+    document.getElementById(sidebarPrefix + "RowInput").value = core
+      ? core.row + 1
+      : "";
+    document.getElementById(sidebarPrefix + "ColumnInput").value = core
+      ? core.col + 1
+      : "";
+  } else {
+    document.getElementById(sidebarPrefix + "RowInput").value = core
+      ? core.row
+      : "";
+    document.getElementById(sidebarPrefix + "ColumnInput").value = core
+      ? core.col
+      : "";
+  }
+
   document.getElementById(sidebarPrefix + "XInput").value = core
     ? core.x * window.scalingFactor
     : "";
@@ -871,6 +881,8 @@ function updateSidebar(core) {
     !core?.isImaginary;
   document.getElementById(sidebarPrefix + "ImaginaryInput").checked =
     core?.isImaginary;
+  document.getElementById(sidebarPrefix + "IsMarkerInput").checked =
+    core?.isMarker;
 
   const saveHandler = (e) => {
     if (saveCore(core)) {
@@ -904,8 +916,15 @@ function saveCore(core) {
     return false;
   }
 
-  core.row = parseInt(document.getElementById("editRowInput").value, 10) - 1;
-  core.col = parseInt(document.getElementById("editColumnInput").value, 10) - 1;
+  if (document.getElementById("editRowInput").value != -1) {
+    core.row = parseInt(document.getElementById("editRowInput").value, 10) - 1;
+    core.col =
+      parseInt(document.getElementById("editColumnInput").value, 10) - 1;
+  } else {
+    core.row = parseInt(document.getElementById("editRowInput").value, 10);
+    core.col = parseInt(document.getElementById("editColumnInput").value, 10);
+  }
+
   core.x =
     parseFloat(document.getElementById("editXInput").value) /
     window.scalingFactor;
@@ -923,23 +942,27 @@ function saveCore(core) {
   // Update the isMarker property based on which radio button is checked
   core.isMarker = document.getElementById("editIsMarkerInput").checked;
 
-
   const coreIndex = window.sortedCoresData.findIndex(
     (prevCore) => prevCore.x === core.x && prevCore.y === core.y
   );
 
-  window.sortedCoresData[coreIndex] = core;
-
-  if (document.getElementById("editAutoUpdateRowsCheckbox").checked) {
+  if (
+    document.getElementById("editAutoUpdateRowsCheckbox").checked &&
+    !document.getElementById("editIsMarkerInput").checked
+  ) {
     core.row = determineCoreRow(core, window.sortedCoresData);
   }
 
   if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
-    updateColumnsInRowAfterModification(core.row);
-
+    if (!core.isMarker) {
+      updateColumnsInRowAfterModification(core.row);
+    }
     if (oldRow !== core.row) {
       updateColumnsInRowAfterModification(oldRow);
     }
+
+    window.sortedCoresData[coreIndex] = core;
+
     updateSidebar(core);
   }
 
@@ -953,7 +976,8 @@ function saveCore(core) {
   // Reflag for misaligned cores
   window.sortedCoresData = flagMisalignedCores(
     window.sortedCoresData,
-    imageRotation
+    imageRotation,
+    false
   );
 
   drawCores(); // Redraw the cores with the updated data
@@ -1035,7 +1059,8 @@ function removeCoreFromGrid(core) {
 
     flagMisalignedCores(
       window.sortedCoresData,
-      parseFloat(document.getElementById("originAngle").value)
+      parseFloat(document.getElementById("originAngle").value),
+      false
     );
   } else {
     // Remove the selected core
@@ -1182,7 +1207,9 @@ async function findOptimalAngle(
     const misalignedCoresCount = sortedCoresData.filter(
       (core) => core.isMisaligned
     ).length;
-    const rows = new Set(sortedCoresData.filter((core) => !core.isMarker).map((core) => core.row)).size; // Unique rows count
+    const rows = new Set(
+      sortedCoresData.filter((core) => !core.isMarker).map((core) => core.row)
+    ).size; // Unique rows count
     return { angle, imaginaryCoresCount, rows, misalignedCoresCount };
   };
 
@@ -1384,7 +1411,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
   const medianValues = { rows: {}, columns: {} };
 
   Object.keys(columnValues).forEach((col) => {
-    if (columnValues[col].x.length > 1) {
+    if (columnValues[col].x.length > 1 && parseInt(col) !== -1) {
       medianValues.columns[col] = {
         medianX: calculateMedian(columnValues[col].x),
         medianY: calculateMedian(columnValues[col].y),
@@ -1393,16 +1420,18 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
   });
 
   Object.keys(rowValues).forEach((row) => {
-    medianValues.rows[row] = {
-      medianX: calculateMedian(rowValues[row].x),
-      medianY: calculateMedian(rowValues[row].y),
-    };
+    if (parseInt(row) !== -1) {
+      medianValues.rows[row] = {
+        medianX: calculateMedian(rowValues[row].x),
+        medianY: calculateMedian(rowValues[row].y),
+      };
+    }
   });
 
   return medianValues;
 }
 
-function flagMisalignedCores(coresData, imageRotation) {
+function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
   // Count the number of cores in each column
@@ -1448,18 +1477,20 @@ function flagMisalignedCores(coresData, imageRotation) {
       core.isMisaligned = true;
     }
 
-    // If there isn't any medianRotatedXValues within 1.5 radius of the rotatedX, mark the core as a marker instead of misaligned
-
-    if (
-      !Object.keys(medianRotatedXValues).some(
-        (col) =>
-          Math.abs(medianRotatedXValues[col] - rotatedX) <
-          1.25 * core.currentRadius
-      )
-    ) {
-      core.row = -1;
-      core.col = -1;
-      core.isMarker = true;
+    if (checkMarker) {
+      if (
+        !Object.keys(medianRotatedXValues).some(
+          (col) =>
+            Math.abs(medianRotatedXValues[col] - rotatedX) <
+            1.25 * core.currentRadius
+        )
+      ) {
+        core.row = -1;
+        core.col = -1;
+        core.isMarker = true;
+      } else {
+        core.isMarker = false;
+      }
     }
   });
 
@@ -1478,7 +1509,11 @@ function reassignCoreIndices(coresData) {
     .filter((value, index, self) => self.indexOf(value) === index)
     .sort((a, b) => a - b)
     .forEach((originalRow) => {
-      rowMap[originalRow] = rowIndex++;
+      if (originalRow != -1) {
+        rowMap[originalRow] = rowIndex++;
+      } else {
+        rowMap[originalRow] = originalRow;
+      }
     });
 
   // Reassign column indices within each row
@@ -1506,7 +1541,7 @@ function alignMisalignedCores(coresData, imageRotation) {
   // Count the number of cores in each column
   const coreCounts = {};
   coresData.forEach((core) => {
-    if (!core.isMisaligned && !core.isMarker) {
+    if (!core.isMarker) {
       coreCounts[core.col] = (coreCounts[core.col] || 0) + 1;
     }
   });
@@ -1550,7 +1585,7 @@ function alignMisalignedCores(coresData, imageRotation) {
 }
 
 function filterAndReassignCores(coresData, imageRotation) {
-  let filteredCores = flagMisalignedCores(coresData, imageRotation);
+  let filteredCores = flagMisalignedCores(coresData, imageRotation, true);
 
   filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
@@ -1558,7 +1593,7 @@ function filterAndReassignCores(coresData, imageRotation) {
 
   filteredCores = reassignCoreIndices(filteredCores);
 
-  filteredCores = flagMisalignedCores(filteredCores, imageRotation);
+  filteredCores = flagMisalignedCores(filteredCores, imageRotation, true);
   return filteredCores;
 }
 
