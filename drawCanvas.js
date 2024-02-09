@@ -962,10 +962,6 @@ function saveCore(core) {
 function determineCoreRow(core, sortedCoresData) {
   let imageRotation = parseFloat(document.getElementById("originAngle").value);
 
-  if (Math.abs(imageRotation) < 10) {
-    imageRotation = Math.round(imageRotation) / 3;
-  }
-
   // Determine rotated median Y value of each row
   const medianRows = Object.values(
     determineMedianRowColumnValues(sortedCoresData, imageRotation).rows
@@ -1158,43 +1154,7 @@ const addCoreHandler = (e) => {
   }
 };
 
-// Function to toggle the disabled state based on the checkbox
-function toggleColumnInput() {
-  var editAutoUpdateColumnsCheckbox = document.getElementById(
-    "editAutoUpdateColumnsCheckbox"
-  );
-  var columnInput = document.getElementById("editColumnInput");
 
-  // If the checkbox is checked, disable the column input
-  if (editAutoUpdateColumnsCheckbox.checked) {
-    columnInput.disabled = true;
-  } else {
-    // Otherwise, enable it
-    columnInput.disabled = false;
-  }
-}
-document
-  .getElementById("editAutoUpdateColumnsCheckbox")
-  .addEventListener("change", toggleColumnInput);
-
-function toggleRowInput() {
-  var editAutoUpdateRowsCheckbox = document.getElementById(
-    "editAutoUpdateRowsCheckbox"
-  );
-  var rowInput = document.getElementById("editRowInput");
-
-  // If the checkbox is checked, disable the column input
-  if (editAutoUpdateRowsCheckbox.checked) {
-    rowInput.disabled = true;
-  } else {
-    // Otherwise, enable it
-    rowInput.disabled = false;
-  }
-}
-
-document
-  .getElementById("editAutoUpdateRowsCheckbox")
-  .addEventListener("change", toggleRowInput);
 // Function to find the optimal angle that minimizes imaginary cores
 async function findOptimalAngle(
   preprocessedCores,

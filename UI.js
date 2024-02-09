@@ -132,14 +132,62 @@ function positionSidebarNextToCore(event) {
 // container.addEventListener('mousemove', positionSidebarAtCursor);
 
 
+// Function to toggle the disabled state based on the checkbox
+function toggleColumnInput() {
+  var editAutoUpdateColumnsCheckbox = document.getElementById(
+    "editAutoUpdateColumnsCheckbox"
+  );
+  var columnInput = document.getElementById("editColumnInput");
+
+  // If the checkbox is checked, disable the column input
+  if (editAutoUpdateColumnsCheckbox.checked) {
+    columnInput.disabled = true;
+  } else {
+    // Otherwise, enable it
+    columnInput.disabled = false;
+  }
+}
+document
+  .getElementById("editAutoUpdateColumnsCheckbox")
+  .addEventListener("change", toggleColumnInput);
+
+function toggleRowInput() {
+  var editAutoUpdateRowsCheckbox = document.getElementById(
+    "editAutoUpdateRowsCheckbox"
+  );
+  var rowInput = document.getElementById("editRowInput");
+
+  // If the checkbox is checked, disable the column input
+  if (editAutoUpdateRowsCheckbox.checked) {
+    rowInput.disabled = true;
+  } else {
+    // Otherwise, enable it
+    rowInput.disabled = false;
+  }
+}
+
+document
+  .getElementById("editAutoUpdateRowsCheckbox")
+  .addEventListener("change", toggleRowInput);
+
 
 function hideSidebar() {
   const sidebar = document.getElementById("editSidebar");
   sidebar.style.display = "none";
+
+  if (document.getElementById("editAutoUpdateRowsCheckbox").checked == false){
+    document.getElementById("editAutoUpdateRowsCheckbox").checked = true;
+    toggleRowInput();
+  };
+
+  if (document.getElementById("editAutoUpdateColumnsCheckbox").checked == false){
+    document.getElementById("editAutoUpdateColumnsCheckbox").checked = true;
+    toggleColumnInput();
+  }
+  
 }
 
-document.getElementById("editAutoUpdateRowsCheckbox").checked = true;
-document.getElementById("editAutoUpdateColumnsCheckbox").checked = true;
+
 
 // Pure function to update HTML element properties
 const updateElementProperty = (element, property, value) => {
