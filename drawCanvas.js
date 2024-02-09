@@ -1149,83 +1149,46 @@ async function findOptimalAngle(
   updateUI
 ) {
   let targetRange = { start: -10, end: 10 };
-  let searchIncrement = 1; // Fine-grained for targeted search
-  let anglesWithMinCores = []; // Store angles with the minimum imaginary cores
+  let searchIncrement = 1;
+  let anglesData = []; // Store angles along with their imaginary cores and row counts
 
-  // Function to run the algorithm and count imaginary cores
-  const countImaginaryCores = async (angle) => {
+  // Function to evaluate each angle
+  const evaluateAngle = async (angle) => {
     updateUI(angle);
     const hyperparameters = getHyperparameters(angle);
-    const sortedCoresData = await runAlgorithm(
-      preprocessedCores,
-      hyperparameters
-    );
-    return [
-      sortedCoresData.filter((core) => core.isImaginary).length,
-      sortedCoresData.length,
-    ];
+    const sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
+    const imaginaryCoresCount = sortedCoresData.filter(core => core.isImaginary).length;
+    const rows = new Set(sortedCoresData.map(core => core.row)).size; // Count unique rows
+    return { angle, imaginaryCoresCount, rows };
   };
 
-  // Perform the initial targeted search and collect imaginary cores count
   let minImaginaryCores = Infinity;
-  let minImaginaryCorePercentage = Infinity;
-  for (
-    let angle = targetRange.start;
-    angle <= targetRange.end;
-    angle += searchIncrement
-  ) {
-    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(
-      angle
-    );
-    if (imaginaryCoresCount < minImaginaryCores) {
+  let minRows = Infinity;
+
+  // Initial targeted search
+  for (let angle = targetRange.start; angle <= targetRange.end; angle += searchIncrement) {
+    const { angle: currentAngle, imaginaryCoresCount, rows } = await evaluateAngle(angle);
+
+    // Optimization logic for imaginary cores and rows
+    if (imaginaryCoresCount < minImaginaryCores || (imaginaryCoresCount === minImaginaryCores && rows < minRows)) {
       minImaginaryCores = imaginaryCoresCount;
-      minImaginaryCorePercentage = imaginaryCoresCount / totalCoresCount;
-      anglesWithMinCores = [angle]; // Reset the array as this is the new minimum
-    } else if (imaginaryCoresCount === minImaginaryCores) {
-      anglesWithMinCores.push(angle); // Add this angle to the list of optimal angles
+      minRows = rows;
+      anglesData = [{ angle: currentAngle, imaginaryCoresCount, rows }];
+    } else if (imaginaryCoresCount === minImaginaryCores && rows === minRows) {
+      anglesData.push({ angle: currentAngle, imaginaryCoresCount, rows });
     }
   }
 
-  // Calculate the median of the angles with the minimum imaginary cores
-  const medianAngle =
-    anglesWithMinCores.length % 2 === 0
-      ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
-          anglesWithMinCores[anglesWithMinCores.length / 2]) /
-        2
-      : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
+  // Determine the optimal angle by finding the median angle
+  anglesData.sort((a, b) => a.angle - b.angle); // Sort by angle for median calculation
+  const medianIndex = Math.floor(anglesData.length / 2);
+  const medianAngle = anglesData.length % 2 !== 0 ? 
+    anglesData[medianIndex].angle : 
+    (anglesData[medianIndex - 1].angle + anglesData[medianIndex].angle) / 2;
 
-  // If zero is among the optimal angles, return it as the optimal angle
-  if (anglesWithMinCores.includes(0)) {
-    return 0;
-  }
-
-  // If the median angle is within the targeted range, return it as the optimal angle
-  if (minImaginaryCorePercentage < 0.3) {
-    return medianAngle;
-  }
-
-  // Otherwise, perform a broader search
-  searchIncrement = 2; // Coarser increment for broad search
-  for (let angle = -50; angle <= 50; angle += searchIncrement) {
-    if (angle >= targetRange.start && angle <= targetRange.end) continue; // Skip the targeted range
-    const [imaginaryCoresCount, totalCoresCount] = await countImaginaryCores(
-      angle
-    );
-    if (imaginaryCoresCount < minImaginaryCores) {
-      minImaginaryCores = imaginaryCoresCount;
-      anglesWithMinCores = [angle]; // Reset the array as this is the new minimum
-    } else if (imaginaryCoresCount === minImaginaryCores) {
-      anglesWithMinCores.push(angle); // Add this angle to the list of optimal angles
-    }
-  }
-
-  // Recalculate the median for the broader search
-  return anglesWithMinCores.length % 2 === 0
-    ? (anglesWithMinCores[anglesWithMinCores.length / 2 - 1] +
-        anglesWithMinCores[anglesWithMinCores.length / 2]) /
-        2
-    : anglesWithMinCores[Math.floor(anglesWithMinCores.length / 2)];
+  return medianAngle;
 }
+
 
 async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   if (!window.preprocessedCores) {

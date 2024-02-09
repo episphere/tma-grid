@@ -814,15 +814,6 @@ const initSegmentation = async () => {
   const state = await loadDependencies();
   window.state = state;
 
-
-  // Set auto assign row and auto assign column to true after clicking the closeEditCoreButton button
-
-  document.getElementById("closeEditCoreButton").addEventListener("click", function () {
-
-    document.getElementById("editAutoUpdateRowsCheckbox").checked = true;
-    document.getElementById("editAutoUpdateColumnsCheckbox").checked = true;
-  });
-
   document
     .getElementById("fileInput")
     .addEventListener("change", (e) =>
@@ -927,7 +918,7 @@ const initSegmentation = async () => {
         return imageInfo;
       };
       document.getElementById("rawDataLoadingSpinner").style.display = "block";
-      document.getElementById("rawDataTabButton").click();
+
       let tileSources = {};
 
       const imageInfo = getImageInfo();
@@ -990,20 +981,18 @@ const initSegmentation = async () => {
       );
 
       window.viewer.addOnceHandler("open", () => {
-        document.getElementById("rawDataLoadingSpinner").style.display = "none";
+
         window.viewer.world
           .getItemAt(0)
           .addOnceHandler("fully-loaded-change", () => {
+            document.getElementById("rawDataLoadingSpinner").style.display = "none";
+
+            document.getElementById("rawDataTabButton").disabled = false;
+            document.getElementById("rawDataTabButton").click();
             preprocessForTravelingAlgorithm();
-            //     // showPopup("popupSegmentation");
-            //     document.getElementById("rawDataTabButton").click();
-            //     setTimeout(() => {
-            //       window.viewer.viewport.goHome(true);
-            //       setTimeout(preprocessForTravelingAlgorithm, 0)
-            //     }, 100)
+
           });
       });
-      document.getElementById("rawDataTabButton").disabled = false;
 
     });
 
