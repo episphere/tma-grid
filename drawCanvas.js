@@ -1156,7 +1156,12 @@ async function findOptimalAngle(
   const evaluateAngle = async (angle) => {
     updateUI(angle);
     const hyperparameters = getHyperparameters(angle);
-    const sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
+    let sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
+    sortedCoresData = filterAndReassignCores(
+      sortedCoresData,
+      hyperparameters.originAngle
+    );
+  
     const imaginaryCoresCount = sortedCoresData.filter(core => core.isImaginary).length;
     const rows = new Set(sortedCoresData.map(core => core.row)).size; // Count unique rows
     return { angle, imaginaryCoresCount, rows };
@@ -1517,9 +1522,9 @@ function obtainHyperparametersAndDrawVirtualGrid() {
     startingY,
     true
   );
+  document.getElementById("virtualGridTabButton").disabled = false;
 
   showPopup("popupGridding");
-  document.getElementById("virtualGridTabButton").disabled = false;
 }
 
 async function createVirtualGrid(
