@@ -1161,9 +1161,9 @@ const addCoreHandler = (e) => {
 // Function to toggle the disabled state based on the checkbox
 function toggleColumnInput() {
   var editAutoUpdateColumnsCheckbox = document.getElementById(
-    currentMode + "AutoUpdateColumnsCheckbox"
+    "editAutoUpdateColumnsCheckbox"
   );
-  var columnInput = document.getElementById(currentMode + "ColumnInput");
+  var columnInput = document.getElementById("editColumnInput");
 
   // If the checkbox is checked, disable the column input
   if (editAutoUpdateColumnsCheckbox.checked) {

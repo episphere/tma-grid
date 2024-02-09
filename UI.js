@@ -138,6 +138,9 @@ function hideSidebar() {
   sidebar.style.display = "none";
 }
 
+document.getElementById("editAutoUpdateRowsCheckbox").checked = true;
+document.getElementById("editAutoUpdateColumnsCheckbox").checked = true;
+
 // Pure function to update HTML element properties
 const updateElementProperty = (element, property, value) => {
   element[property] = value;

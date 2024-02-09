@@ -65,6 +65,8 @@ function openTab(evt, tabName) {
 // When the window loads, open the default tab
 window.onload = openDefaultTab;
 
+
+
 // Function to switch to the gridding tab
 function switchToGridding() {
   closePopup("popupSegmentation");
@@ -811,6 +813,15 @@ function bindEventListeners() {
 const initSegmentation = async () => {
   const state = await loadDependencies();
   window.state = state;
+
+
+  // Set auto assign row and auto assign column to true after clicking the closeEditCoreButton button
+
+  document.getElementById("closeEditCoreButton").addEventListener("click", function () {
+
+    document.getElementById("editAutoUpdateRowsCheckbox").checked = true;
+    document.getElementById("editAutoUpdateColumnsCheckbox").checked = true;
+  });
 
   document
     .getElementById("fileInput")
