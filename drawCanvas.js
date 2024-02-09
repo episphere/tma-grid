@@ -1150,21 +1150,18 @@ async function findOptimalAngle(
 ) {
   let targetRange = { start: -10, end: 10 };
   let searchIncrement = 1;
-  let anglesData = []; // Store angles along with their imaginary cores and row counts
+  let optimalAnglesData = []; // Track angles and their stats for comparison
 
   // Function to evaluate each angle
   const evaluateAngle = async (angle) => {
     updateUI(angle);
     const hyperparameters = getHyperparameters(angle);
     let sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
-    sortedCoresData = filterAndReassignCores(
-      sortedCoresData,
-      hyperparameters.originAngle
-    );
-  
+    sortedCoresData = filterAndReassignCores(sortedCoresData, angle);
     const imaginaryCoresCount = sortedCoresData.filter(core => core.isImaginary).length;
-    const rows = new Set(sortedCoresData.map(core => core.row)).size; // Count unique rows
-    return { angle, imaginaryCoresCount, rows };
+    const misalignedCoresCount = sortedCoresData.filter(core => core.isMisaligned).length;
+    const rows = new Set(sortedCoresData.map(core => core.row)).size; // Unique rows count
+    return { angle, imaginaryCoresCount, rows, misalignedCoresCount };
   };
 
   let minImaginaryCores = Infinity;
@@ -1172,28 +1169,40 @@ async function findOptimalAngle(
 
   // Initial targeted search
   for (let angle = targetRange.start; angle <= targetRange.end; angle += searchIncrement) {
-    const { angle: currentAngle, imaginaryCoresCount, rows } = await evaluateAngle(angle);
+    const evaluationResult = await evaluateAngle(angle);
 
-    // Optimization logic for imaginary cores and rows
-    if (imaginaryCoresCount < minImaginaryCores || (imaginaryCoresCount === minImaginaryCores && rows < minRows)) {
-      minImaginaryCores = imaginaryCoresCount;
-      minRows = rows;
-      anglesData = [{ angle: currentAngle, imaginaryCoresCount, rows }];
-    } else if (imaginaryCoresCount === minImaginaryCores && rows === minRows) {
-      anglesData.push({ angle: currentAngle, imaginaryCoresCount, rows });
+    // Update minimums and optimal angles based on primary and secondary goals
+    if (evaluationResult.imaginaryCoresCount < minImaginaryCores ||
+        (evaluationResult.imaginaryCoresCount === minImaginaryCores && evaluationResult.rows < minRows)) {
+      minImaginaryCores = evaluationResult.imaginaryCoresCount;
+      minRows = evaluationResult.rows;
+      optimalAnglesData = [evaluationResult]; // Reset with new optimal result
+    } else if (evaluationResult.imaginaryCoresCount === minImaginaryCores && evaluationResult.rows === minRows) {
+      optimalAnglesData.push(evaluationResult); // Add to optimal results for tiebreaking
     }
   }
 
-  // Determine the optimal angle by finding the median angle
-  anglesData.sort((a, b) => a.angle - b.angle); // Sort by angle for median calculation
-  const medianIndex = Math.floor(anglesData.length / 2);
-  const medianAngle = anglesData.length % 2 !== 0 ? 
-    anglesData[medianIndex].angle : 
-    (anglesData[medianIndex - 1].angle + anglesData[medianIndex].angle) / 2;
+  // Tiebreaker: Among angles with same minImaginaryCores and minRows, find minMisalignedCores
+  let minMisalignedCores = Infinity;
+  let finalOptimalAngles = [];
+  optimalAnglesData.forEach(angleData => {
+    if (angleData.misalignedCoresCount < minMisalignedCores) {
+      minMisalignedCores = angleData.misalignedCoresCount;
+      finalOptimalAngles = [angleData.angle]; // Reset with new optimal result
+    } else if (angleData.misalignedCoresCount === minMisalignedCores) {
+      finalOptimalAngles.push(angleData.angle); // Multiple angles with same minMisalignedCores
+    }
+  });
+
+  // Find median angle from finalOptimalAngles
+  finalOptimalAngles.sort((a, b) => a - b);
+  const medianIndex = Math.floor(finalOptimalAngles.length / 2);
+  const medianAngle = finalOptimalAngles.length % 2 !== 0 ? 
+    finalOptimalAngles[medianIndex] : 
+    (finalOptimalAngles[medianIndex - 1] + finalOptimalAngles[medianIndex]) / 2;
 
   return medianAngle;
 }
-
 
 async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   if (!window.preprocessedCores) {
