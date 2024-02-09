@@ -170,6 +170,26 @@ document
   .getElementById("editAutoUpdateRowsCheckbox")
   .addEventListener("change", toggleRowInput);
 
+document.getElementById("editIsMarkerInput").addEventListener("change", function () {
+
+  // If the checkbox is checked, disable the column and row input and set the values of editRowInput and editColumnInput to -1
+
+  var editIsMarkerInput = document.getElementById("editIsMarkerInput");
+  var rowInput = document.getElementById("editRowInput");
+  var columnInput = document.getElementById("editColumnInput");
+
+  if (editIsMarkerInput.checked) {
+    rowInput.disabled = true;
+    columnInput.disabled = true;
+    rowInput.value = -1;
+    columnInput.value = -1;
+  } else {
+    // Otherwise, enable it
+    rowInput.disabled = false;
+    columnInput.disabled = false;
+  }
+});
+
 
 function hideSidebar() {
   const sidebar = document.getElementById("editSidebar");

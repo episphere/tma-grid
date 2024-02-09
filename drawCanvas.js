@@ -13,7 +13,6 @@ import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/+esm";
 
 import { getRegionFromWSI } from "./wsi.js";
 
-
 // const OSD_WIDTH_SCALEDOWN_FACTOR_FOR_EDIT_SIDEBAR = 0.8; // Adjust for the 20% width of the add core sidebar.
 
 let lastActionTime = 0;
@@ -280,7 +279,6 @@ function addSegmentationCanvasEventListeners(canvas) {
 }
 
 function drawCoresOnCanvasForTravelingAlgorithm() {
-
   document
     .getElementById("osdViewerAddCoreBtn")
     .removeEventListener("click", addCoreHandler);
@@ -289,11 +287,8 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     .getElementById("osdViewerAddCoreBtn")
     .addEventListener("click", addCoreHandler);
   drawCores();
-
 }
 function connectAdjacentCores(core, updateSurroundings = false) {
-
-
   if (!document.getElementById("connectCoresCheckbox").checked) {
     // If the checkbox is checked, draw lines between adjacent cores
     return;
@@ -604,7 +599,6 @@ const drawResizeHandles = (overlay, show = true) => {
 };
 
 function drawCores() {
-
   window.viewer.clearOverlays();
   window.viewer.svgOverlay().node().replaceChildren();
   window.viewer.removeAllHandlers("zoom");
@@ -628,7 +622,6 @@ function drawCores() {
   window.sortedCoresData.forEach((core) => {
     connectAdjacentCores(core, false);
   });
-
 }
 
 function drawCore(core, index = -1) {
@@ -662,6 +655,10 @@ function drawCore(core, index = -1) {
   }
   if (core.isSelected) {
     overlayElement.classList.add("selected");
+  }
+
+  if (core.isMarker) {
+    overlayElement.classList.add("marker");
   }
 
   if (document.getElementById("flagMisalignmentCheckbox").checked) {
@@ -733,16 +730,22 @@ function drawCore(core, index = -1) {
     dragEndHandler: (e) => {
       const overlay = window.viewer.getOverlayById(overlayElement);
       overlay.element.style.cursor = "grab";
-      if (index !== -1) {
+      if (index !== -1 ) {
         connectAdjacentCores(window.sortedCoresData[index], true);
 
-        const newRow = determineCoreRow(window.sortedCoresData[index], window.sortedCoresData);
+        const newRow = determineCoreRow(
+          window.sortedCoresData[index],
+          window.sortedCoresData
+        );
         const oldRow = window.sortedCoresData[index].row;
 
         // Set new row of selected core
         window.sortedCoresData[index].row = newRow;
 
-        updateRowsInGridAfterMovement(oldRow, newRow);
+        // Only update if the core isn't a marker
+        if (!window.sortedCoresData[index].isMarker) {
+          updateRowsInGridAfterMovement(oldRow, newRow);
+        }
 
         const imageRotation = document.getElementById("originAngle").value;
         flagMisalignedCores(window.sortedCoresData, imageRotation);
@@ -917,6 +920,10 @@ function saveCore(core) {
   // Update the isImaginary property based on which radio button is checked
   core.isImaginary = document.getElementById("editImaginaryInput").checked;
 
+  // Update the isMarker property based on which radio button is checked
+  core.isMarker = document.getElementById("editIsMarkerInput").checked;
+
+
   const coreIndex = window.sortedCoresData.findIndex(
     (prevCore) => prevCore.x === core.x && prevCore.y === core.y
   );
@@ -979,38 +986,35 @@ function determineCoreRow(core, sortedCoresData) {
   return closestRow;
 }
 
-function updateRowsInGridAfterRemoval (modifiedRow) {
-
+function updateRowsInGridAfterRemoval(modifiedRow) {
   // Check if the removed core was the last real core in the row
   const isLastRealCore =
-  window.sortedCoresData.filter(
-    (core) => core.row === modifiedRow && !core.isImaginary
-  ).length === 0;
+    window.sortedCoresData.filter(
+      (core) => core.row === modifiedRow && !core.isImaginary && !core.isMarker
+    ).length === 0;
 
   if (isLastRealCore) {
-  // Remove all cores in the row
-  window.sortedCoresData = window.sortedCoresData.filter(
-    (core) => core.row !== modifiedRow
-  );
-  window.sortedCoresData.forEach((core) => {
-    if (core.row > modifiedRow) {
-      core.row -= 1;
-    }
-  });
+    // Remove all cores in the row
+    window.sortedCoresData = window.sortedCoresData.filter(
+      (core) => core.row !== modifiedRow
+    );
+    window.sortedCoresData.forEach((core) => {
+      if (core.row > modifiedRow) {
+        core.row -= 1;
+      }
+    });
   }
 
   if (!isLastRealCore) {
-  // Update columns only if the row was not removed
-  updateColumnsInRowAfterModification(modifiedRow);
+    // Update columns only if the row was not removed
+    updateColumnsInRowAfterModification(modifiedRow);
   }
-};
+}
 
 function updateRowsInGridAfterMovement(oldRow, newRow) {
   updateRowsInGridAfterRemoval(oldRow);
   updateColumnsInRowAfterModification(newRow);
-
 }
-
 
 function removeCoreFromGrid(core) {
   let coreIndex = window.sortedCoresData.findIndex(
@@ -1022,14 +1026,12 @@ function removeCoreFromGrid(core) {
     return;
   }
 
-  if (!core.isTemporary) {
+  if (!core.isTemporary && !core.isMarker) {
     const modifiedRow = window.sortedCoresData[coreIndex].row;
     // Remove the selected core
     window.sortedCoresData.splice(coreIndex, 1);
 
     updateRowsInGridAfterRemoval(modifiedRow);
-
-
 
     flagMisalignedCores(
       window.sortedCoresData,
@@ -1053,9 +1055,7 @@ function removeCoreFromGrid(core) {
 //   });
 
 function updateColumnsInRowAfterModification(row) {
-  let imageRotation = parseFloat(
-    document.getElementById("originAngle").value
-  );
+  let imageRotation = parseFloat(document.getElementById("originAngle").value);
 
   // Create an array to hold the original cores with their rotated coordinates for sorting
   const coresWithRotatedCoordinates = window.sortedCoresData
@@ -1156,7 +1156,6 @@ const addCoreHandler = (e) => {
   }
 };
 
-
 // Function to find the optimal angle that minimizes imaginary cores
 async function findOptimalAngle(
   preprocessedCores,
@@ -1172,11 +1171,18 @@ async function findOptimalAngle(
   const evaluateAngle = async (angle) => {
     updateUI(angle);
     const hyperparameters = getHyperparameters(angle);
-    let sortedCoresData = await runAlgorithm(preprocessedCores, hyperparameters);
+    let sortedCoresData = await runAlgorithm(
+      preprocessedCores,
+      hyperparameters
+    );
     sortedCoresData = filterAndReassignCores(sortedCoresData, angle);
-    const imaginaryCoresCount = sortedCoresData.filter(core => core.isImaginary).length;
-    const misalignedCoresCount = sortedCoresData.filter(core => core.isMisaligned).length;
-    const rows = new Set(sortedCoresData.map(core => core.row)).size; // Unique rows count
+    const imaginaryCoresCount = sortedCoresData.filter(
+      (core) => core.isImaginary
+    ).length;
+    const misalignedCoresCount = sortedCoresData.filter(
+      (core) => core.isMisaligned
+    ).length;
+    const rows = new Set(sortedCoresData.filter((core) => !core.isMarker).map((core) => core.row)).size; // Unique rows count
     return { angle, imaginaryCoresCount, rows, misalignedCoresCount };
   };
 
@@ -1184,16 +1190,29 @@ async function findOptimalAngle(
   let minRows = Infinity;
 
   // Initial targeted search
-  for (let angle = targetRange.start; angle <= targetRange.end; angle += searchIncrement) {
+  for (
+    let angle = targetRange.start;
+    angle <= targetRange.end;
+    angle += searchIncrement
+  ) {
     const evaluationResult = await evaluateAngle(angle);
 
+    // // Update minimums and optimal angles based on primary and secondary goals
+    // if (evaluationResult.imaginaryCoresCount < minImaginaryCores ||
+    //     (evaluationResult.imaginaryCoresCount === minImaginaryCores && evaluationResult.rows < minRows)) {
+    //   minImaginaryCores = evaluationResult.imaginaryCoresCount;
+    //   minRows = evaluationResult.rows;
+    //   optimalAnglesData = [evaluationResult]; // Reset with new optimal result
+    // } else if (evaluationResult.imaginaryCoresCount === minImaginaryCores && evaluationResult.rows === minRows) {
+    //   optimalAnglesData.push(evaluationResult); // Add to optimal results for tiebreaking
+    // }
+
     // Update minimums and optimal angles based on primary and secondary goals
-    if (evaluationResult.imaginaryCoresCount < minImaginaryCores ||
-        (evaluationResult.imaginaryCoresCount === minImaginaryCores && evaluationResult.rows < minRows)) {
+    if (evaluationResult.rows < minRows) {
       minImaginaryCores = evaluationResult.imaginaryCoresCount;
       minRows = evaluationResult.rows;
       optimalAnglesData = [evaluationResult]; // Reset with new optimal result
-    } else if (evaluationResult.imaginaryCoresCount === minImaginaryCores && evaluationResult.rows === minRows) {
+    } else if (evaluationResult.rows === minRows) {
       optimalAnglesData.push(evaluationResult); // Add to optimal results for tiebreaking
     }
   }
@@ -1201,7 +1220,7 @@ async function findOptimalAngle(
   // Tiebreaker: Among angles with same minImaginaryCores and minRows, find minMisalignedCores
   let minMisalignedCores = Infinity;
   let finalOptimalAngles = [];
-  optimalAnglesData.forEach(angleData => {
+  optimalAnglesData.forEach((angleData) => {
     if (angleData.misalignedCoresCount < minMisalignedCores) {
       minMisalignedCores = angleData.misalignedCoresCount;
       finalOptimalAngles = [angleData.angle]; // Reset with new optimal result
@@ -1213,9 +1232,17 @@ async function findOptimalAngle(
   // Find median angle from finalOptimalAngles
   finalOptimalAngles.sort((a, b) => a - b);
   const medianIndex = Math.floor(finalOptimalAngles.length / 2);
-  const medianAngle = finalOptimalAngles.length % 2 !== 0 ? 
-    finalOptimalAngles[medianIndex] : 
-    (finalOptimalAngles[medianIndex - 1] + finalOptimalAngles[medianIndex]) / 2;
+  const medianAngle =
+    finalOptimalAngles.length % 2 !== 0
+      ? finalOptimalAngles[medianIndex]
+      : (finalOptimalAngles[medianIndex - 1] +
+          finalOptimalAngles[medianIndex]) /
+        2;
+
+  // If zero is in the finalOptimalAngles, return zero
+  if (finalOptimalAngles.includes(0)) {
+    return 0;
+  }
 
   return medianAngle;
 }
@@ -1252,9 +1279,7 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
     // Update UI with the optimal angle
     hyperparameters = updateUIAndHyperparameters(optimalAngle);
 
-
-    // 
-
+    //
   } else {
     hyperparameters = getHyperparametersFromUI();
   }
@@ -1320,14 +1345,13 @@ function removeImaginaryCoresFilledRowsAndColumns(coresData) {
 }
 
 function determineMedianRowColumnValues(coresData, imageRotation) {
-
   // Initialize structures to hold separated X and Y values for rows and columns
   const rowValues = {};
   const columnValues = {};
 
   // Calculate rotated values and separate X and Y for each row and column
   coresData.forEach((core) => {
-    if (!core.isTemporary) {
+    if (!core.isTemporary && !core.isMarker) {
       const [rotatedX, rotatedY] = rotatePoint(
         [core.x, core.y],
         -imageRotation
@@ -1354,19 +1378,18 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
     const mid = Math.floor(arr.length / 2);
     arr.sort((a, b) => a - b);
     return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
-  
-    // Calculate average
-    // return arr.reduce((a, b) => a + b, 0) / arr.length;
   };
 
   // Calculate medians for each column and row
   const medianValues = { rows: {}, columns: {} };
 
   Object.keys(columnValues).forEach((col) => {
-    medianValues.columns[col] = {
-      medianX: calculateMedian(columnValues[col].x),
-      medianY: calculateMedian(columnValues[col].y),
-    };
+    if (columnValues[col].x.length > 1) {
+      medianValues.columns[col] = {
+        medianX: calculateMedian(columnValues[col].x),
+        medianY: calculateMedian(columnValues[col].y),
+      };
+    }
   });
 
   Object.keys(rowValues).forEach((row) => {
@@ -1380,8 +1403,6 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 }
 
 function flagMisalignedCores(coresData, imageRotation) {
-
-
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
   // Count the number of cores in each column
@@ -1396,16 +1417,19 @@ function flagMisalignedCores(coresData, imageRotation) {
     medianRotatedXValues[col] = medianValues.columns[col].medianX;
   });
 
+  // Mark all cores as isMarker to be false
+  coresData.forEach((core) => {
+    core.isMisaligned = false;
+  });
+
   // Modify this part to take into account the number of cores in each column
   coresData.forEach((core) => {
     const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
 
-    // If the core's rotated X value is 1.5 radii outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned.
-
+    // If the core's rotated X value is 1 radius outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned.
     if (
       Math.abs(medianRotatedXValues[core.col] - rotatedX) >
-        1 * core.currentRadius ||
-      coreCounts[core.col] < 2
+      1 * core.currentRadius
     ) {
       core.isMisaligned = true;
     } else {
@@ -1413,7 +1437,6 @@ function flagMisalignedCores(coresData, imageRotation) {
     }
 
     // If there's another core with the same row and column, also mark it as misaligned
-
     if (
       coresData.some(
         (otherCore) =>
@@ -1423,6 +1446,20 @@ function flagMisalignedCores(coresData, imageRotation) {
       )
     ) {
       core.isMisaligned = true;
+    }
+
+    // If there isn't any medianRotatedXValues within 1.5 radius of the rotatedX, mark the core as a marker instead of misaligned
+
+    if (
+      !Object.keys(medianRotatedXValues).some(
+        (col) =>
+          Math.abs(medianRotatedXValues[col] - rotatedX) <
+          1.25 * core.currentRadius
+      )
+    ) {
+      core.row = -1;
+      core.col = -1;
+      core.isMarker = true;
     }
   });
 
@@ -1464,13 +1501,12 @@ function reassignCoreIndices(coresData) {
 }
 
 function alignMisalignedCores(coresData, imageRotation) {
-
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
   // Count the number of cores in each column
   const coreCounts = {};
   coresData.forEach((core) => {
-    if (!core.isMisaligned) {
+    if (!core.isMisaligned && !core.isMarker) {
       coreCounts[core.col] = (coreCounts[core.col] || 0) + 1;
     }
   });
@@ -1572,9 +1608,13 @@ async function createVirtualGrid(
       const virtualGridCanvas = document.getElementById("virtualGridCanvas");
       virtualGridCanvas.style.display = "none";
 
-
       // Update the grid spacing and starting position
-      updateGridSpacingInVirtualGridForSVS(horizontalSpacing, verticalSpacing, startingX, startingY);
+      updateGridSpacingInVirtualGridForSVS(
+        horizontalSpacing,
+        verticalSpacing,
+        startingX,
+        startingY
+      );
 
       await drawVirtualGridFromWSI(
         imageSrc,
@@ -1586,9 +1626,12 @@ async function createVirtualGrid(
         64
       );
     } else {
-
-      updateGridSpacingInVirtualGridForSVS(horizontalSpacing, verticalSpacing, startingX, startingY);
-
+      updateGridSpacingInVirtualGridForSVS(
+        horizontalSpacing,
+        verticalSpacing,
+        startingX,
+        startingY
+      );
     }
   } else {
     // Hide the virtual grid container
@@ -1608,8 +1651,6 @@ async function createVirtualGrid(
 // async function createImageForCore(svsImageURL, core, coreSize = 64) {
 //   const coreWidth = core.currentRadius * 2;
 //   const coreHeight = core.currentRadius * 2;
-
-  
 
 //   const tileParams = {
 //     tileX: core.x - core.currentRadius,
@@ -1633,8 +1674,14 @@ async function createVirtualGrid(
 // }
 
 // Move the initiateDownload function outside of createImageForCore
-async function initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileName) {
-  const downloadLink = document.createElement('a');
+async function initiateDownload(
+  svsImageURL,
+  core,
+  coreWidth,
+  coreHeight,
+  fileName
+) {
+  const downloadLink = document.createElement("a");
 
   // Use the getRegionFromWSI function to download the full resolution version of the image
   const fullResTileParams = {
@@ -1645,7 +1692,10 @@ async function initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileNa
     tileSize: coreWidth,
   };
 
-  const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+  const fullSizeImageResp = await getRegionFromWSI(
+    svsImageURL,
+    fullResTileParams
+  );
   const blob = await fullSizeImageResp.blob();
 
   downloadLink.href = URL.createObjectURL(blob);
@@ -1678,14 +1728,13 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
   img.style.height = "100%";
 
   // Create container div to hold the image and overlay
-  const container = document.createElement('div');
-  container.classList.add('image-container');
-  
+  const container = document.createElement("div");
+  container.classList.add("image-container");
+
   // Create overlay div for displaying row and column
-  const overlay = document.createElement('div');
-  overlay.classList.add('image-overlay');
+  const overlay = document.createElement("div");
+  overlay.classList.add("image-overlay");
   overlay.innerHTML = `(${core.row + 1}, ${core.col + 1})`;
-  
 
   // Double-click event for initiating download
   container.ondblclick = () => {
@@ -1693,14 +1742,13 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
 
     initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileName);
   };
-  
 
   // Append children to the container
   container.appendChild(img);
   container.appendChild(overlay);
 
-    // Add the container to the array of core containers
-    coreContainers.push(container);
+  // Add the container to the array of core containers
+  coreContainers.push(container);
 
   return new Promise((resolve, reject) => {
     // Adjust the img.onload function as necessary to handle the blob URL...
@@ -1713,58 +1761,63 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
 }
 
 // Add an event listener to the "Download All Cores" button
-document.getElementById('downloadAllCoresButton').addEventListener('click', () => {
-  for (const container of coreContainers) {
-    // Trigger the double-click event on each container
-    container.ondblclick();
-  }
-});
+document
+  .getElementById("downloadAllCoresButton")
+  .addEventListener("click", () => {
+    for (const container of coreContainers) {
+      // Trigger the double-click event on each container
+      container.ondblclick();
+    }
+  });
 
-function updateGridSpacingInVirtualGridForSVS(horizontalSpacing, verticalSpacing, startingX, startingY) {
+function updateGridSpacingInVirtualGridForSVS(
+  horizontalSpacing,
+  verticalSpacing,
+  startingX,
+  startingY
+) {
   const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
   virtualGridDiv.style.display = "grid";
 
   // Here we ensure that the gridTemplateColumns property sets the width of the grid items,
   virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, 1fr)`;
-  
+
   // Adjusting the gap property: first value for vertical spacing between rows, second value for horizontal spacing between columns
   virtualGridDiv.style.gap = `${verticalSpacing}px ${horizontalSpacing}px`;
-  
+
   virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
-  virtualGridDiv.style.width = '100%';
+  virtualGridDiv.style.width = "100%";
 }
-  
+
 async function drawVirtualGridFromWSI(
   svsImageURL,
   sortedCoresData,
   coreSize = 256
 ) {
-
-
   const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
-  virtualGridDiv.innerHTML = ''; // Clear existing content
+  virtualGridDiv.innerHTML = ""; // Clear existing content
 
   // Calculate grid dimensions
-  const maxRow = Math.max(...sortedCoresData.map(core => core.row)) + 1;
-  const maxCol = Math.max(...sortedCoresData.map(core => core.col)) + 1;
+  const maxRow = Math.max(...sortedCoresData.map((core) => core.row)) + 1;
+  const maxCol = Math.max(...sortedCoresData.map((core) => core.col)) + 1;
 
   // Create and append column headers
   for (let col = 0; col < maxCol; col++) {
-    const columnHeader = document.createElement('div');
+    const columnHeader = document.createElement("div");
     columnHeader.textContent = `${col + 1}`;
     columnHeader.style.gridRow = 1; // Place in the first row
     columnHeader.style.gridColumn = col + 2; // Offset by 1 for headers
-    columnHeader.classList.add('grid-header');
+    columnHeader.classList.add("grid-header");
     virtualGridDiv.appendChild(columnHeader);
   }
 
   // Create and append row headers
   for (let row = 0; row < maxRow; row++) {
-    const rowHeader = document.createElement('div');
+    const rowHeader = document.createElement("div");
     rowHeader.textContent = `${row + 1}`;
     rowHeader.style.gridColumn = 1; // Place in the first column
     rowHeader.style.gridRow = row + 2; // Offset by 1 for headers
-    rowHeader.classList.add('grid-header');
+    rowHeader.classList.add("grid-header");
     virtualGridDiv.appendChild(rowHeader);
   }
 
@@ -1772,16 +1825,17 @@ async function drawVirtualGridFromWSI(
   virtualGridDiv.style.gridTemplateColumns = `auto repeat(${maxCol}, 1fr)`;
   virtualGridDiv.style.gridTemplateRows = `auto repeat(${maxRow}, 1fr)`;
 
-
   const concurrencyLimit = 10;
   let activePromises = [];
   for (const core of sortedCoresData) {
-    const promise = createImageForCore(svsImageURL, core, coreSize).then((img) => {
-      // Position the image in the grid based on the core's row and col properties
-      img.style.gridColumn = core.col + 2; // CSS grid lines are 1-based
-      img.style.gridRow = core.row + 2;
-      return img;
-    });
+    const promise = createImageForCore(svsImageURL, core, coreSize).then(
+      (img) => {
+        // Position the image in the grid based on the core's row and col properties
+        img.style.gridColumn = core.col + 2; // CSS grid lines are 1-based
+        img.style.gridRow = core.row + 2;
+        return img;
+      }
+    );
     activePromises.push(promise);
 
     if (activePromises.length >= concurrencyLimit) {
@@ -1795,7 +1849,6 @@ async function drawVirtualGridFromWSI(
     images.forEach((img) => virtualGridDiv.appendChild(img));
   });
 }
-
 
 function drawVirtualGridFromPNG(
   sortedCoresData,

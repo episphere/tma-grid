@@ -1180,6 +1180,11 @@ label:disabled {
   z-index: 100;
 }
 
+.core-overlay-for-gridding.marker {
+  border-color: #51ff00;
+  border-width: 2px;
+}
+
 .core-overlay-title-div {
   display: flex;
   position: relative;

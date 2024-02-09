@@ -291,12 +291,12 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
   // Update the form values with the new calculations
   document.getElementById("gridWidth").value = d.toFixed(2);
   document.getElementById("imageWidth").value = imageWidth.toFixed(2);
-  document.getElementById("gamma").value = (1.25 * d).toFixed(2);
+  document.getElementById("gamma").value = (0.25 * d).toFixed(2);
 
   // Update the params object with the new calculations
   params.gridWidth = d;
   params.imageWidth = imageWidth;
-  params.gamma = 1.25 * d;
+  params.gamma = 0.25 * d;
 
   // Update radius
   document.getElementById("userRadius").value =
