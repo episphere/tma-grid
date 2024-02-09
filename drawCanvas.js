@@ -1654,10 +1654,6 @@ async function createVirtualGrid(
       await drawVirtualGridFromWSI(
         imageSrc,
         sortedCoresData,
-        horizontalSpacing,
-        verticalSpacing,
-        startingX,
-        startingY,
         64
       );
     } else {
@@ -1829,6 +1825,10 @@ async function drawVirtualGridFromWSI(
   sortedCoresData,
   coreSize = 256
 ) {
+
+  // Do not draw the markers
+  sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
+
   const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
   virtualGridDiv.innerHTML = ""; // Clear existing content
 
