@@ -208,13 +208,13 @@ async function runTravelingAlgorithm(normalizedCores, params) {
   // Extract the original rows in sorted order
   let sortedRows = sortRowsByRotatedPoints(rows, params.originAngle);
   // Calculate the median x coordinate for the first column
-  let medianX = calculateMedianX(sortedRows, -params.originAngle);
+  let medianX = calculateMedianX(sortedRows, params.originAngle);
   // Normalize rows by adding imaginary points
   sortedRows = normalizeRowsByAddingImaginaryPoints(
     sortedRows,
     medianX,
     params.gridWidth,
-    0
+    params.originAngle
   );
 
   const userRadius = document.getElementById("userRadius").value;
