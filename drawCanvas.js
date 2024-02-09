@@ -836,16 +836,6 @@ const overlayClickHandler = (e) => {
   }
 };
 
-// Function to switch modes
-function switchMode(newMode) {
-  selectedCore = null;
-  currentMode = newMode;
-
-  // Reset selected index when switching modes
-  selectedIndex = null;
-  updateSidebar(null);
-}
-
 // Modified updateSidebar function to handle add mode
 function updateSidebar(core) {
   // const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
@@ -1050,10 +1040,6 @@ function updateColumnsInRowAfterModification(row) {
   let imageRotation = parseFloat(
     document.getElementById("originAngle").value
   );
-
-  if (Math.abs(imageRotation) < 10) {
-    imageRotation = Math.round(imageRotation/3);
-  }
 
   // Create an array to hold the original cores with their rotated coordinates for sorting
   const coresWithRotatedCoordinates = window.sortedCoresData
@@ -1341,9 +1327,6 @@ function removeImaginaryCoresFilledRowsAndColumns(coresData) {
 }
 
 function determineMedianRowColumnValues(coresData, imageRotation) {
-  // if (Math.abs(imageRotation) < 10) {
-  //   imageRotation = imageRotation / 3;
-  // }
 
   // Initialize structures to hold separated X and Y values for rows and columns
   const rowValues = {};
@@ -1404,9 +1387,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 }
 
 function flagMisalignedCores(coresData, imageRotation) {
-  // if (Math.abs(imageRotation) < 10) {
-  //   imageRotation = Math.round(imageRotation / 3);
-  // }
+
 
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
@@ -1490,9 +1471,6 @@ function reassignCoreIndices(coresData) {
 }
 
 function alignMisalignedCores(coresData, imageRotation) {
-  if (Math.abs(imageRotation) < 10) {
-    imageRotation = Math.round(imageRotation / 3);
-  }
 
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 

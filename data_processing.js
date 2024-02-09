@@ -208,7 +208,7 @@ async function runTravelingAlgorithm(normalizedCores, params) {
   // Extract the original rows in sorted order
   let sortedRows = sortRowsByRotatedPoints(rows, params.originAngle);
   // Calculate the median x coordinate for the first column
-  let medianX = calculateMedianX(sortedRows, 0);
+  let medianX = calculateMedianX(sortedRows, -params.originAngle);
   // Normalize rows by adding imaginary points
   sortedRows = normalizeRowsByAddingImaginaryPoints(
     sortedRows,
