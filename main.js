@@ -573,7 +573,8 @@ async function segmentImage(initializeParams = false) {
 // Function to handle Box login and OAuth flow
 document.getElementById('boxLoginBtn').addEventListener('click', function() {
   var clientId = 'ezh8ide2loe50jb04s2hej1hw4pko63s';
-  var redirectUri = 'http://127.0.0.1:5500/index.html'; // Make sure this matches the Box app configuration
+  const currentURL = new URL(window.location.href);
+  var redirectUri =  currentURL.origin + currentURL.pathname; // Make sure this matches the Box app configuration
   var state = 'optional-custom-state';
   // Using the implicit grant (token) flow for simplicity in client-side handling
   var boxAuthUrl = `https://account.box.com/api/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;

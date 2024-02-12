@@ -2,7 +2,6 @@ import imagebox3 from "./imagebox3.js"
 
 export const getWSIInfo = async (imageURL) => {
   console.log('imageURL', imageURL)
-  debugger
   return await (await imagebox3.getImageInfo(imageURL)).json()
 }
 
