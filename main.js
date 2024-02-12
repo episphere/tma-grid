@@ -139,9 +139,7 @@ const handleSVSFile = async (file, processCallback) => {
     MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
     MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
   );
-
-  window.scalingFactor = scalingFactor;
-  debugger
+    window.scalingFactor = scalingFactor;
   const wsiThumbnail = await getPNGFromWSI(
     URL.createObjectURL(file),
     MAX_DIMENSION_FOR_DOWNSAMPLING
@@ -407,19 +405,12 @@ const handleLoadImageUrlClick = async () => {
     let width, height;
     if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
       imageResp = fetch(imageUrl);
-      window.scalingFactor = 1;
       window.uploadedImageFileType = "simple";
     } else {
       const imageInfo = await getWSIInfo(imageUrl);
       console.log('imageInfo', imageInfo)
       width = imageInfo.width;
       height = imageInfo.height;
-      const scalingFactor = Math.min(
-        MAX_DIMENSION_FOR_DOWNSAMPLING / width,
-        MAX_DIMENSION_FOR_DOWNSAMPLING / height
-      );
-      // Store the scaling factor
-      window.scalingFactor = scalingFactor;
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
       window.uploadedImageFileType = "svs";
     }
@@ -449,12 +440,11 @@ const handleLoadImageUrlClick = async () => {
             img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
             img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
           ) {
-            scalingFactor = Math.min(
+            const scalingFactor = Math.min(
               MAX_DIMENSION_FOR_DOWNSAMPLING / img.width,
               MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
             );
-
-            // window.scalingFactor = scalingFactor;
+            window.scalingFactor = scalingFactor;
             const canvas = document.createElement("canvas");
             canvas.width = img.width * scalingFactor;
             canvas.height = img.height * scalingFactor;
@@ -463,7 +453,7 @@ const handleLoadImageUrlClick = async () => {
             originalImageContainer.src = canvas.toDataURL();
           } else {
             originalImageContainer.src = img.src;
-            scalingFactor = 1;
+            window.scalingFactor = 1;
           }
         };
 
