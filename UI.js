@@ -108,8 +108,6 @@ function positionSidebarNextToCore(event) {
 
   // Get the computed style of the sidebar to access its width and height
   const sidebarStyle = window.getComputedStyle(sidebar);
-  const sidebarWidth = parseInt(sidebarStyle.width, 10);
-  const sidebarHeight = parseInt(sidebarStyle.height, 10);
 
   // Get the container's offset from the top-left of the viewport
   const containerRect = container.getBoundingClientRect();
@@ -183,6 +181,9 @@ document.getElementById("editIsMarkerInput").addEventListener("change", function
     columnInput.disabled = true;
     rowInput.value = -1;
     columnInput.value = -1;
+
+    
+
   } else {
     // Otherwise, enable it
     rowInput.disabled = false;
@@ -347,6 +348,8 @@ function resetApplication() {
   window.imageSource = "";
   window.scalingFactor = 1;
   window.uploadedImageFileType = null;
+  window.boxFile = null;
+  window.boxFileInfo = null;
 
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();

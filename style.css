@@ -615,13 +615,13 @@ button:hover {
 /* Further adjustments for larger tablet and small desktop screens */
 @media (min-width: 769px) {
   .sidebar {
-    width: 550px; /* Fixed width for larger tablets and small desktops */
+    width: 750px; /* Fixed width for larger tablets and small desktops */
     padding: 15px; /* Consistent padding with the previous breakpoint */
   }
 }
 
 /* Consideration for very large screens, if necessary */
-@media (min-width: 1025px) {
+@media (min-width: 1225px) {
   .sidebar {
     /* You can add styles here if you have specific designs for larger screens */
     /* Example: adjusting width or padding */
@@ -1269,3 +1269,4 @@ svg {
   display: flex;
   opacity: 1;
 }
+

@@ -9,6 +9,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
+    <!-- Include Box CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.css" />
+
+
 </head>
 
 <body>
@@ -34,7 +38,7 @@
                 <!-- Carousel Item for Image File Input -->
                 <div class="carousel-item active" id="imageInputSection">
                     <!-- Image file input section -->
-                    <div class="file-upload-container">
+                    <div class="file-upload-container" id="file-upload-container">
                         <h2>1) Load Image</h2>
                         <div id="imageLoadStatus" class="load-status neutral-message">
                             No image file uploaded.
@@ -53,9 +57,16 @@
                             value="https://episphere.github.io/TMA-De-arraying/HD%20TMA%202%202011%20H&E%20stain.svs-[1499,1169,42287,37957]1x.png" />
                         <button id="loadImageUrlBtn" type="button" class="load-img-btn">Load Image</button>
                         <br>
-                    </div>
-                </div>
+                        <p style="text-align: center;">OR</p>
+                        <button id="boxLoginBtn" type="button" class="box-login-btn">Login to Box</button>
 
+                    </div>
+
+                    <div id="boxFilesContainer" class="box-files-container">
+                        <!-- Dynamically loaded Box files will go here -->
+                    </div>
+
+                </div>
 
                 <!-- Carousel Item for Metadata File Input -->
                 <div class="carousel-item" id="metadataInputSection">
@@ -331,7 +342,7 @@
 
             <!-- Tab Links -->
             <div class="tab">
-                <button class="tablinks" id="imageSegmentationTabButton">1 - Image Segmentation</button>
+                <button class="tablinks active" id="imageSegmentationTabButton">1 - Image Segmentation</button>
                 <button disabled class="tablinks" id="rawDataTabButton">2 - Gridding</button>
                 <button disabled class="tablinks" id="virtualGridTabButton">3 - Virtual
                     Grid</button>
@@ -343,7 +354,7 @@
 
             <!-- Tab content -->
 
-            <div id="ImageSegmentation" class="tabcontent">
+            <div id="ImageSegmentation" class="tabcontent" style="display: block;">
 
                 <div class="instructions-container">
                     <button class="close-instructions">✕</button>
@@ -416,7 +427,7 @@
 
                     <div id="osdViewer" style="margin: auto; width: 100%;"></div>
 
-                    
+
 
 
                     <div class="edit-sidebar" id="editSidebar">
@@ -427,7 +438,7 @@
                             </div>
                         </div>
                         <form id="editCoreForm" class="main-content">
-                    
+
                             <div class="checkbox-group">
                                 <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
                                 <label for="editIsMarkerInput">Is a Marker</label>
@@ -436,56 +447,58 @@
 
                             <label for="editRowInput">Row:</label>
                             <input type="number" id="editRowInput" name="editRowInput" disabled>
-                    
+
                             <div class="checkbox-group">
-                                <input type="checkbox" id="editAutoUpdateRowsCheckbox" name="editAutoUpdateRowsCheckbox" checked>
+                                <input type="checkbox" id="editAutoUpdateRowsCheckbox" name="editAutoUpdateRowsCheckbox"
+                                    checked>
                                 <label for="editAutoUpdateRowsCheckbox">Auto Assign Row</label>
                             </div>
-                    
-                    
+
+
                             <label for="editColumnInput">Column:</label>
                             <input type="number" id="editColumnInput" name="editColumnInput" disabled>
-                    
-                    
+
+
                             <div class="checkbox-group">
-                                <input type="checkbox" id="editAutoUpdateColumnsCheckbox" name="editAutoUpdateColumnsCheckbox" checked>
+                                <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
+                                    name="editAutoUpdateColumnsCheckbox" checked>
                                 <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
                             </div>
-                    
+
                             <label for="editXInput">X Position:</label>
                             <input type="number" id="editXInput" name="editXInput">
-                    
+
                             <label for="editYInput">Y Position:</label>
                             <input type="number" id="editYInput" name="editYInput">
-                    
+
                             <label for="editRadiusInput">Radius:</label>
                             <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
-                    
+
                             <label for="editAnnotationsInput">Annotations:</label>
                             <textarea type="text" id="editAnnotationsInput" name="editAnnotationsInput"></textarea>
-                    
+
                             <!-- ...other inputs... -->
-                    
+
                             <div class="radio-group">
                                 <input type="radio" id="editRealInput" name="coreType" value="real">
                                 <label for="editRealInput" class="radio-button">Normal</label>
-                    
+
                                 <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
                                 <label for="editImaginaryInput" class="radio-button">Missing</label>
                             </div>
-                    
-                    
+
+
                             <div class="button-group">
                                 <button type="button" id="saveCoreEdits">Save</button>
-                    
+
                                 <button type="button" id="removeCoreButton">Remove</button>
-                    
+
                             </div>
-                    
+
                         </form>
                     </div>
-                    
-                    </div>
+
+                </div>
             </div>
 
 
@@ -497,9 +510,9 @@
 
 
                 <button id="toggleEditor" class="toggle-editor-button">Toggle Editor</button>
-                    <div id="jsoneditor-dialog" title="JSON Editor">
-                        <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
-                    </div>
+                <div id="jsoneditor-dialog" title="JSON Editor">
+                    <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
+                </div>
             </div>
 
         </div>
@@ -530,12 +543,9 @@
     </div>
 
 
+    <!-- MAIN.JS -->
     <script type="module" src="main.js"></script>
-    <script>
 
-
-
-    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.js" crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js"
@@ -543,13 +553,27 @@
     <script src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k/GeoTIFFTileSource.js" type="module"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.5.6/jsoneditor.min.css" rel="stylesheet" type="text/css">
+
+    <!-- JSON Editor -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.5.6/jsoneditor.min.css" rel="stylesheet"
+        type="text/css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.5.6/jsoneditor.min.js"></script>
 
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+
+    <!-- Box -->
+
+    <!-- Box Content Picker Script -->
+    <script src="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.js"></script>
+
+
+
+
+
 </body>
 
 </html>

@@ -65,8 +65,6 @@ function openTab(evt, tabName) {
 // When the window loads, open the default tab
 window.onload = openDefaultTab;
 
-
-
 // Function to switch to the gridding tab
 function switchToGridding() {
   closePopup("popupSegmentation");
@@ -115,6 +113,8 @@ const scaleImageIfNeeded = (img) => {
           MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
         )
       : 1;
+  
+    window.scalingFactor = scalingFactor;
 
   const canvas = document.createElement("canvas");
   canvas.width = img.width * scalingFactor;
@@ -135,11 +135,13 @@ const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
 
 const handleSVSFile = async (file, processCallback) => {
   const imageInfo = await getWSIInfo(file);
-  scalingFactor = Math.min(
+  const scalingFactor = Math.min(
     MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
     MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
   );
 
+  window.scalingFactor = scalingFactor;
+  debugger
   const wsiThumbnail = await getPNGFromWSI(
     URL.createObjectURL(file),
     MAX_DIMENSION_FOR_DOWNSAMPLING
@@ -174,9 +176,9 @@ const handleSVSFile = async (file, processCallback) => {
 
 // Updated handleImageLoad function to support .svs files
 const handleImageLoad = (file, processCallback) => {
-  resetApplication();
   document.getElementById("imageUrlInput").value = null;
   document.getElementById("loadingSpinner").style.display = "block";
+
 
   if (file && file.type.startsWith("image/")) {
     loadImage(file)
@@ -192,6 +194,8 @@ const handleImageLoad = (file, processCallback) => {
           processCallback();
           window.loadedImg = originalImageContainer;
           moveToCarouselItem("next");
+          document.getElementById("loadingSpinner").style.display = "none";
+
         };
         originalImageContainer.onerror = () => {
           updateStatusMessage(
@@ -228,13 +232,11 @@ const handleImageLoad = (file, processCallback) => {
     console.error("File loaded is not an image.");
   }
 
-  document.getElementById("loadingSpinner").style.display = "none";
 };
 // Main event handler, refactored to use functional programming
 const handleImageInputChange = async (e, processCallback) => {
   resetApplication();
   document.getElementById("imageUrlInput").value = null;
-  document.getElementById("loadingSpinner").style.display = "block";
 
   const file = e.target.files[0];
   handleImageLoad(file, processCallback);
@@ -272,7 +274,7 @@ function handleMetadataFileSelect(event) {
   if (fileType === validCsvType) {
     processCSV(file);
   } else {
-    processExcel(file);
+    processExcel(file);ƒ
   }
 }
 
@@ -392,7 +394,7 @@ const getInputParameters = () => {
 };
 
 // Event handler for load image from URL
-const handleLoadImageUrlClick = async (state) => {
+const handleLoadImageUrlClick = async () => {
   resetApplication();
   document.getElementById("fileInput").value = null;
   // Show loading spinner
@@ -409,6 +411,7 @@ const handleLoadImageUrlClick = async (state) => {
       window.uploadedImageFileType = "simple";
     } else {
       const imageInfo = await getWSIInfo(imageUrl);
+      console.log('imageInfo', imageInfo)
       width = imageInfo.width;
       height = imageInfo.height;
       const scalingFactor = Math.min(
@@ -559,7 +562,6 @@ async function segmentImage(initializeParams = false) {
           window.preprocessedCores = preprocessCores(preprocessedCores);
         }
 
-        console.log("spacingBetweenCores", spacingBetweenCores);
       }
     } catch (error) {
       console.error("Error processing image:", error);
@@ -578,23 +580,209 @@ async function segmentImage(initializeParams = false) {
   }
 }
 
-function bindEventListeners() {
+// Function to handle Box login and OAuth flow
+document.getElementById('boxLoginBtn').addEventListener('click', function() {
+  var clientId = 'ezh8ide2loe50jb04s2hej1hw4pko63s';
+  var redirectUri = 'http://127.0.0.1:5500/index.html'; // Make sure this matches the Box app configuration
+  var state = 'optional-custom-state';
+  // Using the implicit grant (token) flow for simplicity in client-side handling
+  var boxAuthUrl = `https://account.box.com/api/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+  // Redirect to Box login page
+  window.location.href = boxAuthUrl;
+});
 
-  document.getElementById('downloadAllCoresButton').addEventListener('click', () => {
-    // Assuming coreOverlays is an array of your core overlay elements
-    for (const overlay of coreOverlays) {
-      initiateDownload(overlay);
+// Handle authentication response and initialize Box Picker
+window.onload = function() {
+
+  // Correctly process the URL search parameters to get the authorization code
+  const queryParams = new URLSearchParams(window.location.search);
+  const authorizationCode = queryParams.get('code');
+
+  if (authorizationCode) {
+    // Since you cannot directly initialize the Box Picker with an authorization code,
+    // you need to exchange the code for an access token.
+    // This should be done on the server side for security reasons.
+    exchangeAuthorizationCodeForAccessToken(authorizationCode);
+  }
+};
+
+let accessToken = '';
+let accessTokenExpiry = 0;
+let refreshToken = ''; // You need to store and manage this securely
+
+function exchangeAuthorizationCodeForAccessToken(authorizationCode) {
+  const clientId = 'ezh8ide2loe50jb04s2hej1hw4pko63s';
+  const clientSecret = 'wT8DewBT729NVsGJLpKGqrtX2VluO99N';
+  const redirectUri = window.location.href.split(/[?#]/)[0];
+
+  const url = 'https://api.box.com/oauth2/token';
+  const params = new URLSearchParams();
+  params.append('grant_type', 'authorization_code');
+  params.append('code', authorizationCode);
+  params.append('client_id', clientId);
+  params.append('client_secret', clientSecret);
+  params.append('redirect_uri', redirectUri);
+  params.append
+
+  fetch(url, {
+    method: 'POST',
+    body: params,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
     }
-  });
-
-  document.getElementById("toggleEditor").addEventListener("click", function() {
-    var editorDiv = document.getElementById("jsoneditor-dialog");
-    if ($(editorDiv).dialog("isOpen")) {
-      $(editorDiv).dialog("close");
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.access_token && data.refresh_token) {
+      accessToken = data.access_token;
+      refreshToken = data.refresh_token;
+      accessTokenExpiry = Date.now() + (data.expires_in * 1000);
+      console.log('Access Token:', accessToken);
+      initializeBoxPicker(accessToken); // Assuming this is your custom function
     } else {
-      $(editorDiv).dialog("open");
+      console.error('Could not obtain access token:', data);
+    }
+  })
+  .catch(error => {
+    console.error('Error exchanging authorization code for access token:', error);
+  });
+}
+
+async function refreshAccessToken() {
+  const clientId = 'ezh8ide2loe50jb04s2hej1hw4pko63s';
+  const clientSecret = 'wT8DewBT729NVsGJLpKGqrtX2VluO99N';
+  const url = 'https://api.box.com/oauth2/token';
+  const params = new URLSearchParams();
+  params.append('grant_type', 'refresh_token');
+  params.append('refresh_token', refreshToken);
+  params.append('client_id', clientId);
+  params.append('client_secret', clientSecret);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+
+    const data = await response.json();
+    if (data.access_token) {
+      accessToken = data.access_token;
+      refreshToken = data.refresh_token; // Update the refresh token if a new one is returned
+      accessTokenExpiry = Date.now() + (data.expires_in * 1000);
+    } else {
+      console.error('Could not refresh access token:', data);
+    }
+  } catch (error) {
+    console.error('Error refreshing access token:', error);
+  }
+}
+
+
+async function ensureValidAccessToken() {
+  if (Date.now() >= accessTokenExpiry) {
+    await refreshAccessToken();
+  }
+}
+
+async function fetchFileAsBlob(fileId) {
+  await ensureValidAccessToken(); // Ensure the access token is valid
+  
+  const fileUrl = `https://api.box.com/2.0/files/${fileId}/content`;
+  try {
+    const response = await fetch(fileUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Network response was not ok, status: ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    console.error('Error fetching file from Box:', error);
+    throw error;
+  }
+}
+
+
+function initializeBoxPicker(accessToken, folderId = "0") {
+
+  const filePicker = new Box.FilePicker();
+
+  const options = {
+    chooseButtonLabel: 'Select Image',
+    cancelButtonLabel: 'Cancel',
+    container: '#boxFilesContainer',
+    extensions: ['png', 'jpg', 'jpeg', 'svs'],
+    maxSelectable: 1,
+  };
+
+  filePicker.addListener('choose', async (files) => {
+    
+    if (files.length > 0 && files[0].is_download_available) {
+      resetApplication();
+      const file = files[0];
+
+      try {
+        document.getElementById("loadingSpinner").style.display = "block";
+
+        const fileBlob = await fetchFileAsBlob(file.id, accessToken);
+        const blobFile = new File([fileBlob], file.name, { type: fileBlob.type });
+
+        console.log('Selected file:', file);
+        handleImageLoad(blobFile, () => segmentImage(true));
+        window.boxFile = fileBlob;
+        window.boxFileInfo = file;
+      } catch (error) {
+        console.error('Error processing file from Box:', error);
+      }
+    } else {
+      console.log('Selected file is not available for download.');
     }
   });
+
+  filePicker.addListener('cancel', () => {
+    console.log('Box file selection was canceled.');
+  });
+
+  // Hide the other image input stuff and only show the box file picker
+  document.getElementById("file-upload-container").style.display = "none";
+
+  filePicker.show(folderId, accessToken, options);
+}
+
+
+
+function bindEventListeners() {
+  
+  
+
+
+  document
+    .getElementById("downloadAllCoresButton")
+    .addEventListener("click", () => {
+      // Assuming coreOverlays is an array of your core overlay elements
+      for (const overlay of coreOverlays) {
+        initiateDownload(overlay);
+      }
+    });
+
+  document
+    .getElementById("toggleEditor")
+    .addEventListener("click", function () {
+      var editorDiv = document.getElementById("jsoneditor-dialog");
+      if ($(editorDiv).dialog("isOpen")) {
+        $(editorDiv).dialog("close");
+      } else {
+        $(editorDiv).dialog("open");
+      }
+    });
 
   document.querySelectorAll("input[type='number']").forEach((e) => {
     e.onwheel = (e) => {
@@ -686,13 +874,17 @@ function bindEventListeners() {
       );
     });
 
-    document
+  document
     .getElementById("saveResultsAsJson")
-    .addEventListener("click", function() { saveUpdatedCores('json'); });
-  
+    .addEventListener("click", function () {
+      saveUpdatedCores("json");
+    });
+
   document
     .getElementById("saveResultsAsCsv")
-    .addEventListener("click", function() { saveUpdatedCores('csv'); });
+    .addEventListener("click", function () {
+      saveUpdatedCores("csv");
+    });
 
   document
     .getElementById("toggle-advanced-settings")
@@ -726,23 +918,25 @@ function bindEventListeners() {
   });
 
   document.getElementById("originAngle").addEventListener("input", function () {
-
     const angleValue = document.getElementById("originAngle");
 
     document.getElementById("originAngleValue").textContent = angleValue.value;
     window.viewer.viewport.setRotation(-parseFloat(angleValue.value));
   });
 
-  document.getElementById("originAngle").addEventListener("mousedown", function () {
-    const svgOverlay = window.viewer.svgOverlay();
-    svgOverlay.node().style.display = 'none'; // Hide the SVG overlay
-  });
-  
-  document.getElementById("originAngle").addEventListener("mouseup", function () {
-    const svgOverlay = window.viewer.svgOverlay();
-    svgOverlay.node().style.display = ''; // Show the SVG overlay
-  });
+  document
+    .getElementById("originAngle")
+    .addEventListener("mousedown", function () {
+      const svgOverlay = window.viewer.svgOverlay();
+      svgOverlay.node().style.display = "none"; // Hide the SVG overlay
+    });
 
+  document
+    .getElementById("originAngle")
+    .addEventListener("mouseup", function () {
+      const svgOverlay = window.viewer.svgOverlay();
+      svgOverlay.node().style.display = ""; // Show the SVG overlay
+    });
 
   // makeElementDraggable(document.getElementById("addSidebar"));
   makeElementDraggable(document.getElementById("editSidebar"));
@@ -876,7 +1070,6 @@ const initSegmentation = async () => {
   document
     .getElementById("finalizeSegmentation")
     .addEventListener("click", async function () {
-
       // Assuming `properties` is the variable holding your segmentation results
       if (!window.properties) {
         alert("No image uploaded!");
@@ -913,6 +1106,13 @@ const initSegmentation = async () => {
             url.endsWith(".jpeg");
           imageInfo.isOperable = true;
           imageInfo.url = url;
+        } else if (window.boxFileInfo){
+          if (checkExtension(window.boxFileInfo.name)) {
+            imageInfo.type = window.boxFileInfo.name.split(".").slice(-1)[0];
+            imageInfo.isSimpleImage = !window.boxFileInfo.name.endsWith(".svs");
+            imageInfo.isOperable = true;
+            imageInfo.url = URL.createObjectURL(window.boxFile);
+          }
         }
 
         return imageInfo;
@@ -954,12 +1154,6 @@ const initSegmentation = async () => {
         showZoomControl: false,
         showHomeControl: false,
         showFullPageControl: false,
-        // homeFillsViewer: true,
-        // defaultZoomLevel: 1,
-        // navigationControlAnchor: OpenSeadragon.ControlAnchor["TOP_RIGHT"],
-        // debugMode: true,
-        // immediateRender: false,
-        // imageLoaderLimit: 5,
         timeout: 60 * 1000,
       });
       // viewer.open(tileSources)
@@ -981,19 +1175,17 @@ const initSegmentation = async () => {
       );
 
       window.viewer.addOnceHandler("open", () => {
-
         window.viewer.world
           .getItemAt(0)
           .addOnceHandler("fully-loaded-change", () => {
-            document.getElementById("rawDataLoadingSpinner").style.display = "none";
+            document.getElementById("rawDataLoadingSpinner").style.display =
+              "none";
 
             document.getElementById("rawDataTabButton").disabled = false;
             document.getElementById("rawDataTabButton").click();
             preprocessForTravelingAlgorithm();
-
           });
       });
-
     });
 
   // Navigation buttons
@@ -1138,11 +1330,11 @@ function setUpJSONEditor() {
   });
 
   window.jsonEditor = new JSONEditor(container, options);
-
 }
 
 // Main function that runs the application
 const run = async () => {
+  showImageSegmentationSidebar();
   addDragAndDrop();
   bindEventListeners();
   setUpJSONEditor();

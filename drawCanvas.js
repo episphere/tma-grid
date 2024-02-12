@@ -1635,7 +1635,9 @@ async function createVirtualGrid(
     ? document.getElementById("imageUrlInput").value
     : document.getElementById("fileInput").files.length > 0
     ? URL.createObjectURL(document.getElementById("fileInput").files[0])
-    : "path/to/default/image.jpg";
+    : window.boxFileInfo
+    ? URL.createObjectURL(window.boxFile)
+    :"path/to/default/image.jpg";
 
   if (window.uploadedImageFileType === "svs") {
     if (firstRun) {
