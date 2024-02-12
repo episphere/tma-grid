@@ -718,6 +718,7 @@ button:hover {
   display: none; /* Only active item will be shown */
   padding: 20px;
   text-align: center;
+  height: 700px;
 }
 
 /* Carousel Controls - Next and Previous buttons */
@@ -1269,4 +1270,6 @@ svg {
   display: flex;
   opacity: 1;
 }
-
+.box-files-container{
+  height: 90%;
+}

@@ -16,8 +16,7 @@ export const getPNGFromWSI = async (imageURL, maxDimension) => {
   // Store the scaling factor
   window.scalingFactor = scalingFactor;
 
-  debugger
-      // Store the scaling factor
+  // Store the scaling factor
   let thumbnailWidthToRender, thumbnailHeightToRender
   if (width >= height) {
     thumbnailWidthToRender = maxDimension
