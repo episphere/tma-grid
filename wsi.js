@@ -1,4 +1,4 @@
-import imagebox3 from "./imagebox3.js"
+import imagebox3 from "https://episphere.github.io/imagebox3/imagebox3.mjs"
 
 export const getWSIInfo = async (imageURL) => {
   console.log('imageURL', imageURL)
