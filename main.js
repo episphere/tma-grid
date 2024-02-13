@@ -609,7 +609,6 @@ function exchangeAuthorizationCodeForAccessToken(authorizationCode) {
 
   const url = 'https://api.box.com/oauth2/token';
   const params = new URLSearchParams();
-  params.append('grant_type', 'authorization_code');
   params.append('code', authorizationCode);
   params.append('client_id', clientId);
   params.append('client_secret', clientSecret);
