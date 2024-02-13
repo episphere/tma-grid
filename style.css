@@ -463,7 +463,6 @@ button:hover {
   transition: opacity 0.3s ease-in-out;
 }
 
-
 /* Spinner styles */
 @keyframes spin {
   0% {

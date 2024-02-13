@@ -456,7 +456,6 @@ const handleLoadImageUrlClick = async () => {
               MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
             );
             window.scalingFactor = scalingFactor;
-            debugger
             const canvas = document.createElement("canvas");
             canvas.width = img.width * scalingFactor;
             canvas.height = img.height * scalingFactor;
@@ -749,7 +748,6 @@ function initializeBoxPicker(accessToken, folderId = "0") {
 
         const downloadURL = await fetchFileDownloadURL(file.id, accessToken);
         document.getElementById("imageUrlInput").value = downloadURL;
-        debugger
 
         handleLoadImageUrlClick();
 
