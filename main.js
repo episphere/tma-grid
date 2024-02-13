@@ -411,6 +411,17 @@ const handleLoadImageUrlClick = async () => {
       console.log('imageInfo', imageInfo)
       width = imageInfo.width;
       height = imageInfo.height;
+
+      if (imageInfo.width > MAX_DIMENSION_FOR_DOWNSAMPLING || imageInfo.height > MAX_DIMENSION_FOR_DOWNSAMPLING) {
+        const scalingFactor = Math.min(
+          MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
+          MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
+        );
+        window.scalingFactor = scalingFactor;
+      }else{
+        window.scalingFactor = 1;
+      }
+
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
       window.uploadedImageFileType = "svs";
     }
@@ -435,7 +446,7 @@ const handleLoadImageUrlClick = async () => {
         const img = new Image();
         img.src = objectURL;
         img.onload = async () => {
-          // Check if the image needs to be scaled down
+          // Check if the image needs to be scaled down. Will only occur for png/jpg images
           if (
             img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
             img.height > MAX_DIMENSION_FOR_DOWNSAMPLING
@@ -445,6 +456,7 @@ const handleLoadImageUrlClick = async () => {
               MAX_DIMENSION_FOR_DOWNSAMPLING / img.height
             );
             window.scalingFactor = scalingFactor;
+            debugger
             const canvas = document.createElement("canvas");
             canvas.width = img.width * scalingFactor;
             canvas.height = img.height * scalingFactor;
@@ -452,8 +464,9 @@ const handleLoadImageUrlClick = async () => {
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             originalImageContainer.src = canvas.toDataURL();
           } else {
+            // For SVS files, you don't need to check the scaling factor, because the scaling factor is already set and the 
+            // image is already scaled down
             originalImageContainer.src = img.src;
-            window.scalingFactor = 1;
           }
         };
 
