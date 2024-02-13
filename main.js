@@ -702,7 +702,17 @@ async function fetchFileAsBlob(fileId) {
   }
 }
 
+async function fetchFileDownloadURL(fileId, access_token) {
 
+  const boxBasePath = "https://api.box.com/2.0";
+  const ac = new AbortController()
+  const signal = ac.signal
+  const downloadFile = await fetch(`${boxBasePath}/files/${fileId}/content`, {headers
+    : {"Authorization": `Bearer ${access_token}`}, signal})
+  ac.abort()
+  return downloadFile.url
+
+}
 function initializeBoxPicker(accessToken, folderId = "0") {
 
   const filePicker = new Box.FilePicker();
@@ -724,13 +734,23 @@ function initializeBoxPicker(accessToken, folderId = "0") {
       try {
         document.getElementById("loadingSpinner").style.display = "block";
 
-        const fileBlob = await fetchFileAsBlob(file.id, accessToken);
-        const blobFile = new File([fileBlob], file.name, { type: fileBlob.type });
+        const downloadURL = await fetchFileDownloadURL(file.id, accessToken);
+        document.getElementById("imageUrlInput").value = downloadURL;
+        debugger
 
-        console.log('Selected file:', file);
-        handleImageLoad(blobFile, () => segmentImage(true));
-        window.boxFile = fileBlob;
-        window.boxFileInfo = file;
+        handleLoadImageUrlClick();
+
+
+
+
+        // Code for downloading the file and using the file locally
+        // const fileBlob = await fetchFileAsBlob(file.id, accessToken);
+        // const blobFile = new File([fileBlob], file.name, { type: fileBlob.type });
+
+        // console.log('Selected file:', file);
+        // handleImageLoad(blobFile, () => segmentImage(true));
+        // window.boxFile = fileBlob;
+        // window.boxFileInfo = file;
       } catch (error) {
         console.error('Error processing file from Box:', error);
       }
