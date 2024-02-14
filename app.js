@@ -1,8 +1,8 @@
 // Tab controls for the upload options
 document.querySelectorAll('.upload-option-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        document.querySelectorAll('.upload-option-tab').forEach(t => t.classList.remove('border-blue-500', 'text-gray-800'));
-        this.classList.add('border-blue-500', 'text-gray-800');
+    tab.addEventListener('click', function () {
+        document.querySelectorAll('.upload-option-tab').forEach(t => t.classList.remove('border-blue-500', 'font-semibold', 'active'));
+        this.classList.add('border-blue-500', 'font-semibold', 'active');
         document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.getElementById(this.dataset.target).classList.remove('hidden');
     });
@@ -30,7 +30,7 @@ function navigateToSection(currentSection, nextSection) {
 // Advanced settings toggle in gridding section
 const advancedSettingsCheckbox = document.getElementById('advanced-settings');
 const advancedSettingsContent = document.querySelector('#advanced-settings-content');
-advancedSettingsCheckbox.addEventListener('change', function() {
+advancedSettingsCheckbox.addEventListener('change', function () {
     if (this.checked) {
         advancedSettingsContent.classList.remove('hidden');
     } else {
@@ -40,7 +40,7 @@ advancedSettingsCheckbox.addEventListener('change', function() {
 
 // Handling the '.btn-proceed' buttons to navigate through steps
 document.querySelectorAll('.btn-proceed').forEach(button => {
-    button.addEventListener('click', function() {
+    button.addEventListener('click', function () {
         // Move to the next step
         let nextStep = getCurrentStep() + 1;
 
@@ -48,8 +48,8 @@ document.querySelectorAll('.btn-proceed').forEach(button => {
         const nextSection = sections[nextStep];
         if (nextSection) {
             currentStep = nextStep;
-            updateCurrentStep(nextStep+1);
-            navigateToSection(sections[nextStep-1], nextSection);
+            updateCurrentStep(nextStep + 1);
+            navigateToSection(sections[nextStep - 1], nextSection);
         }
     });
 });
@@ -57,7 +57,7 @@ document.querySelectorAll('.btn-proceed').forEach(button => {
 
 // Handling the '.btn-proceed' buttons to navigate through steps
 document.querySelectorAll('.btn-back').forEach(button => {
-    button.addEventListener('click', function() {
+    button.addEventListener('click', function () {
         // Move to the next step
         let lastStep = getCurrentStep() - 1;
 
@@ -65,8 +65,8 @@ document.querySelectorAll('.btn-back').forEach(button => {
         const lastSection = sections[lastStep];
         if (lastSection) {
             currentStep = lastStep;
-            updateCurrentStep(lastStep+1);
-            navigateToSection(sections[lastStep+1], lastSection);
+            updateCurrentStep(lastStep + 1);
+            navigateToSection(sections[lastStep + 1], lastSection);
         }
     });
 });
@@ -76,11 +76,11 @@ document.querySelectorAll('.btn-back').forEach(button => {
 
 // Handling the '.carousel-control' buttons to indicate completion and step navigation
 document.querySelectorAll('.carousel-control').forEach((control, index) => {
-    control.addEventListener('click', function() {
+    control.addEventListener('click', function () {
         // Jump to the clicked step
-        updateCurrentStep(index+1);
-        currentStep = index+1;
-    
+        updateCurrentStep(index + 1);
+        currentStep = index + 1;
+
         const sections = [uploadSection, segmentationSection, griddingSection, virtualGridSection];
         const targetSection = sections[index];
         if (targetSection) {
@@ -121,3 +121,75 @@ function getCurrentStep() {
 
 // Initialize the current step
 let currentStep = 0;
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('fileElem');
+    const fileInfo = document.getElementById('file-info');
+    const fileNameDisplay = document.getElementById('file-name');
+    const fileSizeDisplay = document.getElementById('file-size');
+    const removeButton = document.getElementById('remove-file');
+
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight drop area when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropArea.classList.add('highlight');
+    }
+
+    function unhighlight() {
+        dropArea.classList.remove('highlight');
+    }
+
+    // Handle dropped files
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        handleFiles(files);
+    }
+
+    // Handle file selection via input or drop
+    fileInput.addEventListener('change', function () {
+        handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+        if (files.length === 0) return;
+
+        const file = files[0];
+        // Check if the file is an image or a .svs file
+        if (!file.type.startsWith('image/') && file.name.split('.').pop().toLowerCase() !== 'svs') {
+            alert('File is not an image or a .svs file.');
+            return;
+        }
+
+        fileNameDisplay.textContent = file.name;
+        fileSizeDisplay.textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        fileInfo.classList.remove('hidden');
+    }
+    removeButton.addEventListener('click', function () {
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+    });
+});

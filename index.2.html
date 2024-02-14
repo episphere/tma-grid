@@ -15,8 +15,8 @@
         <header class="bg-gray-100 px-6 py-4 shadow-sm">
             <div class="container mx-auto flex justify-between items-center">
                 <a href="#" class="flex items-center">
-                    <img src="path/to/your/logo.png" alt="Your Logo" class="h-8 mr-2">
-                    <h1 class="text-3xl font-light text-gray-800">Tissue Microarray De-Arraying Tool</h1>
+                    <img src="./icons/Designer.png" alt="Your Logo" class="h-8 mr-2" style="border-radius: 50%;">
+                    <h1 class="text-3xl font-light text-gray-800">Griddify</h1>
                 </a>
                 <nav class="flex items-center space-x-4">
                     <a href="#"
@@ -52,10 +52,23 @@
 
                         <div id="tab-contents">
                             <div id="direct-upload" class="tab-content active">
-                                <label for="direct-upload-input" class="block mb-2">Direct Upload</label>
-                                <input type="file" id="direct-upload-input"
-                                    class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                    accept="image/*">
+                                <div id="drop-area">
+                                    <form class="my-form">
+                                      <p>Drag and drop files here</p>
+                                      <p>or</p>
+                                      <label class="browse-button" for="fileElem">Browse Files</label>
+                                      <input type="file" id="fileElem" accept="image/*,.svs" style="display: none;">
+                                      <p class="small">Maximum file size is 100MB.</p>
+                                    </form>
+                                    <div id="file-info" class="hidden">
+                                      <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
+                                      <div id="file-details">
+                                        <span id="file-name">screenshot.png</span>
+                                        <span id="file-size">(2MB)</span>
+                                      </div>
+                                      <button type="button" id="remove-file" class="remove-button">×</button>
+                                    </div>
+                                  </div>
                             </div>
 
                             <div id="url-upload" class="tab-content hidden">
@@ -72,10 +85,41 @@
                         </div>
 
                         <div class="mt-6">
-                            <label class="block text-sm font-medium text-gray-700">Optional Metadata File</label>
-                            <input type="file" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                accept=".txt,.json">
+                            <label class="block text-sm font-semibold text-gray-700">Optional Metadata File:</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="metadataFile" class="file-input" accept=".txt,.json" onchange="displayFileInfo(this)">
+                                <label for="metadataFile" class="file-upload-button">Choose files to upload</label>
+                                <button class="browse-button">Browse Files</button>
+                                
+                            </div>
+                            <div id="metadata-file-info" class="hidden" style="width: 100%;">
+                                <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
+                                <div id="metadata-file-details">
+                                    <span id="metadata-file-name"></span>
+                                    <span id="metadata-file-size"></span>
+                                </div>
+                                <button type="button" id="metadata-remove-file" class="remove-button">×</button>
+                            </div>
                         </div>
+                        
+                        <script>
+                            function displayFileInfo(input) {
+                                if (input.files && input.files[0]) {
+                                    var size = (input.files[0].size / 1024).toFixed(2); // size in KB
+                                    var name = input.files[0].name;
+                                    document.getElementById('metadata-file-name').textContent = name;
+                                    document.getElementById('metadata-file-size').textContent = '(' + size + ' KB)';
+                                    document.getElementById('metadata-file-info').classList.remove('hidden');
+                                }
+                            }
+                        
+                            document.getElementById('metadata-remove-file').addEventListener('click', function() {
+                                document.getElementById('metadataFile').value = '';
+                                document.getElementById('metadata-file-info').classList.add('hidden');
+                            });
+                        </script>
+                        
+                        
 
                         <div class="flex justify-end mt-6">
                             <button class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow-lg" >Proceed</button>

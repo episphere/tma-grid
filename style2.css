@@ -1,99 +1,363 @@
-/* Tailwind Utility Classes Override */
+/* Part 1 of Updated CSS */
 
-/* Carousel Controls */
-.carousel-controls {
-    display: flex;
-    justify-content: center;
-    gap: 0.25rem; /* 4px gap */
-    padding: 1rem;
-  }
-  
-  .carousel-control {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem; /* 32px */
-    height: 2rem; /* 32px */
-    border-radius: 9999px; /* Fully rounded */
-    background-color: rgba(107, 114, 128, 1); /* Gray-500 */
-    border: none;
-    transition: background-color 0.3s ease;
-    cursor: pointer;
-  }
-  
-  .carousel-control.completed {
-    background-color: rgba(16, 185, 129, 1); /* Green-500 */
-  }
-  
-  .carousel-control.completed svg {
-    width: 1.25rem; /* 20px */
-    height: 1.25rem; /* 20px */
-  }
-  
-  .carousel-control:hover {
-    background-color: rgba(59, 130, 246, 1); /* Blue-500 */
-  }
-  
-  .carousel-control:focus {
-    outline: 2px solid rgba(59, 130, 246, 1); /* Blue-500 for focus */
-    outline-offset: 2px;
-  }
-  
-  /* Checkmark styles */
-  .checkmark {
-    color: white; /* White color for checkmark */
-    display: flex; /* Use flex to center the icon */
-    align-items: center;
-    justify-content: center;
-    width: 100%; /* Full width to center in the parent */
-    height: 100%; /* Full height to center in the parent */
-  }
-  
-  /* Other styles for modern aesthetic look */
-  body {
-    font-family: 'Inter', sans-serif; /* Modern sans-serif font */
-    background-color: rgba(243, 244, 246, 1); /* Gray-100 for a soft background */
-  }
-  
+/* General Styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f3f4f6; /* Softened background color */
+}
+
+.container {
+  max-width: 640px; /* Optimized for readability */
+  margin: auto;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Header Styles */
+header {
+  padding: 1rem 0; /* Reduced vertical padding */
+}
+
+.header-title {
+  font-size: 1.75rem; /* Reduced size for better balance */
+  font-weight: 600; /* Increased weight for better readability */
+  margin-left: 0.5rem; /* Added margin for spacing between logo and text */
+}
+
+/* Navigation Styles */
+nav a {
+  padding: 0.5rem 1rem; /* Increased padding for better clickability */
+  font-size: 0.875rem; /* Increased font size */
+  font-weight: 500; /* Medium weight for readability */
+}
+
+/* Active Tab Indicator */
+.upload-option-tab.active {
+  background-color: #eff6ff; /* Light blue background for active tab */
+  font-weight: 600; /* Bold font for active tab */
+}
+
+/* Form Input Enhancements */
+.form-input {
+  padding: 0.5rem; /* Increased padding for larger click area */
+  border: 2px solid #d1d5db; /* Thicker border for better visibility */
+  font-size: 0.875rem; /* Larger font size for readability */
+}
+
+/* Choose File Button Enhancement */
+.file-upload-button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #e2e8f0; /* Lighter shade for the button */
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.file-upload-button:hover {
+  background-color: #cbd5e1; /* Slightly darker on hover */
+}
+
+/* Button Enhancements */
+.btn-proceed {
+  padding: 0.75rem 1.5rem; /* Larger button for prominence */
+  font-size: 0.875rem; /* Larger font size */
+  font-weight: 600; /* Bold font for importance */
+  border: none; /* Remove border for a cleaner look */
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4); /* Matching shadow color to the button */
+}
+
+.btn-proceed:hover {
+  background-color: #15803d; /* Darker green on hover for contrast */
+  box-shadow: 0 6px 8px -2px rgba(16, 185, 129, 0.5); /* Enhance shadow on hover for a lifting effect */
+}
+
+/* Part 2 of Updated CSS */
+
+/* Footer Styles */
+footer {
+  background-color: #f9fafb; /* Slightly different background for footer */
+  color: #6b7280; /* Subdued color for text */
+  padding: 2rem 0; /* Increased padding for more space */
+}
+
+.footer-links {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.footer-links a {
+  color: #6b7280;
+  margin-right: 1rem; /* Space out footer links */
+  transition: color 0.3s ease-in-out;
+}
+
+.footer-links a:hover {
+  color: #374151; /* Darken color on hover */
+}
+
+/* Progress Indicators */
+.carousel-control {
+  width: 2rem; /* Size of indicator */
+  height: 2rem; /* Size of indicator */
+  background-color: #d1d5db; /* Neutral color for indicators */
+}
+
+.carousel-control.active {
+  background-color: #10b981; /* Green color for active state */
+}
+
+/* Color Palette for Branding */
+:root {
+  --primary-color: #2563eb; /* Example primary color */
+  --secondary-color: #10b981; /* Example secondary color */
+  --accent-color: #7c3aed; /* Example accent color */
+}
+
+/* Apply branding colors to elements */
+a:hover,
+.upload-option-tab.active,
+.btn-box-connect:hover,
+.btn-proceed:hover {
+  background-color: var(--primary-color);
+  color: white; /* White text for better contrast */
+
+}
+
+.btn-proceed,
+.btn-box-connect {
+  background-color: var(--secondary-color);
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
   .container {
-    max-width: 640px; /* A moderate width for the main container */
-    margin: auto;
-    padding: 1rem;
-    background-color: white;
-    border-radius: 0.5rem; /* Rounded corners for the container */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* A subtle shadow for depth */
+      max-width: 768px; /* Increased width for larger screens */
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    color: rgba(17, 24, 39, 1); /* Gray-900 for strong readability */
-    margin-bottom: 0.5rem;
+
+  .header-title {
+      font-size: 2rem; /* Slightly larger font for headers on bigger screens */
   }
-  
-  button {
-    transition: all 0.3s ease;
+
+  .btn-proceed,
+  .btn-back,
+  .btn-box-connect {
+      padding: 0.75rem 2rem; /* Larger buttons for easier interaction on larger screens */
   }
-  
-  button:hover {
-    transform: translateY(-2px); /* Slight lift effect on hover */
+}
+
+/* Accessibility Enhancements */
+[role="button"],
+a,
+input[type="file"],
+input[type="text"],
+input[type="checkbox"],
+input[type="range"],
+button {
+  cursor: pointer; /* Ensure all clickable items have a pointer cursor */
+}
+
+/* Error Handling Styles */
+.error-message {
+  color: #dc2626; /* Red color for errors */
+  font-size: 0.875rem; /* Readable font size for errors */
+  margin-top: 0.5rem; /* Space out error message from inputs */
+}
+
+/* Advanced Settings Animation */
+#advanced-settings-content {
+  transition: max-height 0.3s ease-in-out;
+  overflow: hidden;
+  max-height: 0; /* Start with max-height 0 */
+}
+
+#advanced-settings:checked ~ #advanced-settings-content {
+  max-height: 500px; /* Max height when checkbox is checked */
+}
+
+/* Loading States */
+.loading-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-overlay.active {
+  display: flex; /* Show overlay when active */
+}
+
+.loading-spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff; /* White color for spinner */
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+      transform: rotate(0deg);
   }
-  
-  input, textarea, select, button {
-    font-family: inherit; /* Consistent font for form elements */
-    border-radius: 0.375rem; /* Rounded corners for form elements */
+  100% {
+      transform: rotate(360deg);
   }
-  
-  /* Footer styles */
-  footer {
-    text-align: center;
-    padding: 1rem;
-    color: rgba(156, 163, 175, 1); /* Gray-400 for a soft text color */
-    font-size: 0.875rem; /* Smaller font size for the footer */
-  }
-  
-  /* Responsive design breakpoints */
-  @media (min-width: 768px) { /* Apply styles for tablets and above */
-    .container {
-      max-width: 1024px; /* Larger container for wider screens */
-    }
-  }
-  
+}
+
+
+/* Styling for the image input drop zone */
+#drop-area.highlight {
+  border-color: #2563eb; /* or your brand primary color */
+}
+
+#drop-area {
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  width: 90%;
+  margin: 30px auto;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  background: #f8f8f8;
+}
+
+#upload-instructions {
+  margin-bottom: 20px;
+}
+
+.my-form p {
+  margin: 10px 0;
+  color: #555;
+}
+#file-info, #metadata-file-info{
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  display: flex;
+  align-items: center; /* Align items in the center vertically */
+  justify-content: space-between; /* Spreads out the child elements */
+  height: auto; /* Remove any fixed height if it's set */
+}
+
+.file-icon {
+  margin-right: 10px;
+  height: 32px;
+  width: 32px; /* Assuming square icons */
+}
+
+#file-details, #metadata-file-details{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex-grow: 1; /* Allows the details to fill the space */
+}
+
+#file-name, #metadata-file-name {
+  font-weight: bold;
+  margin: 0; /* Resets any margin */
+}
+
+#file-size {
+  font-size: 0.9em;
+  color: #555;
+  margin: 0; /* Resets any margin */
+}
+
+.remove-button {
+  background: none;
+  border: none;
+  color: #b60404;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-left: 10px; /* Adds some space between the text and the button */
+}
+
+.remove-button:hover {
+  color: #de0505;
+}
+
+#file-info.hidden {
+  display: none;
+}
+#metadata-file-info.hidden {
+  display: none;
+}
+
+
+.small {
+  font-size: 0.8em;
+  color: #3d3d3d;
+}
+
+.browse-button {
+  background-color: #ddd;
+  border: none;
+  color: #5a5a5a;
+  padding: 8px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.browse-button:hover {
+  background-color: #ccc;
+}
+
+.file-upload-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f0f0f0;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.file-input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.file-upload-button,
+.browse-button {
+  background-color: #e2e8f0;
+  border: none;
+  padding: 8px 12px;
+  text-align: center;
+  display: inline-block;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 4px;
+  white-space: nowrap;
+}
+
+.file-upload-button {
+  flex-grow: 1;
+  background-color: #f0f0f0; /* Lighter shade to mimic the text box */
+}
+
+.browse-button {
+  background-color: #ddd; /* Darker shade to mimic the button */
+}
+
+.file-upload-button:hover,
+.browse-button:hover {
+  background-color: #cbd5e1;
+}
