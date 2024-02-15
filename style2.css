@@ -7,7 +7,7 @@ body {
 }
 
 .container {
-  max-width: 640px; /* Optimized for readability */
+  max-width: 1024px; /* Optimized for readability */
   margin: auto;
   padding: 1rem;
   background-color: white;
@@ -71,8 +71,8 @@ nav a {
 }
 
 .btn-proceed:hover {
-  background-color: #15803d; /* Darker green on hover for contrast */
-  box-shadow: 0 6px 8px -2px rgba(16, 185, 129, 0.5); /* Enhance shadow on hover for a lifting effect */
+  background-color: #33a55d; /* Darker green on hover for contrast */
+  box-shadow: 0 6px 8px -2px rgba(71, 220, 171, 0.5); /* Enhance shadow on hover for a lifting effect */
 }
 
 /* Part 2 of Updated CSS */
@@ -106,14 +106,19 @@ footer {
   background-color: #d1d5db; /* Neutral color for indicators */
 }
 
+.carousel-control.completed {
+  background-color: rgb(91, 186, 91);
+  color: white; /* White text for better contrast */
+}
+
 .carousel-control.active {
-  background-color: #10b981; /* Green color for active state */
+  background-color: rgb(134, 229, 134);; /* Green color for active state */
 }
 
 /* Color Palette for Branding */
 :root {
-  --primary-color: #2563eb; /* Example primary color */
-  --secondary-color: #10b981; /* Example secondary color */
+  --primary-color: #5582e2; /* Example primary color */
+  --secondary-color: #60bd9e; /* Example secondary color */
   --accent-color: #7c3aed; /* Example accent color */
 }
 
@@ -135,7 +140,7 @@ a:hover,
 /* Responsive Design */
 @media (min-width: 768px) {
   .container {
-      max-width: 768px; /* Increased width for larger screens */
+      max-width: 1024px; /* Increased width for larger screens */
   }
 
   .header-title {
@@ -165,17 +170,6 @@ button {
   color: #dc2626; /* Red color for errors */
   font-size: 0.875rem; /* Readable font size for errors */
   margin-top: 0.5rem; /* Space out error message from inputs */
-}
-
-/* Advanced Settings Animation */
-#advanced-settings-content {
-  transition: max-height 0.3s ease-in-out;
-  overflow: hidden;
-  max-height: 0; /* Start with max-height 0 */
-}
-
-#advanced-settings:checked ~ #advanced-settings-content {
-  max-height: 500px; /* Max height when checkbox is checked */
 }
 
 /* Loading States */
@@ -217,7 +211,7 @@ button {
 
 /* Styling for the image input drop zone */
 #drop-area.highlight {
-  border-color: #2563eb; /* or your brand primary color */
+  border-color: #4575de; /* or your brand primary color */
 }
 
 #drop-area {
@@ -360,4 +354,388 @@ button {
 .file-upload-button:hover,
 .browse-button:hover {
   background-color: #cbd5e1;
+}
+
+ /* Custom styles for the collapsible sidebar */
+ .sidebar {
+  transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+  width: 25%; /* Initial width */
+  overflow: hidden;
+}
+
+.collapsed {
+  width: 0;
+  padding: 0;
+}
+
+#segmentationSidebarIcon, #griddingSidebarIcon {
+  cursor: pointer;
+  top: 40%; /* Center vertically */
+  transform: translateY(-50%);
+  height:90%;
+  width:36px;
+  background-color: #c7c3c3;
+  margin-top: auto;
+  left: 10px;
+  z-index: 30; /* Higher than the content */
+  
+}
+
+
+.collapsed + #sidebarIcon {
+  display: block; /* Show when sidebar is collapsed */
+}
+
+#segmentation-sidebar.collapsed > *:not(#sidebarIcon) {
+  display: none; /* Hide sidebar contents when collapsed */
+}
+
+#gridding-sidebar.collapsed > *:not(#sidebarIcon) {
+  display: none; /* Hide sidebar contents when collapsed */
+}
+.gridding-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Make sure it fills the parent */
+}
+
+#advanced-settings-content {
+  flex-grow: 1;
+}
+
+
+.container {
+  position: relative;
+}
+
+main {
+  transition: margin-left 0.3s ease-in-out;
+}
+
+main.expanded {
+  margin-left: 0%; /* Same as initial sidebar width */
+  position:absolute;
+  z-index: -1;
+}
+
+
+/* Edit sidebar */
+.edit-sidebar {
+  overflow: auto;
+  width: 300px; /* Adjust width as needed */
+  min-width: 200px; /* Minimum width so content doesn't get too squished */
+  background-color: #ffffff;
+  padding: 20px;
+  height: 400px; /* Or use max-height */
+  max-height: 100vh;
+  overflow-y: auto;
+  box-shadow: -1px 0px 4px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+  margin-left: 20px; /* Add some space between the canvas and sidebar */
+  position: absolute; /* Make the sidebar positionable */
+  display: none; /* Initially hide the sidebar */
+  z-index: 10; /* Ensure it's above other elements */
+  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transition for visual feedback */
+}
+
+/* Styles to apply when dragging */
+.edit-sidebar.dragging {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2); /* Larger shadow for lifted effect */
+  transform: scale(1.05); /* Slightly larger to indicate that it's being moved */
+  cursor: grabbing; /* Cursor indicates a grab action */
+  opacity: 0.9; /* Optional: slight transparency */
+}
+
+.edit-sidebar h2 {
+  color: #333;
+  font-weight: 600;
+}
+
+.edit-sidebar label {
+  display: block;
+  margin: 10px 0;
+  font-size: 14px;
+  width: fit-content;
+}
+
+.edit-sidebar input[type=number],
+.edit-sidebar textarea {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  color: #555;
+}
+/* Styles for button group */
+.edit-sidebar .button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Styling for the buttons */
+.edit-sidebar button {
+  flex: 1; /* Allows buttons to take equal width */
+  padding: 10px;
+  margin: 0 5px; /* Add some space between buttons */
+  border-radius: 4px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+/* Specific styling for the Cancel button */
+.edit-sidebar .cancel-button {
+  background-color: #F44336; /* Red color for cancel button */
+  color: white;
+}
+
+/* Hover effect for buttons */
+.edit-sidebar button:hover {
+  opacity: 0.9;
+}
+
+
+/* Popup styling */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.osdViewerControlsParent {
+  display: flex;
+  flex-direction: row;
+}
+
+.osdViewerControl {
+  margin-top: 0px;
+  background-color: black;
+  border-radius: 0px;
+  color: white;
+  text-transform: none;
+  padding: 10px;
+  font-size: 1rem;
+  opacity: 0.5;
+  transition: none;
+}
+
+.osdViewerControl:hover {
+  background-color: black;
+  opacity: 0.65;
+  transform: none;
+}
+
+.osdViewerControl.active {
+  background-color: royalblue;
+  opacity: 0.65;
+  transform: none;
+}
+
+.core-overlay-for-gridding {
+  box-sizing: border-box;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 50%;
+  border-color: #0056b3;
+  cursor: grab;
+}
+
+.core-overlay-for-gridding:hover {
+  border-width: 1px;
+  border-color:#308cee;
+}
+
+.core-overlay-for-gridding.imaginary {
+  border-color: #FFA500;
+}
+
+.core-overlay-for-gridding.temporary {
+  border-style: dashed;
+  border-color: #808080;
+}
+
+.core-overlay-for-gridding.misaligned {
+  border-color: #FF0000;
+  border-width: 2px;
+}
+
+.core-overlay-for-gridding.selected {
+  /* border-width: 2px; */
+  /* border-color: ; */
+  border: none;
+  box-shadow:0px 0px 0px 2px #FFD700;
+  z-index: 100;
+}
+
+.core-overlay-for-gridding.marker {
+  border-color: #51ff00;
+  border-width: 2px;
+}
+
+.core-overlay-title-div {
+  display: flex;
+  position: relative;
+  width: fit-content;
+  font-size: 12px;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.core-overlay-for-gridding.selected>.core-overlay-title-div {
+  font-size: 16px;
+  text-decoration: underline;
+  color: maroon;
+}
+
+.coreResizeHandle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: red;
+  z-index: 1000;
+}
+
+.coreResizeHandle.topLeft,.coreResizeHandle.bottomRight {
+  cursor: nwse-resize
+}
+
+.coreResizeHandle.topRight,.coreResizeHandle.bottomLeft {
+  cursor: nesw-resize
+}
+
+svg {
+  pointer-events: none;
+}
+
+
+#VirtualGridSVSContainer {
+  display: grid;
+  gap: 10px; /* Increased gap for better visual separation */
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.grid-header {
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: bold;
+  user-select: none;
+}
+
+.image-container {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.image-container:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(33, 37, 41, 0.55); /* Dark overlay with increased opacity */
+  color: white;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s;
+}
+
+.image-container:hover .image-overlay {
+  display: flex;
+  opacity: 1;
+}
+.box-files-container{
+  height: 90%;
+}
+
+
+.instructions-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  border-left: 4px solid #5cb85c; /* Bootstrap green */
+  background-color: #fdfdfd;
+  padding: 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  padding-right: 40px; /* Give some space for the close button */
+  display: none; /* Hide by default */
+}
+
+.instructions-container h2 {
+font-size: 1.2em;
+color: #333;
+margin-top: 0;
+}
+
+.instructions-container p {
+font-size: 1em;
+color: #666;
+}
+
+.instructions-container kbd {
+padding: 2px 4px;
+font-size: 90%;
+color: #fff;
+background-color: #333;
+border-radius: 3px;
+box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+.close-instructions {
+position: absolute;
+top: 10px; /* Adjust as needed */
+right: 25px; /* Adjust as needed */
+border: none;
+background: #faf7f7;
+border-radius: 50%; /* Circular shape for the button */
+padding: 5px 8px;
+font-size: 1rem;
+color: #e14949;
+cursor: pointer;
+transition: background-color 0.3s, color 0.3s;
+display: flex;
+align-items: center;
+justify-content: center;
+line-height: 1; /* Aligns the close icon vertically */
+}
+
+.close-instructions:hover, .close-instructions:focus {
+background-color: #e14949; /* Color change on hover/focus for feedback */
+color: white;
+outline: none; /* Removes the outline to maintain the style on focus */
+}
+
+.core-edit-container{
+  width:auto
 }

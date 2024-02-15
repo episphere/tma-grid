@@ -30,13 +30,23 @@ function navigateToSection(currentSection, nextSection) {
 // Advanced settings toggle in gridding section
 const advancedSettingsCheckbox = document.getElementById('advanced-settings');
 const advancedSettingsContent = document.querySelector('#advanced-settings-content');
+const toggleBackground = document.querySelector('#toggle-bg');
+const toggleDot = document.querySelector('.dot');
+
 advancedSettingsCheckbox.addEventListener('change', function () {
     if (this.checked) {
         advancedSettingsContent.classList.remove('hidden');
+        // If the checkbox is checked, change the background color and move the dot to indicate it's on
+        toggleBackground.style.backgroundColor = '#4ade80'; // Change to your desired color for "on" state
+        toggleDot.style.transform = 'translateX(90%)'; // Adjust this value based on the size of your toggle
     } else {
         advancedSettingsContent.classList.add('hidden');
+        // If the checkbox is not checked, revert to the original state
+        toggleBackground.style.backgroundColor = 'rgb(229 231 235)'; // Original color
+        toggleDot.style.transform = 'translateX(1px)'; // Back to the original position
     }
 });
+
 
 // Handling the '.btn-proceed' buttons to navigate through steps
 document.querySelectorAll('.btn-proceed').forEach(button => {
@@ -60,7 +70,6 @@ document.querySelectorAll('.btn-back').forEach(button => {
     button.addEventListener('click', function () {
         // Move to the next step
         let lastStep = getCurrentStep() - 1;
-
         const sections = [uploadSection, segmentationSection, griddingSection, virtualGridSection];
         const lastSection = sections[lastStep];
         if (lastSection) {
@@ -100,15 +109,17 @@ function updateCurrentStep(step) {
         if (index < currentStep - 1) {
             // Mark previous steps as completed
             control.classList.add('completed');
+            control.classList.remove('border-blue-500', 'active');
             control.innerHTML = `<span class="checkmark">✔</span>`; // Add checkmark
         } else if (index === currentStep - 1) {
             // Highlight the current step
-            control.classList.add('border-blue-500');
+            control.classList.add('border-blue-500', 'active');
             control.classList.remove('completed');
+            control.classList.add();
             control.innerHTML = ''; // Remove the checkmark
         } else {
             // Reset the rest
-            control.classList.remove('completed', 'border-blue-500');
+            control.classList.remove('completed', 'border-blue-500', 'active');
             control.innerHTML = ''; // Remove the checkmark
         }
     });
@@ -125,7 +136,7 @@ let currentStep = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
     const dropArea = document.getElementById('drop-area');
-    const fileInput = document.getElementById('fileElem');
+    const fileInput = document.getElementById('fileInput');
     const fileInfo = document.getElementById('file-info');
     const fileNameDisplay = document.getElementById('file-name');
     const fileSizeDisplay = document.getElementById('file-size');

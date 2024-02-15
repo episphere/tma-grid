@@ -233,6 +233,8 @@ async function visualizeSegmentationResults(
   const ctx = canvas.getContext("2d");
   canvas.width = width;
   canvas.height = height;
+  canvas.maxwidth = "100%";
+  canvas.maxheight = "100%";
 
   ctx.drawImage(originalImage, 0, 0, width, height);
 
@@ -254,28 +256,6 @@ function addSegmentationCanvasEventListeners(canvas) {
     }
   });
 
-  document
-    .getElementById("undoButton")
-    .addEventListener("mousedown", function () {
-      // Undo action here
-
-      const currentTime = Date.now();
-      if (currentTime - lastActionTime > actionDebounceInterval) {
-        undo();
-      }
-      lastActionTime = currentTime;
-    });
-
-  document
-    .getElementById("redoButton")
-    .addEventListener("mousedown", function () {
-      // Redo action here
-      const currentTime = Date.now();
-      if (currentTime - lastActionTime > actionDebounceInterval) {
-        redo();
-      }
-      lastActionTime = currentTime;
-    });
 }
 
 function drawCoresOnCanvasForTravelingAlgorithm() {
