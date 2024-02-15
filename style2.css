@@ -370,9 +370,9 @@ button {
 
 #segmentationSidebarIcon, #griddingSidebarIcon {
   cursor: pointer;
-  top: 40%; /* Center vertically */
   transform: translateY(-50%);
-  height:90%;
+  top:50%;
+  height:70%;
   width:36px;
   background-color: #c7c3c3;
   margin-top: auto;

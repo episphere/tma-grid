@@ -4,8 +4,6 @@ import {
     updateStatusMessage,
     resetApplication,
     makeElementDraggable,
-    showPopup,
-    closePopup,
     getHyperparametersFromUI,
   } from "./UI.js";
   
@@ -64,13 +62,11 @@ import {
   
   // Function to switch to the gridding tab
   function switchToGridding() {
-    closePopup("popupSegmentation");
     document.getElementById("rawDataTabButton").click(); // Activate the gridding tab
     // Deactivate the segmentation tab if needed
   }
   
   function switchToVirtualGrid() {
-    closePopup("popupGridding");
     document.getElementById("virtualGridTabButton").click(); // Activate the gridding tab
     // Deactivate the segmentation tab if needed
   }
@@ -125,7 +121,7 @@ import {
   const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
     originalImageContainer.src = src;
     const osdCanvasParent = document.getElementById("osdViewer");
-    osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
+    // osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
     osdCanvasParent.style.height = `${imgDimensions.height * scalingFactor}px`;
     document.getElementById("loadingSpinner").style.display = "none";
   };
@@ -148,9 +144,9 @@ import {
   
     originalImageContainer.onload = () => {
       const osdCanvasParent = document.getElementById("osdViewer");
-      osdCanvasParent.style.width = `${Math.ceil(
-        imageInfo.width * scalingFactor
-      )}px`;
+      // osdCanvasParent.style.width = `${Math.ceil(
+      //   imageInfo.width * scalingFactor
+      // )}px`;
       osdCanvasParent.style.height = `${Math.ceil(
         imageInfo.height * scalingFactor
       )}px`;
@@ -474,7 +470,7 @@ import {
             }
   
             const osdCanvasParent = document.getElementById("osdViewer");
-            osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
+            // osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
             osdCanvasParent.style.height = `${Math.ceil(
               height * scalingFactor
             )}px`;
@@ -950,23 +946,6 @@ import {
       });
     });
   
-    document
-      .getElementById("segmentationClosePopupButton")
-      .addEventListener("click", function (event) {
-        closePopup("popupSegmentation");
-      });
-    document
-      .getElementById("griddingClosePopupButton")
-      .addEventListener("click", function (event) {
-        closePopup("popupGridding");
-      });
-  
-    document
-      .getElementById("openGriddingButton")
-      .addEventListener("click", switchToGridding);
-    document
-      .getElementById("openVirtualGridButton")
-      .addEventListener("click", switchToVirtualGrid);
   }
   
   // Initialize and bind events
@@ -1099,9 +1078,9 @@ import {
             { logLatency: false, cache: true }
           );
         }
-        document.getElementById(
-          "osdViewer"
-        ).style.width = `${window.loadedImg.getAttribute("width")}px`;
+        // document.getElementById(
+        //   "osdViewer"
+        // ).style.width = `${window.loadedImg.getAttribute("width")}px`;
         document.getElementById(
           "osdViewer"
         ).style.height = `${window.loadedImg.getAttribute("height")}px`;

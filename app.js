@@ -81,8 +81,6 @@ document.querySelectorAll('.btn-back').forEach(button => {
 });
 
 
-
-
 // Handling the '.carousel-control' buttons to indicate completion and step navigation
 document.querySelectorAll('.carousel-control').forEach((control, index) => {
     control.addEventListener('click', function () {

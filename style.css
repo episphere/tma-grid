@@ -799,6 +799,7 @@ button:hover {
   display: block; /* Change to block to make it visible by default, or use JavaScript to toggle display */
 }
 
+/* Edit sidebar */
 .edit-sidebar {
   overflow: auto;
   width: 300px; /* Adjust width as needed */

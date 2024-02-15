@@ -166,12 +166,13 @@
 
 
 
-                        <div class="flex justify-end mt-6">
-                            <button
-                                class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow-lg">Proceed</button>
-                        </div>
+
 
                     </div>
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button
+                        class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow-lg">Proceed</button>
                 </div>
             </section>
 
@@ -257,19 +258,20 @@
 
                                 <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
                                 <canvas id="segmentationResultsCanvas" alt="Processed Tissue"
-                                    class="w-full h-96"></canvas>
+                                    class="w-full h-full"></canvas>
                                 <div id="loadingSpinner" class="hidden">
                                     <div class="spinner"></div>
                                 </div>
                             </div>
                         </main>
                     </div>
-                    <div class="flex justify-between items-center mt-8">
-                        <button
-                            class="btn-back px-6 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg">Back</button>
-                        <button id="finalizeSegmentation"
-                            class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg">Proceed</button>
-                    </div>
+
+                </div>
+                <div class="flex justify-between items-center mt-8">
+                    <button
+                        class="btn-back px-6 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg">Back</button>
+                    <button id="finalizeSegmentation"
+                        class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg">Proceed</button>
                 </div>
             </section>
             <script>
@@ -294,179 +296,158 @@
 
 
 
-
-            <section id="gridding" class="py-5 hidden">
+            <section id="gridding" class="py-10 bg-gray-100 hidden">
                 <div class="container mx-auto px-4">
-                    <h2 class="text-4xl font-bold text-center mb-8">Step 3: Image Gridding</h2>
-                    <div class="flex">
+                    <h2 class="text-4xl font-bold text-center mb-12">Step 3: Image Gridding</h2>
+                    <div id="griddingSidebarIcon" onclick="toggleSidebarGridding()"
+                        class="bg-gray-50 p-2 rounded-full shadow-lg absolute">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-wrap lg:flex-nowrap gap-6">
                         <!-- Sidebar -->
                         <aside id="gridding-sidebar"
-                            class="w-1/3 bg-gray-50 p-6 rounded-lg shadow-lg mr-6 transition-all duration-300 collapsed">
-                            <!-- Form for hyperparameters -->
-                            <form id="hyperparameters-form">
-
-
-                                <div class="hyperparameters gridding-sidebar-content">
-
-                                    <!-- Hyperparameter form section -->
-                                    <h2>Configure Parameter</h2>
-
-                                    <!-- Image Parameters Section -->
-                                    <fieldset>
-                                        <legend>Image Parameters</legend>
-                                        <label for="userRadius">Core Radius: <output id="radiusValue"
-                                                for="userRadius">20</output></label>
+                            class="w-full lg:w-1/3 bg-white p-6 rounded-lg shadow transition-all duration-300 collapsed">
+                            <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content">
+                                <h3 class="text-xl font-semibold mb-4">Configure Parameters</h3>
+                                <!-- Image Parameters Section -->
+                                <fieldset class="p-4 bg-gray-50 rounded-lg">
+                                    <legend class="font-medium text-lg">Image Parameters</legend>
+                                    <div class="flex flex-col space-y-4 mt-2">
+                                        <label for="userRadius" class="block">
+                                            Core Radius: <output id="radiusValue" for="userRadius">20</output>
+                                        </label>
                                         <input type="range" id="userRadius" name="userRadius" min="1" max="100"
+                                            value="20" class="w-full">
+                                    </div>
+                                </fieldset>
+                                <!-- Traveling Algorithm Section -->
+                                <fieldset class="p-4 bg-gray-50 rounded-lg mt-4">
+                                    <legend class="font-medium text-lg">Traveling Algorithm Parameters</legend>
+                                    <div class="flex flex-col space-y-4 mt-2">
+                                        <label for="originAngle" title="Rotation of the image in degrees">
+                                            Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
+                                        </label>
+                                        <input type="range" id="originAngle" name="originAngle" min="-90" max="90"
+                                            value="0" class="w-full">
+                                    </div>
+                                </fieldset>
+                                <fieldset>
+                                    <legend>Display Parameters</legend>
+                                    <!-- Check box for whether adjacent cores should be connected by lines -->
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
+                                        <label for="connectCoresCheckbox">Connect Cores</label>
+                                    </div>
+
+
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="flagMisalignmentCheckbox"
+                                            name="flagMisalignmentCheckbox" checked>
+                                        <label for="flagMisalignmentCheckbox">Flag Misaligned Cores</label>
+                                    </div>
+
+                                </fieldset>
+
+                                <!-- Advanced Settings Toggle -->
+                                <div class="mt-4">
+                                    <label for="advanced-settings" class="flex items-center cursor-pointer">
+                                        <input type="checkbox" id="advanced-settings" class="toggle-checkbox">
+                                        <span class="ml-2 text-gray-700">Advanced Settings</span>
+                                    </label>
+                                </div>
+                                <!-- Advanced Settings Content -->
+                                <!-- Wrap hidden fieldsets in a div -->
+                                <div id="advanced-settings-content" class="hidden">
+                                    <!-- More Traveling Algorithm Parameters -->
+                                    <fieldset>
+
+                                        <legend>Traveling Algorithm Parameters</legend>
+                                        <label for="radiusMultiplier"
+                                            title="Multiplier for the radius used in the traveling algorithm">Radius
+                                            Multiplier</label>
+                                        <input type="number" id="radiusMultiplier" name="radiusMultiplier" step="0.1"
+                                            value="0.6">
+
+                                        <label for="gridWidth"
+                                            title="Width of one square in the grid used in the traveling algorithm">Grid
+                                            Width</label>
+                                        <input type="number" id="gridWidth" name="gridWidth" step="1" value="70">
+
+                                        <label for="gamma"
+                                            title="Distance after the the core with the greatest X value to stop the traveling algorithm">Stopping
+                                            Distance</label>
+                                        <input type="number" id="gamma" name="gamma" step="1" value="60">
+
+                                        <label for="multiplier"
+                                            title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
+                                            for
+                                            Grid Width</label>
+                                        <input type="number" id="multiplier" name="multiplier" step="0.1" value="1.5">
+
+                                        <label for="imageWidth"
+                                            title="Width of the entire gird used in the traveling algorithm">Image
+                                            Width</label>
+                                        <input type="number" id="imageWidth" name="imageWidth" step="1" value="1024">
+
+                                        <label for="searchAngle"
+                                            title="Angle to search in the traveling algorithm">Search
+                                            Angle</label>
+                                        <input type="number" id="searchAngle" name="searchAngle" step="1" value="5">
+
+                                    </fieldset>
+
+                                    <!-- Edge Detection Section -->
+                                    <fieldset>
+                                        <legend>Edge Detection Parameters</legend>
+
+                                        <label for="thresholdMultiplier"
+                                            title="Multiplier for the median absolute deviation to filter edges by length">Length
+                                            Threshold
+                                            Multiplier</label>
+                                        <input type="number" id="thresholdMultiplier" name="thresholdMultiplier"
+                                            step="0.1" value="1.2">
+
+                                        <label for="thresholdAngle"
+                                            title="The angle within which edges are considered valid">Threshold
+                                            Angle</label>
+                                        <input type="number" id="thresholdAngle" name="thresholdAngle" step="1"
+                                            value="10">
+                                    </fieldset>
+
+                                    <!-- Image Rotation Section -->
+                                    <fieldset>
+                                        <legend>Image Rotation Parameters</legend>
+
+                                        <label for="minAngle" title="Minimum angle to test for image rotation">Minimum
+                                            Angle</label>
+                                        <input type="number" id="minAngle" name="minAngle" step="1" value="0">
+
+                                        <label for="maxAngle" title="Maximum angle to test for image rotation">Maximum
+                                            Angle</label>
+                                        <input type="number" id="maxAngle" name="maxAngle" step="1" value="5">
+
+                                        <label for="angleStepSize"
+                                            title="Incremental step size for testing angles during image rotation">Angle
+                                            Step
+                                            Size</label>
+                                        <input type="number" id="angleStepSize" name="angleStepSize" step="1" value="5">
+
+                                        <label for="angleThreshold"
+                                            title="Angle threshold used when filtering edges by angle for image rotation">Angle
+                                            Threshold</label>
+                                        <input type="number" id="angleThreshold" name="angleThreshold" step="1"
                                             value="20">
                                     </fieldset>
 
-
-                                    <!-- Traveling Algorithm Section -->
-                                    <fieldset>
-                                        <legend>Traveling Algorithm Parameters</legend>
-
-
-                                        <label for="originAngle" title="Rotation of the image in degrees">Image
-                                            Rotation: <output id="originAngleValue" for="originAngle">0</output></label>
-                                        <input type="range" id="originAngle" name="originAngle" min="-90" max="90"
-                                            value="0">
-
-
-                                    </fieldset>
-
-                                    <fieldset>
-                                        <legend>Display Parameters</legend>
-                                        <!-- Check box for whether adjacent cores should be connected by lines -->
-                                        <div class="checkbox-group">
-                                            <input type="checkbox" id="connectCoresCheckbox" name="connectCores"
-                                                checked>
-                                            <label for="connectCoresCheckbox">Connect Cores</label>
-                                        </div>
-
-
-                                        <div class="checkbox-group">
-                                            <input type="checkbox" id="flagMisalignmentCheckbox"
-                                                name="flagMisalignmentCheckbox" checked>
-                                            <label for="flagMisalignmentCheckbox">Flag Misaligned Cores</label>
-                                        </div>
-
-                                    </fieldset>
-
-                                    <!-- Toggle for advanced settings -->
-                                    <div class="flex items-center mb-4">
-                                        <label for="advanced-settings" class="flex items-center cursor-pointer">
-                                            <div class="relative">
-                                                <input type="checkbox" id="advanced-settings" class="sr-only">
-                                                <div class="block bg-gray-200 w-14 h-8 rounded-full" id="toggle-bg">
-                                                </div>
-                                                <div
-                                                    class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition">
-                                                </div>
-                                            </div>
-                                            <div class="ml-3 text-gray-700 font-small">
-                                                Advanced Settings
-                                            </div>
-                                        </label>
-                                    </div>
-                                    <!-- Wrap hidden fieldsets in a div -->
-                                    <div id="advanced-settings-content" class="hidden">
-                                        <!-- More Traveling Algorithm Parameters -->
-                                        <fieldset>
-
-                                            <legend>Traveling Algorithm Parameters</legend>
-                                            <label for="radiusMultiplier"
-                                                title="Multiplier for the radius used in the traveling algorithm">Radius
-                                                Multiplier</label>
-                                            <input type="number" id="radiusMultiplier" name="radiusMultiplier"
-                                                step="0.1" value="0.6">
-
-                                            <label for="gridWidth"
-                                                title="Width of one square in the grid used in the traveling algorithm">Grid
-                                                Width</label>
-                                            <input type="number" id="gridWidth" name="gridWidth" step="1" value="70">
-
-                                            <label for="gamma"
-                                                title="Distance after the the core with the greatest X value to stop the traveling algorithm">Stopping
-                                                Distance</label>
-                                            <input type="number" id="gamma" name="gamma" step="1" value="60">
-
-                                            <label for="multiplier"
-                                                title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
-                                                for
-                                                Grid Width</label>
-                                            <input type="number" id="multiplier" name="multiplier" step="0.1"
-                                                value="1.5">
-
-                                            <label for="imageWidth"
-                                                title="Width of the entire gird used in the traveling algorithm">Image
-                                                Width</label>
-                                            <input type="number" id="imageWidth" name="imageWidth" step="1"
-                                                value="1024">
-
-                                            <label for="searchAngle"
-                                                title="Angle to search in the traveling algorithm">Search
-                                                Angle</label>
-                                            <input type="number" id="searchAngle" name="searchAngle" step="1" value="5">
-
-                                        </fieldset>
-
-                                        <!-- Edge Detection Section -->
-                                        <fieldset>
-                                            <legend>Edge Detection Parameters</legend>
-
-                                            <label for="thresholdMultiplier"
-                                                title="Multiplier for the median absolute deviation to filter edges by length">Length
-                                                Threshold
-                                                Multiplier</label>
-                                            <input type="number" id="thresholdMultiplier" name="thresholdMultiplier"
-                                                step="0.1" value="1.2">
-
-                                            <label for="thresholdAngle"
-                                                title="The angle within which edges are considered valid">Threshold
-                                                Angle</label>
-                                            <input type="number" id="thresholdAngle" name="thresholdAngle" step="1"
-                                                value="10">
-                                        </fieldset>
-
-                                        <!-- Image Rotation Section -->
-                                        <fieldset>
-                                            <legend>Image Rotation Parameters</legend>
-
-                                            <label for="minAngle"
-                                                title="Minimum angle to test for image rotation">Minimum Angle</label>
-                                            <input type="number" id="minAngle" name="minAngle" step="1" value="0">
-
-                                            <label for="maxAngle"
-                                                title="Maximum angle to test for image rotation">Maximum Angle</label>
-                                            <input type="number" id="maxAngle" name="maxAngle" step="1" value="5">
-
-                                            <label for="angleStepSize"
-                                                title="Incremental step size for testing angles during image rotation">Angle
-                                                Step
-                                                Size</label>
-                                            <input type="number" id="angleStepSize" name="angleStepSize" step="1"
-                                                value="5">
-
-                                            <label for="angleThreshold"
-                                                title="Angle threshold used when filtering edges by angle for image rotation">Angle
-                                                Threshold</label>
-                                            <input type="number" id="angleThreshold" name="angleThreshold" step="1"
-                                                value="20">
-                                        </fieldset>
-
-                                    </div>
-
-                                    <div class="button-group">
-
-
-                                        <button type="button" class="secondary-action-button"
-                                            id="apply-hyperparameters">Rerun
-                                            Gridding</button>
-                                        <button type="button" id="create-virtual-grid">Create Virtual Grid</button>
-                                    </div>
-                                    <br>
                                 </div>
                                 <!-- Button Group -->
+                                <div class="flex justify-end space-x-2 mt-4">
+                                    <button type="button" id="apply-hyperparameters"
+                                        class="px-5 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Rerun
+                                        Gridding</button>
+                                </div>
                                 <div class="button-group">
                                     <button type="button" class="primary-action-button" id="saveResultsAsJson">Save
                                         Results as
@@ -476,69 +457,37 @@
                                         CSV</button>
                                 </div>
                             </form>
-
-
-
-
                             <button onclick="toggleSidebarGridding()"
-                                class="text-white bg-blue-500 hover:bg-blue-700 focus:outline-none font-bold py-2 px-4 rounded inline-flex items-center bottom-0">
-                                <span>Hide</span>
+                                class="mt-4 w-full inline-flex justify-center py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none transition duration-150 ease-in-out">
+                                Toggle Sidebar
                             </button>
-                    </div>
-                    </aside>
+                        </aside>
+                        <div id="rawDataLoadingSpinner" style="display: none;">
+                            <div class="spinner"></div>
+                        </div>
 
-                    <!-- Main Content -->
-                    <main class="w-4/4">
-                                            <!-- Sidebar Toggle Icon -->
-                    <div id="griddingSidebarIcon" onclick="toggleSidebarGridding()"
-                    class="bg-gray-50 p-2 rounded-full shadow-lg absolute">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </div>
-                        <div id="RawData" class="tabcontent">
-                            <!-- <button id="switchToEditMode" class="mode-button active">Edit Mode</button>
-                                <button id="switchToAddMode" class="mode-button">Add Mode</button> -->
-                            <div class="instructions-container">
-                                <button class="close-instructions">×</button> <!-- This is the close button -->
-                                <h2>Gridding Instructions</h2>
-                                <p>First, ensure that the image is rotated correctly. If not, adjust the image rotation
-                                    parameter.
-                                </p>
-                                <p> To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the cursor.
-                                </p>
+                        <!-- Main Content -->
+                        <main class="flex-1">
 
-                                <p> To edit the
-                                    properties of a core, double-click on the core to open the edit menu. By default,
-                                    manual edits
-                                    of the column value is disabled. To enable manual edits of the column value, uncheck
-                                    the "Auto
-                                    Update Columns" checkbox. </p>
-                            </div>
-
-                            <div class="instructions-container">
-                                <button class="close-instructions">×</button> <!-- This is the close button -->
-                                <h2>Adding Cores</h2>
-                                <p>To add a core, click on the desired location within the image. Your first click will
-                                    set the
-                                    center of the core, and your second click will set the radius. </p>
-                                To adjust the size of added cores, hold the <kbd>Shift</kbd> key and drag the cursor.
-                                </p>
-                                <p> To edit the properties of a core, use the edit menu to the right. Make sure to set
-                                    the correct
-                                    row of added cores</p>
-
-
-
-                            </div>
-                            <div id="rawDataLoadingSpinner" style="display: none;">
-                                <div class="spinner"></div>
-                            </div>
-                            <div class="core-edit-container" id="main-container">
-                                <!-- This is the new flex container -->
-
-                                <div id="osdViewer" style="margin: auto; width: 100%;"></div>
-
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <!-- Main content goes here -->
+                                <div class="instructions-container mb-4">
+                                    <h2 class="text-lg font-semibold">Gridding Instructions</h2>
+                                    <p>First, ensure that the image is rotated correctly. If not, adjust the image
+                                        rotation
+                                        parameter.</p>
+                                    <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
+                                        cursor.</p>
+                                </div>
+                                <!-- Similar structure for Adding Cores Instructions -->
+                                <div class="instructions-container mb-4">
+                                    <h2 class="text-lg font-semibold">Adding Cores</h2>
+                                    <p>To add a core, click on the desired location within the image. Your first click
+                                        will set the
+                                        center of the core, and your second click will set the radius.</p>
+                                </div>
+                                <!-- Image Viewer or other main content -->
+                                <div id="osdViewer" class="w-full h-112 bg-gray-200 rounded-lg"></div>
                                 <div class="edit-sidebar" id="editSidebar">
                                     <div class="sidebar-header draggable-area">
                                         <h2 class="title">Edit Core</h2>
@@ -587,8 +536,6 @@
                                         <textarea type="text" id="editAnnotationsInput"
                                             name="editAnnotationsInput"></textarea>
 
-                                        <!-- ...other inputs... -->
-
                                         <div class="radio-group">
                                             <input type="radio" id="editRealInput" name="coreType" value="real">
                                             <label for="editRealInput" class="radio-button">Normal</label>
@@ -608,99 +555,103 @@
 
                                     </form>
                                 </div>
-
                             </div>
-                        </div>
+                        </main>
+                    </div>
 
-                    </main>
+                </div>
+                <div class="flex justify-between items-center mt-8">
+                    <button
+                        class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Back</button>
+                    <button id="create-virtual-grid"
+                        class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Proceed</button>
+                </div>
+            </section>
+
+
+            <script>
+                // Function to toggle the sidebar
+                function toggleSidebarGridding() {
+                    var sidebar = document.getElementById('gridding-sidebar');
+                    var griddingSidebarIcon = document.getElementById('griddingSidebarIcon');
+                    var sidebarContent = document.querySelector('.gridding-sidebar-content');
+                    sidebar.classList.toggle('collapsed');
+
+                    // Wait for the width transition to finish before hiding the content
+                    if (sidebar.classList.contains('collapsed')) {
+                        sidebarContent.style.display = 'none';
+                    } else {
+                        sidebarContent.style.display = 'block';
+                    }
+
+                    griddingSidebarIcon.classList.toggle('hidden');
+                }
+
+            </script>
+
+
+            <section id="virtual-grid" class="py-5 hidden">
+                <h2 class="text-4xl font-bold text-center mb-8">Step 4: Virtual Grid</h2>
+
+                <aside id="virtual-grid-sidebar"
+                    class="w-1/3 bg-gray-50 p-6 rounded-lg shadow-lg mr-6 transition-all duration-300 collapsed">
+                    <fieldset>
+                        <legend>Grid Spacing Parameters</legend>
+                        <label for="horizontalSpacing">Horizontal Spacing:</label>
+                        <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
+                            value="100">
+                        <output id="horizontalSpacingValue" for="horizontalSpacing">50</output>
+
+                        <label for="verticalSpacing">Vertical Spacing:</label>
+                        <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200" value="100">
+                        <output id="verticalSpacingValue" for="verticalSpacing">50</output>
+
+                        <label for="startingX">Starting X:</label>
+                        <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
+                        <output id="startingXValue" for="startingX">0</output>
+
+                        <label for="startingY">Starting Y:</label>
+                        <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
+                        <output id="startingYValue" for="startingY">0</output>
+
+                    </fieldset>
+                    <button type="button" id="applyVirtualGridSettings">Apply Grid Settings</button>
+                    <button onclick="toggleSidebarSegmentation()"
+                        class="text-white bg-blue-500 hover:bg-blue-700 focus:outline-none font-bold py-2 px-4 rounded inline-flex items-center">
+                        <span>Hide</span>
+                    </button>
+                </aside>
+
+                <!-- Virtual Grid Display and Interaction -->
+                <main class="w-full">
+                    <div id="VirtualGrid" class="tabcontent">
+                        <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"></canvas>
+                        <!-- Put other virtual grid related content here -->
+
+                        <div id="VirtualGridSVSContainer"></div>
+                        <button id="toggleEditor" class="toggle-editor-button">Toggle Editor</button>
+                        <div id="jsoneditor-dialog" title="JSON Editor">
+                            <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
+                        </div>
+                    </div>
 
                     <div class="flex justify-between mt-6">
                         <button
-                            class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">Back</button>
-                        <button
-                            class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow-lg">Proceed</button>
+                            class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">
+                            Back
+                        </button>
+                        <button id="downloadAllCoresButton"
+                            class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Download
+                            Grid</button>
                     </div>
-                </div>
+                </main>
+            </section>
 
         </div>
 
-        <script>
-            // Function to toggle the sidebar
-            function toggleSidebarGridding() {
-                var sidebar = document.getElementById('gridding-sidebar');
-                var griddingSidebarIcon = document.getElementById('griddingSidebarIcon');
-                var sidebarContent = document.querySelector('.gridding-sidebar-content');
-                sidebar.classList.toggle('collapsed');
-
-                // Wait for the width transition to finish before hiding the content
-                if (sidebar.classList.contains('collapsed')) {
-                    sidebarContent.style.display = 'none';
-                } else {
-                    sidebarContent.style.display = 'block';
-                }
-
-                griddingSidebarIcon.classList.toggle('hidden');
-            }
-
-        </script>
-        </section>
 
 
-        <section id="virtual-grid" class="py-5 hidden">
-            <h2 class="text-4xl font-bold text-center mb-8">Step 4: Virtual Grid</h2>
 
-            <aside id="virtual-grid-sidebar"
-                class="w-1/3 bg-gray-50 p-6 rounded-lg shadow-lg mr-6 transition-all duration-300 collapsed">
-                <fieldset>
-                    <legend>Grid Spacing Parameters</legend>
-                    <label for="horizontalSpacing">Horizontal Spacing:</label>
-                    <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200" value="100">
-                    <output id="horizontalSpacingValue" for="horizontalSpacing">50</output>
-
-                    <label for="verticalSpacing">Vertical Spacing:</label>
-                    <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200" value="100">
-                    <output id="verticalSpacingValue" for="verticalSpacing">50</output>
-
-                    <label for="startingX">Starting X:</label>
-                    <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
-                    <output id="startingXValue" for="startingX">0</output>
-
-                    <label for="startingY">Starting Y:</label>
-                    <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
-                    <output id="startingYValue" for="startingY">0</output>
-
-                </fieldset>
-                <button type="button" id="applyVirtualGridSettings">Apply Grid Settings</button>
-                <button onclick="toggleSidebarSegmentation()"
-                    class="text-white bg-blue-500 hover:bg-blue-700 focus:outline-none font-bold py-2 px-4 rounded inline-flex items-center">
-                    <span>Hide</span>
-                </button>
-            </aside>
-
-            <!-- Virtual Grid Display and Interaction -->
-            <main class="w-full">
-                <div id="VirtualGrid" class="tabcontent">
-                    <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"></canvas>
-                    <!-- Put other virtual grid related content here -->
-
-                    <div id="VirtualGridSVSContainer"></div>
-                    <button id="toggleEditor" class="toggle-editor-button">Toggle Editor</button>
-                    <div id="jsoneditor-dialog" title="JSON Editor">
-                        <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
-                    </div>
-                </div>
-
-                <div class="flex justify-between mt-6">
-                    <button
-                        class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">
-                        Back
-                    </button>
-                    <button id="downloadAllCoresButton"
-                        class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Download
-                        Grid</button>
-                </div>
-            </main>
-        </section>
 
         <!-- Carousel controls for the sections -->
         <div class="carousel-controls flex justify-center space-x-1 md:space-x-3 p-4">
@@ -720,26 +671,6 @@
         </div>
 
 
-    </div>
-
-    <!-- Popup HTML -->
-    <div id="popupSegmentation" class="popup" style="display: none;">
-        <div class="popup-content">
-            <h2>Segmentation Finalized</h2>
-            <p>Segmentation is now finalized. You can proceed to gridding or continue editing.</p>
-            <button id="openGriddingButton">Open Gridding Tab</button>
-            <button id="segmentationClosePopupButton">Continue Editing</button>
-        </div>
-    </div>
-
-    <div id="popupGridding" class="popup" style="display: none;">
-        <div class="popup-content">
-            <h2>Gridding Finalized</h2>
-            <p>Gridding is now finalized. You can download the results, proceed to the virtual grid, or continue
-                editing.</p>
-            <button id="openVirtualGridButton">Open Virtual Grid</button>
-            <button id="griddingClosePopupButton">Continue Editing</button>
-        </div>
     </div>
 
     <footer class="py-5">
