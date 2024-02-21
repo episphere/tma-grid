@@ -7,6 +7,14 @@
     <title>Tissue Microarray De-Arraying Tool</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
     <link href="./style2.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+    <!-- Include Box CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.css" />
+
 </head>
 
 <body class="bg-gray-100">
@@ -70,8 +78,6 @@
 
             <section id="upload" class="py-5">
                 <div class="container mx-auto px-4">
-                    <h2 class="text-4xl font-bold text-center mb-8">Step 1: Image and Metadata Upload</h2>
-
 
                     <div id="imageLoadStatus" class="load-status neutral-message">
                         No image file uploaded.
@@ -112,19 +118,24 @@
                                 </div>
                             </div>
 
-                            <div id="url-upload" class="tab-content hidden">
+                            <div id="url-upload" class="flex gap-6 hidden">
 
                                 <input type="text" id="imageUrlInput"
                                     class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                                     placeholder="Enter Image URL"
                                     value="https://episphere.github.io/TMA-De-arraying/HD%20TMA%202%202011%20H&E%20stain.svs-[1499,1169,42287,37957]1x.png" />
-                                <button id="loadImageUrlBtn" type="button" class="load-img-btn">Load Image</button>
+                                <button id="loadImageUrlBtn" type="button" class="standard-button">Load Image</button>
                             </div>
 
-                            <div id="box-upload" class="tab-content hidden">
+                            <div id="box-upload" class="hidden">
                                 <button id="boxLoginBtn"
                                     class="btn-box-connect mt-1 px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Connect
                                     to Box</button>
+
+                                    <div id="boxFilesContainer" class="box-files-container">
+                                        <!-- Dynamically loaded Box files will go here -->
+                                    </div>
+
                             </div>
                         </div>
 
@@ -178,92 +189,100 @@
 
             <section id="segmentation" class="hidden py-12">
                 <div class="container mx-auto px-4">
-                    <h2 class="mb-10 text-center text-3xl font-bold md:text-4xl">Step 2: Image Segmentation</h2>
-                    <div class="flex flex-wrap -mx-4">
+                    <div class="flex flex-wrap-mx-4">
                         <!-- Sidebar -->
                         <aside id="segmentation-sidebar"
-                            class="w-full md:w-1/4 p-4 bg-white rounded-lg shadow mr-8 transition-all duration-300 transform md:mr-6 lg:translate-x-0 collapsed">
-                            <fieldset class="segmentation-sidebar-content space-y-4">
-                                <legend class="text-xl font-semibold">Segmentation Parameters</legend>
+                            class="md:w-1/5 lg:w-1/4 bg-gray-50 rounded-lg shadow-lg p-6 transition-all duration-300 transform md:translate-x-0 collapsed">
+                            <fieldset>
+                                <legend class="text-lg font-semibold text-gray-800 mb-4">Segmentation Parameters
+                                </legend>
 
-                                <div class="flex items-center justify-between">
-                                    <label for="maskAlphaSlider" class="flex-grow">Mask Alpha: <span
-                                            id="maskAlphaValue">0.3</span></label>
+                                <div class="space-y-3">
+                                    <label for="maskAlphaSlider" class="text-sm font-medium text-gray-700 block">Mask
+                                        Alpha: <span id="maskAlphaValue">0.3</span></label>
                                     <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.3"
-                                        class="ml-4 flex-grow">
-                                </div>
+                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 
-                                <div class="flex items-center justify-between">
-                                    <label for="thresholdSlider">Segmentation Threshold: <span
+                                    <label for="thresholdSlider"
+                                        class="text-sm font-medium text-gray-700 block">Threshold: <span
                                             id="thresholdValue">0.5</span></label>
                                     <input type="range" id="thresholdSlider" min="0" max="1" step="0.0025" value="0.5"
-                                        class="ml-4">
-                                </div>
+                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 
-                                <div class="flex items-center justify-between">
-                                    <label for="minAreaInput">Min Area:</label>
-                                    <input type="number" id="minAreaInput" value="1" step="1" min="1" class="ml-4">
-                                </div>
+                                    <label for="minAreaInput" class="text-sm font-medium text-gray-700 block">Min
+                                        Area:</label>
+                                    <input type="number" id="minAreaInput" value="1" step="1" min="1"
+                                        class="w-full border-gray-300 rounded-md shadow-sm">
 
-                                <div class="flex items-center justify-between">
-                                    <label for="maxAreaInput">Max Area:</label>
-                                    <input type="number" id="maxAreaInput" value="2000" step="1" min="1" class="ml-4">
-                                </div>
+                                    <label for="maxAreaInput" class="text-sm font-medium text-gray-700 block">Max
+                                        Area:</label>
+                                    <input type="number" id="maxAreaInput" value="2000" step="1" min="1"
+                                        class="w-full border-gray-300 rounded-md shadow-sm">
 
-                                <div class="flex items-center justify-between">
-                                    <label for="disTransformMultiplierInput">Distance Transform Multiplier:</label>
+                                    <label for="disTransformMultiplierInput"
+                                        class="text-sm font-medium text-gray-700 block">Distance Transform
+                                        Multiplier:</label>
                                     <input type="number" id="disTransformMultiplierInput" value="0.65" step="0.025"
-                                        min="0.1" max="1" class="ml-4">
+                                        min="0.1" max="1" class="w-full border-gray-300 rounded-md shadow-sm">
                                 </div>
+
                                 <button type="button" id="applySegmentation"
-                                    class="mt-4 w-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Apply
-                                    Settings</button>
+                                    class="mt-4 w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out">
+                                    Apply
+                                </button>
+                                <button onclick="toggleSidebarSegmentation()"
+                                    class="mt-4 w-full bg-blue-500 text-white rounded-lg py-2 font-medium hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out">
+                                    <span>Hide</span>
+                                </button>
                             </fieldset>
 
-                            <button onclick="toggleSidebarSegmentation()"
-                                class="mt-4 text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-bold py-2 px-4 rounded inline-flex items-center justify-center w-full">
-                                <span>Hide</span>
-                            </button>
+
                         </aside>
+<!-- Sidebar Toggle Icon -->
+<div id="segmentationSidebarIcon" class="parameterSidebar"
+onclick="toggleSidebarSegmentation()">
+<!-- Menu Icon (three horizontal lines) -->
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M4 6h16M4 12h16M4 18h16" />
+</svg>
+</div>
+                        <div class="flex justify-center">
+                            
 
-                        <!-- Main Content -->
-                        <main class="flex-1 p-4">
-                            <!-- Sidebar Toggle Icon -->
-                            <div id="segmentationSidebarIcon" onclick="toggleSidebarSegmentation()"
-                                class="p-2 rounded-full shadow-lg absolute top-0 right-0 mt-4 mr-4 bg-white cursor-pointer">
-                                <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </div>
-                            <div id="ImageSegmentation" class="block">
-                                <div class="instructions-container space-y-4">
-                                    <button class="close-instructions text-right">✕</button>
-                                    <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
-                                    <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm detects
-                                        most of the cores. Make any manual adjustments if needed to capture all cores
-                                        accurately.</p>
-                                    <p>Once you're satisfied with the segmentation, click the "Finalize Segmentation"
-                                        button. You can then proceed to the Gridding tab to continue.</p>
-                                </div>
+                            <!-- Main Content -->
+                            <main class="flex-1 p-4">
+                                <div id="ImageSegmentation">
+                                    <div class="instructions-container space-y-4">
+                                        <button class="close-instructions text-right">✕</button>
+                                        <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
+                                        <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm
+                                            detects
+                                            most of the cores. Make any manual adjustments if needed to capture all
+                                            cores
+                                            accurately.</p>
+                                        <p>Once you're satisfied with the segmentation, click the "Finalize
+                                            Segmentation"
+                                            button. You can then proceed to the Gridding tab to continue.</p>
+                                    </div>
 
-                                <div class="instructions-container mt-4 space-y-4">
-                                    <button class="close-instructions text-right">✕</button>
-                                    <h2>Interactive Core Editing</h2>
-                                    <p>To add a core, simply click on the desired location within the image.</p>
-                                    <p> If you wish to remove a core, hold the <kbd>Shift</kbd> key and click on the
-                                        core you want to remove.</p>
-                                </div>
+                                    <div class="instructions-container mt-4 space-y-4">
+                                        <button class="close-instructions text-right">✕</button>
+                                        <h2>Interactive Core Editing</h2>
+                                        <p>To add a core, simply click on the desired location within the image.</p>
+                                        <p> If you wish to remove a core, hold the <kbd>Shift</kbd> key and click on the
+                                            core you want to remove.</p>
+                                    </div>
 
-                                <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
-                                <canvas id="segmentationResultsCanvas" alt="Processed Tissue"
-                                    class="w-full h-full"></canvas>
-                                <div id="loadingSpinner" class="hidden">
-                                    <div class="spinner"></div>
+                                    <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
+                                    <canvas id="segmentationResultsCanvas" alt="Processed Tissue"
+                                        class="w-full h-full"></canvas>
+                                    <div id="loadingSpinner" class="hidden">
+                                        <div class="spinner"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </main>
+                            </main>
+                        </div>
                     </div>
 
                 </div>
@@ -279,18 +298,10 @@
                 function toggleSidebarSegmentation() {
                     var sidebar = document.getElementById('segmentation-sidebar');
                     var segmentationSidebarIcon = document.getElementById('segmentationSidebarIcon');
-                    var sidebarContent = document.querySelector('.segmentation-sidebar-content');
 
                     sidebar.classList.toggle('collapsed');
-
-                    // Wait for the width transition to finish before hiding the content
-                    if (sidebar.classList.contains('collapsed')) {
-                        sidebarContent.style.display = 'none';
-                    } else {
-                        sidebarContent.style.display = 'block';
-                    }
-
                     segmentationSidebarIcon.classList.toggle('hidden');
+                    console.log("Hidden")
                 }
             </script>
 
@@ -298,23 +309,20 @@
 
             <section id="gridding" class="py-10 bg-gray-100 hidden">
                 <div class="container mx-auto px-4">
-                    <h2 class="text-4xl font-bold text-center mb-12">Step 3: Image Gridding</h2>
-                    <div id="griddingSidebarIcon" onclick="toggleSidebarGridding()"
-                        class="bg-gray-50 p-2 rounded-full shadow-lg absolute">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
+
                     <div class="flex flex-wrap lg:flex-nowrap gap-6">
+                        <!-- Sidebar Toggle Icon -->
+
+
                         <!-- Sidebar -->
                         <aside id="gridding-sidebar"
-                            class="w-full lg:w-1/3 bg-white p-6 rounded-lg shadow transition-all duration-300 collapsed">
-                            <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content">
+                            class="w-full lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
+                            <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content" >
                                 <h3 class="text-xl font-semibold mb-4">Configure Parameters</h3>
                                 <!-- Image Parameters Section -->
                                 <fieldset class="p-4 bg-gray-50 rounded-lg">
                                     <legend class="font-medium text-lg">Image Parameters</legend>
-                                    <div class="flex flex-col space-y-4 mt-2">
+                                    <div class=" flex-col space-y-4 mt-2">
                                         <label for="userRadius" class="block">
                                             Core Radius: <output id="radiusValue" for="userRadius">20</output>
                                         </label>
@@ -325,7 +333,7 @@
                                 <!-- Traveling Algorithm Section -->
                                 <fieldset class="p-4 bg-gray-50 rounded-lg mt-4">
                                     <legend class="font-medium text-lg">Traveling Algorithm Parameters</legend>
-                                    <div class="flex flex-col space-y-4 mt-2">
+                                    <div class=" flex-col space-y-4 mt-2">
                                         <label for="originAngle" title="Rotation of the image in degrees">
                                             Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
                                         </label>
@@ -352,9 +360,9 @@
 
                                 <!-- Advanced Settings Toggle -->
                                 <div class="mt-4">
-                                    <label for="advanced-settings" class="flex items-center cursor-pointer">
+                                    <label for="advanced-settings" class=" items-center cursor-pointer">
                                         <input type="checkbox" id="advanced-settings" class="toggle-checkbox">
-                                        <span class="ml-2 text-gray-700">Advanced Settings</span>
+                                        <span class="text-gray-700">Advanced Settings</span>
                                     </label>
                                 </div>
                                 <!-- Advanced Settings Content -->
@@ -443,118 +451,130 @@
 
                                 </div>
                                 <!-- Button Group -->
-                                <div class="flex justify-end space-x-2 mt-4">
+                                <div class="flex space-x-2 mt-4">
                                     <button type="button" id="apply-hyperparameters"
-                                        class="px-5 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Rerun
-                                        Gridding</button>
+                                        class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Apply</button>
+                                        <button onclick="toggleSidebarGridding()"
+                                        class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
+                                        Hide
+                                    </button>
                                 </div>
-                                <div class="button-group">
-                                    <button type="button" class="primary-action-button" id="saveResultsAsJson">Save
-                                        Results as
-                                        JSON</button>
-                                    <button type="button" class="primary-action-button" id="saveResultsAsCsv">Save
-                                        Results as
-                                        CSV</button>
+                                <div class="flex gap-2"> <!-- Added gap-2 for spacing between buttons -->
+                                    <button type="button"
+                                        class="mb-4 w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 focus:outline-none shadow transition duration-150 ease-in-out px-4 py-2 text-sm"
+                                        id="saveResultsAsJson">Save JSON</button>
+                                    <button type="button"
+                                        class="mb-4 w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 focus:outline-none shadow transition duration-150 ease-in-out px-4 py-2 text-sm"
+                                        id="saveResultsAsCsv">Save CSV</button>
                                 </div>
+
+
                             </form>
-                            <button onclick="toggleSidebarGridding()"
-                                class="mt-4 w-full inline-flex justify-center py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none transition duration-150 ease-in-out">
-                                Toggle Sidebar
-                            </button>
+
                         </aside>
                         <div id="rawDataLoadingSpinner" style="display: none;">
                             <div class="spinner"></div>
                         </div>
 
                         <!-- Main Content -->
-                        <main class="flex-1">
+                        <main class="flex-1 bg-white p-6 rounded-lg shadow" id="main-container">
 
-                            <div class="bg-white p-6 rounded-lg shadow">
-                                <!-- Main content goes here -->
-                                <div class="instructions-container mb-4">
-                                    <h2 class="text-lg font-semibold">Gridding Instructions</h2>
-                                    <p>First, ensure that the image is rotated correctly. If not, adjust the image
-                                        rotation
-                                        parameter.</p>
-                                    <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
-                                        cursor.</p>
+
+
+
+                            <!-- Main content goes here -->
+                            <div class="instructions-container mb-4">
+                                <h2 class="text-lg font-semibold">Gridding Instructions</h2>
+                                <p>First, ensure that the image is rotated correctly. If not, adjust the image
+                                    rotation
+                                    parameter.</p>
+                                <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
+                                    cursor.</p>
+                            </div>
+                            <!-- Similar structure for Adding Cores Instructions -->
+                            <div class="instructions-container mb-4">
+                                <h2 class="text-lg font-semibold">Adding Cores</h2>
+                                <p>To add a core, click on the desired location within the image. Your first click
+                                    will set the
+                                    center of the core, and your second click will set the radius.</p>
+                            </div>
+                            <!-- Image Viewer or other main content -->
+                            <div id="osdViewer" class="flex w-full h-112 bg-gray-200 rounded-lg">
+
+                                <div id="griddingSidebarIcon" class="parameterSidebar"
+                                    onclick="toggleSidebarGridding()">
+                                    <!-- Menu Icon (three horizontal lines) -->
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
                                 </div>
-                                <!-- Similar structure for Adding Cores Instructions -->
-                                <div class="instructions-container mb-4">
-                                    <h2 class="text-lg font-semibold">Adding Cores</h2>
-                                    <p>To add a core, click on the desired location within the image. Your first click
-                                        will set the
-                                        center of the core, and your second click will set the radius.</p>
-                                </div>
-                                <!-- Image Viewer or other main content -->
-                                <div id="osdViewer" class="w-full h-112 bg-gray-200 rounded-lg"></div>
-                                <div class="edit-sidebar" id="editSidebar">
-                                    <div class="sidebar-header draggable-area">
-                                        <h2 class="title">Edit Core</h2>
-                                        <div class="window-controls">
-                                            <button class="close-button" id="closeEditCoreButton">×</button>
-                                        </div>
+                            </div>
+                            <div class="edit-sidebar" id="editSidebar">
+                                <div class="sidebar-header draggable-area">
+                                    <h2 class="title">Edit Core</h2>
+                                    <div class="window-controls">
+                                        <button class="close-button" id="closeEditCoreButton">×</button>
                                     </div>
-                                    <form id="editCoreForm" class="main-content">
-
-                                        <div class="checkbox-group">
-                                            <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
-                                            <label for="editIsMarkerInput">Is a Marker</label>
-                                        </div>
-
-
-                                        <label for="editRowInput">Row:</label>
-                                        <input type="number" id="editRowInput" name="editRowInput" disabled>
-
-                                        <div class="checkbox-group">
-                                            <input type="checkbox" id="editAutoUpdateRowsCheckbox"
-                                                name="editAutoUpdateRowsCheckbox" checked>
-                                            <label for="editAutoUpdateRowsCheckbox">Auto Assign Row</label>
-                                        </div>
-
-
-                                        <label for="editColumnInput">Column:</label>
-                                        <input type="number" id="editColumnInput" name="editColumnInput" disabled>
-
-
-                                        <div class="checkbox-group">
-                                            <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
-                                                name="editAutoUpdateColumnsCheckbox" checked>
-                                            <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
-                                        </div>
-
-                                        <label for="editXInput">X Position:</label>
-                                        <input type="number" id="editXInput" name="editXInput">
-
-                                        <label for="editYInput">Y Position:</label>
-                                        <input type="number" id="editYInput" name="editYInput">
-
-                                        <label for="editRadiusInput">Radius:</label>
-                                        <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
-
-                                        <label for="editAnnotationsInput">Annotations:</label>
-                                        <textarea type="text" id="editAnnotationsInput"
-                                            name="editAnnotationsInput"></textarea>
-
-                                        <div class="radio-group">
-                                            <input type="radio" id="editRealInput" name="coreType" value="real">
-                                            <label for="editRealInput" class="radio-button">Normal</label>
-
-                                            <input type="radio" id="editImaginaryInput" name="coreType"
-                                                value="imaginary">
-                                            <label for="editImaginaryInput" class="radio-button">Missing</label>
-                                        </div>
-
-
-                                        <div class="button-group">
-                                            <button type="button" id="saveCoreEdits">Save</button>
-
-                                            <button type="button" id="removeCoreButton">Remove</button>
-
-                                        </div>
-
-                                    </form>
                                 </div>
+                                <form id="editCoreForm" class="main-content">
+
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
+                                        <label for="editIsMarkerInput">Is a Marker</label>
+                                    </div>
+
+
+                                    <label for="editRowInput">Row:</label>
+                                    <input type="number" id="editRowInput" name="editRowInput" disabled>
+
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="editAutoUpdateRowsCheckbox"
+                                            name="editAutoUpdateRowsCheckbox" checked>
+                                        <label for="editAutoUpdateRowsCheckbox">Auto Assign Row</label>
+                                    </div>
+
+
+                                    <label for="editColumnInput">Column:</label>
+                                    <input type="number" id="editColumnInput" name="editColumnInput" disabled>
+
+
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
+                                            name="editAutoUpdateColumnsCheckbox" checked>
+                                        <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
+                                    </div>
+
+                                    <label for="editXInput">X Position:</label>
+                                    <input type="number" id="editXInput" name="editXInput">
+
+                                    <label for="editYInput">Y Position:</label>
+                                    <input type="number" id="editYInput" name="editYInput">
+
+                                    <label for="editRadiusInput">Radius:</label>
+                                    <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
+
+                                    <label for="editAnnotationsInput">Annotations:</label>
+                                    <textarea type="text" id="editAnnotationsInput"
+                                        name="editAnnotationsInput"></textarea>
+
+                                    <div class="radio-group">
+                                        <input type="radio" id="editRealInput" name="coreType" value="real">
+                                        <label for="editRealInput" class="radio-button">Normal</label>
+
+                                        <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
+                                        <label for="editImaginaryInput" class="radio-button">Missing</label>
+                                    </div>
+
+
+                                    <div class="button-group">
+                                        <button type="button" id="saveCoreEdits">Save</button>
+
+                                        <button type="button" id="removeCoreButton">Remove</button>
+
+                                    </div>
+
+                                </form>
                             </div>
                         </main>
                     </div>
@@ -574,15 +594,7 @@
                 function toggleSidebarGridding() {
                     var sidebar = document.getElementById('gridding-sidebar');
                     var griddingSidebarIcon = document.getElementById('griddingSidebarIcon');
-                    var sidebarContent = document.querySelector('.gridding-sidebar-content');
                     sidebar.classList.toggle('collapsed');
-
-                    // Wait for the width transition to finish before hiding the content
-                    if (sidebar.classList.contains('collapsed')) {
-                        sidebarContent.style.display = 'none';
-                    } else {
-                        sidebarContent.style.display = 'block';
-                    }
 
                     griddingSidebarIcon.classList.toggle('hidden');
                 }
@@ -591,60 +603,90 @@
 
 
             <section id="virtual-grid" class="py-5 hidden">
-                <h2 class="text-4xl font-bold text-center mb-8">Step 4: Virtual Grid</h2>
+                <script>
+                    // Function to toggle the sidebar
+                    function toggleSidebarVirtual() {
+                        var sidebar = document.getElementById('virtual-grid-sidebar');
+                        var virtualSidebarIcon = document.getElementById('virtualGridSidebarIcon');
+                        sidebar.classList.toggle('collapsed');
 
-                <aside id="virtual-grid-sidebar"
-                    class="w-1/3 bg-gray-50 p-6 rounded-lg shadow-lg mr-6 transition-all duration-300 collapsed">
-                    <fieldset>
-                        <legend>Grid Spacing Parameters</legend>
-                        <label for="horizontalSpacing">Horizontal Spacing:</label>
-                        <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
-                            value="100">
-                        <output id="horizontalSpacingValue" for="horizontalSpacing">50</output>
+                        virtualSidebarIcon.classList.toggle('hidden');
+                    }
 
-                        <label for="verticalSpacing">Vertical Spacing:</label>
-                        <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200" value="100">
-                        <output id="verticalSpacingValue" for="verticalSpacing">50</output>
+                </script>
 
-                        <label for="startingX">Starting X:</label>
-                        <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
-                        <output id="startingXValue" for="startingX">0</output>
+                <div class="flex">
 
-                        <label for="startingY">Starting Y:</label>
-                        <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
-                        <output id="startingYValue" for="startingY">0</output>
+                    <aside id="virtual-grid-sidebar"
+                        class="w-1/3 bg-gray-50 p-6 rounded-lg shadow-lg mr-6 transition-all duration-300 collapsed">
+                        <fieldset>
+                            <legend>Grid Spacing Parameters</legend>
+                            <label for="horizontalSpacing">Horizontal Spacing:</label>
+                            <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
+                                value="100">
+                            <output id="horizontalSpacingValue" for="horizontalSpacing">50</output>
 
-                    </fieldset>
-                    <button type="button" id="applyVirtualGridSettings">Apply Grid Settings</button>
-                    <button onclick="toggleSidebarSegmentation()"
-                        class="text-white bg-blue-500 hover:bg-blue-700 focus:outline-none font-bold py-2 px-4 rounded inline-flex items-center">
-                        <span>Hide</span>
-                    </button>
-                </aside>
+                            <label for="verticalSpacing">Vertical Spacing:</label>
+                            <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200"
+                                value="100">
+                            <output id="verticalSpacingValue" for="verticalSpacing">50</output>
 
-                <!-- Virtual Grid Display and Interaction -->
-                <main class="w-full">
-                    <div id="VirtualGrid" class="tabcontent">
-                        <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"></canvas>
-                        <!-- Put other virtual grid related content here -->
+                            <label for="startingX">Starting X:</label>
+                            <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
+                            <output id="startingXValue" for="startingX">0</output>
 
-                        <div id="VirtualGridSVSContainer"></div>
-                        <button id="toggleEditor" class="toggle-editor-button">Toggle Editor</button>
-                        <div id="jsoneditor-dialog" title="JSON Editor">
-                            <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
+                            <label for="startingY">Starting Y:</label>
+                            <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
+                            <output id="startingYValue" for="startingY">0</output>
+                            <!-- Button container -->
+                            <div class="flex space-x-2 mt-4">
+                                <button type="button" id="applyVirtualGridSettings"
+                                    class="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-150 ease-in-out">Apply</button>
+                                <button onclick="toggleSidebarVirtual()"
+                                    class="flex-1 text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-150 ease-in-out">
+                                    <span>Hide</span>
+                                </button>
+                            </div>
+                        </fieldset>
+
+                    </aside>
+
+                    <!-- Virtual Grid Display and Interaction -->
+                    <main class="w-full">
+                        <div id="VirtualGrid" class="tabcontent">
+
+                            <div class="flex">
+                                <div id="virtualGridSidebarIcon" class="parameterSidebar"
+                                    onclick="toggleSidebarVirtual()">
+                                    <!-- Menu Icon (three horizontal lines) -->
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </div>
+
+                                <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"></canvas>
+                                <!-- Put other virtual grid related content here -->
+
+                                <div id="VirtualGridSVSContainer"></div>
+                            </div>
+                            <button id="toggleEditor" class="standard-button">Toggle Editor</button>
+                            <div id="jsoneditor-dialog" title="JSON Editor">
+                                <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="flex justify-between mt-6">
-                        <button
-                            class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">
-                            Back
-                        </button>
-                        <button id="downloadAllCoresButton"
-                            class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Download
-                            Grid</button>
-                    </div>
-                </main>
+                        <div class="flex justify-between mt-6">
+                            <button
+                                class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">
+                                Back
+                            </button>
+                            <button id="downloadAllCoresButton"
+                                class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Download
+                                Grid</button>
+                        </div>
+                    </main>
+                </div>
             </section>
 
         </div>

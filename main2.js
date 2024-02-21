@@ -1,5 +1,4 @@
 import {
-    highlightTab,
     updateSliderUIText,
     updateStatusMessage,
     resetApplication,
@@ -28,7 +27,7 @@ import {
     visualizeSegmentationResults,
   } from "./core_detection.js";
   
-  import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
+  import { getWSIInfo, getPNGFromWSI } from "./wsi.js";
   
   const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
   
@@ -715,57 +714,65 @@ import {
   
   }
   function initializeBoxPicker(accessToken, folderId = "0") {
-  
     const filePicker = new Box.FilePicker();
-  
+
     const options = {
-      chooseButtonLabel: 'Select Image',
-      cancelButtonLabel: 'Cancel',
-      container: '#boxFilesContainer',
-      extensions: ['png', 'jpg', 'jpeg', 'svs'],
+      chooseButtonLabel: "Select Image",
+      cancelButtonLabel: "Cancel",
+      container: "#boxFilesContainer",
+      extensions: ["png", "jpg", "jpeg", "svs"],
       maxSelectable: 1,
     };
-  
-    filePicker.addListener('choose', async (files) => {
-      
+
+    filePicker.addListener("choose", async (files) => {
       if (files.length > 0 && files[0].is_download_available) {
         resetApplication();
         const file = files[0];
-  
+
         try {
           document.getElementById("loadingSpinner").style.display = "block";
-  
+
           const downloadURL = await fetchFileDownloadURL(file.id, accessToken);
           document.getElementById("imageUrlInput").value = downloadURL;
-  
+
           handleLoadImageUrlClick();
-  
-  
-  
-  
+
           // Code for downloading the file and using the file locally
           // const fileBlob = await fetchFileAsBlob(file.id, accessToken);
           // const blobFile = new File([fileBlob], file.name, { type: fileBlob.type });
-  
+
           // console.log('Selected file:', file);
           // handleImageLoad(blobFile, () => segmentImage(true));
           // window.boxFile = fileBlob;
           // window.boxFileInfo = file;
         } catch (error) {
-          console.error('Error processing file from Box:', error);
+          console.error("Error processing file from Box:", error);
         }
       } else {
-        console.log('Selected file is not available for download.');
+        console.log("Selected file is not available for download.");
       }
     });
-  
-    filePicker.addListener('cancel', () => {
-      console.log('Box file selection was canceled.');
+
+    filePicker.addListener("cancel", () => {
+      console.log("Box file selection was canceled.");
     });
-  
-    // Hide the other image input stuff and only show the box file picker
-    document.getElementById("file-upload-container").style.display = "none";
-  
+
+    // Go to box tab by clicking the Box Integration button
+    // Find the button with the Box Integration data-target
+    const boxIntegrationButton = document.querySelector(
+      'button[data-target="box-upload"]'
+    );
+
+    // Simulate a click event on the button
+    if (boxIntegrationButton) {
+      // Check if the button exists
+      boxIntegrationButton.click();
+
+      // Hide the box login button
+      document.getElementById("boxLoginBtn").style.display = "none";
+    }
+
+
     filePicker.show(folderId, accessToken, options);
   }
   
@@ -917,7 +924,6 @@ import {
         svgOverlay.node().style.display = ""; // Show the SVG overlay
       });
   
-    // makeElementDraggable(document.getElementById("addSidebar"));
     makeElementDraggable(document.getElementById("editSidebar"));
   
     // Close the sidebar

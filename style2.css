@@ -1,13 +1,14 @@
-/* Part 1 of Updated CSS */
-
 /* General Styles */
+
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f3f4f6; /* Softened background color */
+  background-color: #f3f4f6;
+  /* Softened background color */
 }
 
 .container {
-  max-width: 1024px; /* Optimized for readability */
+  max-width: 100%;
+  /* Optimized for readability */
   margin: auto;
   padding: 1rem;
   background-color: white;
@@ -17,40 +18,53 @@ body {
 
 /* Header Styles */
 header {
-  padding: 1rem 0; /* Reduced vertical padding */
+  padding: 1rem 0;
+  /* Reduced vertical padding */
 }
 
 .header-title {
-  font-size: 1.75rem; /* Reduced size for better balance */
-  font-weight: 600; /* Increased weight for better readability */
-  margin-left: 0.5rem; /* Added margin for spacing between logo and text */
+  font-size: 1.75rem;
+  /* Reduced size for better balance */
+  font-weight: 600;
+  /* Increased weight for better readability */
+  margin-left: 0.5rem;
+  /* Added margin for spacing between logo and text */
 }
 
 /* Navigation Styles */
 nav a {
-  padding: 0.5rem 1rem; /* Increased padding for better clickability */
-  font-size: 0.875rem; /* Increased font size */
-  font-weight: 500; /* Medium weight for readability */
+  padding: 0.5rem 1rem;
+  /* Increased padding for better clickability */
+  font-size: 0.875rem;
+  /* Increased font size */
+  font-weight: 500;
+  /* Medium weight for readability */
 }
 
 /* Active Tab Indicator */
 .upload-option-tab.active {
-  background-color: #eff6ff; /* Light blue background for active tab */
-  font-weight: 600; /* Bold font for active tab */
+  background-color: #eff6ff;
+  /* Light blue background for active tab */
+  font-weight: 600;
+  /* Bold font for active tab */
 }
 
 /* Form Input Enhancements */
 .form-input {
-  padding: 0.5rem; /* Increased padding for larger click area */
-  border: 2px solid #d1d5db; /* Thicker border for better visibility */
-  font-size: 0.875rem; /* Larger font size for readability */
+  padding: 0.5rem;
+  /* Increased padding for larger click area */
+  border: 2px solid #d1d5db;
+  /* Thicker border for better visibility */
+  font-size: 0.875rem;
+  /* Larger font size for readability */
 }
 
 /* Choose File Button Enhancement */
 .file-upload-button {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background-color: #e2e8f0; /* Lighter shade for the button */
+  background-color: #e2e8f0;
+  /* Lighter shade for the button */
   border-radius: 0.375rem;
   cursor: pointer;
   font-size: 0.875rem;
@@ -58,30 +72,40 @@ nav a {
 }
 
 .file-upload-button:hover {
-  background-color: #cbd5e1; /* Slightly darker on hover */
+  background-color: #cbd5e1;
+  /* Slightly darker on hover */
 }
 
 /* Button Enhancements */
 .btn-proceed {
-  padding: 0.75rem 1.5rem; /* Larger button for prominence */
-  font-size: 0.875rem; /* Larger font size */
-  font-weight: 600; /* Bold font for importance */
-  border: none; /* Remove border for a cleaner look */
-  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4); /* Matching shadow color to the button */
+  padding: 0.75rem 1.5rem;
+  /* Larger button for prominence */
+  font-size: 0.875rem;
+  /* Larger font size */
+  font-weight: 600;
+  /* Bold font for importance */
+  border: none;
+  /* Remove border for a cleaner look */
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);
+  /* Matching shadow color to the button */
 }
 
 .btn-proceed:hover {
-  background-color: #33a55d; /* Darker green on hover for contrast */
-  box-shadow: 0 6px 8px -2px rgba(71, 220, 171, 0.5); /* Enhance shadow on hover for a lifting effect */
+  background-color: #33a55d;
+  /* Darker green on hover for contrast */
+  box-shadow: 0 6px 8px -2px rgba(71, 220, 171, 0.5);
+  /* Enhance shadow on hover for a lifting  */
 }
 
-/* Part 2 of Updated CSS */
 
 /* Footer Styles */
 footer {
-  background-color: #f9fafb; /* Slightly different background for footer */
-  color: #6b7280; /* Subdued color for text */
-  padding: 2rem 0; /* Increased padding for more space */
+  background-color: #f9fafb;
+  /* Slightly different background for footer */
+  color: #6b7280;
+  /* Subdued color for text */
+  padding: 2rem 0;
+  /* Increased padding for more space */
 }
 
 .footer-links {
@@ -91,35 +115,46 @@ footer {
 
 .footer-links a {
   color: #6b7280;
-  margin-right: 1rem; /* Space out footer links */
+  margin-right: 1rem;
+  /* Space out footer links */
   transition: color 0.3s ease-in-out;
 }
 
 .footer-links a:hover {
-  color: #374151; /* Darken color on hover */
+  color: #374151;
+  /* Darken color on hover */
 }
 
 /* Progress Indicators */
 .carousel-control {
-  width: 2rem; /* Size of indicator */
-  height: 2rem; /* Size of indicator */
-  background-color: #d1d5db; /* Neutral color for indicators */
+  width: 2rem;
+  /* Size of indicator */
+  height: 2rem;
+  /* Size of indicator */
+  background-color: #d1d5db;
+  /* Neutral color for indicators */
 }
 
 .carousel-control.completed {
   background-color: rgb(91, 186, 91);
-  color: white; /* White text for better contrast */
+  color: white;
+  /* White text for better contrast */
 }
 
 .carousel-control.active {
-  background-color: rgb(134, 229, 134);; /* Green color for active state */
+  background-color: rgb(134, 229, 134);
+  ;
+  /* Green color for active state */
 }
 
 /* Color Palette for Branding */
 :root {
-  --primary-color: #5582e2; /* Example primary color */
-  --secondary-color: #60bd9e; /* Example secondary color */
-  --accent-color: #7c3aed; /* Example accent color */
+  --primary-color: #5582e2;
+  /* Example primary color */
+  --secondary-color: #60bd9e;
+  /* Example secondary color */
+  --accent-color: #7c3aed;
+  /* Example accent color */
 }
 
 /* Apply branding colors to elements */
@@ -128,8 +163,8 @@ a:hover,
 .btn-box-connect:hover,
 .btn-proceed:hover {
   background-color: var(--primary-color);
-  color: white; /* White text for better contrast */
-
+  color: white;
+  /* White text for better contrast */
 }
 
 .btn-proceed,
@@ -138,19 +173,22 @@ a:hover,
 }
 
 /* Responsive Design */
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .container {
-      max-width: 1024px; /* Increased width for larger screens */
+    max-width: 90%;
+    /* Increased width for larger screens */
   }
 
   .header-title {
-      font-size: 2rem; /* Slightly larger font for headers on bigger screens */
+    font-size: 2rem;
+    /* Slightly larger font for headers on bigger screens */
   }
 
   .btn-proceed,
   .btn-back,
   .btn-box-connect {
-      padding: 0.75rem 2rem; /* Larger buttons for easier interaction on larger screens */
+    padding: 0.75rem 2rem;
+    /* Larger buttons for easier interaction on larger screens */
   }
 }
 
@@ -162,37 +200,45 @@ input[type="text"],
 input[type="checkbox"],
 input[type="range"],
 button {
-  cursor: pointer; /* Ensure all clickable items have a pointer cursor */
+  cursor: pointer;
+  /* Ensure all clickable items have a pointer cursor */
 }
 
 /* Error Handling Styles */
 .error-message {
-  color: #dc2626; /* Red color for errors */
-  font-size: 0.875rem; /* Readable font size for errors */
-  margin-top: 0.5rem; /* Space out error message from inputs */
+  color: #dc2626;
+  /* Red color for errors */
+  font-size: 0.875rem;
+  /* Readable font size for errors */
+  margin-top: 0.5rem;
+  /* Space out error message from inputs */
 }
 
 /* Loading States */
 .loading-overlay {
-  display: none; /* Hidden by default */
+  display: none;
+  /* Hidden by default */
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  background-color: rgba(0, 0, 0, 0.5);
+  /* Semi-transparent overlay */
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
 .loading-overlay.active {
-  display: flex; /* Show overlay when active */
+  display: flex;
+  /* Show overlay when active */
 }
 
 .loading-spinner {
   border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff; /* White color for spinner */
+  border-top-color: #fff;
+  /* White color for spinner */
   border-radius: 50%;
   width: 3rem;
   height: 3rem;
@@ -201,17 +247,18 @@ button {
 
 @keyframes spin {
   0% {
-      transform: rotate(0deg);
+    transform: rotate(0deg);
   }
+
   100% {
-      transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
-
 /* Styling for the image input drop zone */
 #drop-area.highlight {
-  border-color: #4575de; /* or your brand primary color */
+  border-color: #4575de;
+  /* or your brand primary color */
 }
 
 #drop-area {
@@ -233,40 +280,51 @@ button {
   margin: 10px 0;
   color: #555;
 }
-#file-info, #metadata-file-info{
+
+#file-info,
+#metadata-file-info {
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 10px;
   display: flex;
-  align-items: center; /* Align items in the center vertically */
-  justify-content: space-between; /* Spreads out the child elements */
-  height: auto; /* Remove any fixed height if it's set */
+  align-items: center;
+  /* Align items in the center vertically */
+  justify-content: space-between;
+  /* Spreads out the child elements */
+  height: auto;
+  /* Remove any fixed height if it's set */
 }
 
 .file-icon {
   margin-right: 10px;
   height: 32px;
-  width: 32px; /* Assuming square icons */
+  width: 32px;
+  /* Assuming square icons */
 }
 
-#file-details, #metadata-file-details{
+#file-details,
+#metadata-file-details {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  flex-grow: 1; /* Allows the details to fill the space */
+  flex-grow: 1;
+  /* Allows the details to fill the space */
 }
 
-#file-name, #metadata-file-name {
+#file-name,
+#metadata-file-name {
   font-weight: bold;
-  margin: 0; /* Resets any margin */
+  margin: 0;
+  /* Resets any margin */
 }
 
 #file-size {
   font-size: 0.9em;
   color: #555;
-  margin: 0; /* Resets any margin */
+  margin: 0;
+  /* Resets any margin */
 }
 
 .remove-button {
@@ -275,20 +333,13 @@ button {
   color: #b60404;
   font-size: 1.5rem;
   cursor: pointer;
-  margin-left: 10px; /* Adds some space between the text and the button */
+  margin-left: 10px;
+  /* Adds some space between the text and the button */
 }
 
 .remove-button:hover {
   color: #de0505;
 }
-
-#file-info.hidden {
-  display: none;
-}
-#metadata-file-info.hidden {
-  display: none;
-}
-
 
 .small {
   font-size: 0.8em;
@@ -342,24 +393,107 @@ button {
   white-space: nowrap;
 }
 
-.file-upload-button {
-  flex-grow: 1;
-  background-color: #f0f0f0; /* Lighter shade to mimic the text box */
-}
-
-.browse-button {
-  background-color: #ddd; /* Darker shade to mimic the button */
-}
-
 .file-upload-button:hover,
 .browse-button:hover {
   background-color: #cbd5e1;
 }
+/* Enhancements for Form Controls */
 
- /* Custom styles for the collapsible sidebar */
- .sidebar {
+input[type="range"] {
+  -webkit-appearance: none;
+  display: block;
+
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #e4e7ea;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity .2s;
+}
+
+input[type="range"]:hover {
+  opacity: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+}
+
+/* Visual Enhancements for Select and Checkbox */
+select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  background-color: #fff;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"><path d="M5.293 7.293a1 1 0 010 1.414L10 13.414l4.707-4.707a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+}
+
+.checkbox-group, .radio-group {
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.checkbox-group label, .radio-group label {
+  margin-left: 0.5rem;
+}
+
+.radio-group {
+  display: flex;
+  margin-bottom: 10px; /* spacing between form elements */
+}
+
+.radio-group input[type="radio"] {
+  display: none; /* hide the default radio button */
+}
+
+.radio-group label.radio-button {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 20px; /* rounded corners for pill shape */
+  background-color: #f0f0f0;
+  margin-right: 10px; /* spacing between buttons */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Change background color when radio button is selected */
+.radio-group input[type="radio"]:checked + label.radio-button {
+  background-color: #007BFF;
+  color: white;
+  border-color: #007BFF;
+}
+
+
+
+/* Custom styles for the collapsible sidebar */
+.sidebar {
   transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
-  width: 25%; /* Initial width */
+  width: 25%;
+  /* Initial width */
   overflow: hidden;
 }
 
@@ -368,35 +502,57 @@ button {
   padding: 0;
 }
 
-#segmentationSidebarIcon, #griddingSidebarIcon {
+.parameterSidebar {
   cursor: pointer;
-  transform: translateY(-50%);
-  top:50%;
-  height:70%;
-  width:36px;
-  background-color: #c7c3c3;
-  margin-top: auto;
-  left: 10px;
-  z-index: 30; /* Higher than the content */
-  
+  left: 0; /* Align to the left side of the viewport */
+  top: 0; /* Align to the top of the viewport */
+  width: 36px; /* Width of the collapsed menu */
+  background-color: #1F2937; /* Darker background for better contrast */
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.25); /* More pronounced shadow for depth */
+  border-top-right-radius: 8px; /* Slightly rounded corners for a softer look */
+  border-bottom-right-radius: 8px;
+  padding-top: 5px;
+  display: flex; /* Flexbox for centering the icon */
+  justify-content: center; /* Center the icon horizontally */
+  transition: background-color 0.3s ease; /* Transition for hover effect */
+}
+
+.parameterSidebar:hover{
+  background-color: #374151; /* Slightly lighter background on hover for interaction feedback */
+}
+
+.parameterSidebar svg{
+  stroke: #ffffff; /* White color for the icon to stand out */
+  stroke-width: 2;
 }
 
 
-.collapsed + #sidebarIcon {
-  display: block; /* Show when sidebar is collapsed */
+.collapsed+#sidebarIcon {
+  display: relative;
+  /* Show when sidebar is collapsed */
 }
 
-#segmentation-sidebar.collapsed > *:not(#sidebarIcon) {
-  display: none; /* Hide sidebar contents when collapsed */
+#segmentation-sidebar.collapsed>*:not(#sidebarIcon) {
+  display: none;
+  /* Hide sidebar contents when collapsed */
 }
 
-#gridding-sidebar.collapsed > *:not(#sidebarIcon) {
-  display: none; /* Hide sidebar contents when collapsed */
+#gridding-sidebar.collapsed>*:not(#sidebarIcon) {
+  display: none;
+  /* Hide sidebar contents when collapsed */
 }
+#virtual-grid-sidebar.collapsed>*:not(#sidebarIcon) {
+  display: none;
+  /* Hide sidebar contents when collapsed */
+}
+
+
+
 .gridding-sidebar-content {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Make sure it fills the parent */
+  height: 100%;
+  /* Make sure it fills the parent */
 }
 
 #advanced-settings-content {
@@ -413,11 +569,48 @@ main {
 }
 
 main.expanded {
-  margin-left: 0%; /* Same as initial sidebar width */
-  position:absolute;
+  margin-left: 0%;
+  /* Same as initial sidebar width */
+  position: absolute;
   z-index: -1;
 }
 
+/* Hidden Classes */
+#file-info.hidden {
+  display: none;
+}
+
+#metadata-file-info.hidden {
+  display: none;
+}
+#segmentationSidebarIcon.hidden{
+  display:none;
+}
+#griddingSidebarIcon.hidden{
+  display:none;
+}
+#virtualGridSidebarIcon.hidden{
+  display:none;
+}
+
+
+
+/* Sidebar Header Styles */
+.sidebar-header {
+  background-color: #f9f9f9; /* Updated to a slightly warmer shade of light grey */
+  padding: 15px; /* Padding only on the top and bottom */
+  width: 100%; /* Ensure the header takes the full width */
+  margin: 0; /* Remove any default margins */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
+  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; /* Modern font-family */
+  transition: all 0.3s ease; /* Smooth transition for interactive elements */
+  position: absolute; /* Positioning it absolutely relative to its parent */
+  top: 0; /* Align the top edge with the parent's top */
+  left: 0; /* Align the left edge with the parent's left */
+}
 
 /* Edit sidebar */
 .edit-sidebar {
@@ -497,26 +690,32 @@ main.expanded {
   opacity: 0.9;
 }
 
-
-/* Popup styling */
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* Improve spacing and alignment of the Save button */
+#saveCoreEdits {
+  margin-top: 20px;
   width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 10px;
+  background-color: #0ca243;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  transition: background-color 0.3s ease;
 }
 
-.popup-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 5px;
-  text-align: center;
+#removeCoreButton{
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  background-color: #F44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2);
+  transition: background-color 0.3s ease;
 }
+
+
 
 .osdViewerControlsParent {
   display: flex;
@@ -558,7 +757,7 @@ main.expanded {
 
 .core-overlay-for-gridding:hover {
   border-width: 1px;
-  border-color:#308cee;
+  border-color: #308cee;
 }
 
 .core-overlay-for-gridding.imaginary {
@@ -579,7 +778,7 @@ main.expanded {
   /* border-width: 2px; */
   /* border-color: ; */
   border: none;
-  box-shadow:0px 0px 0px 2px #FFD700;
+  box-shadow: 0px 0px 0px 2px #FFD700;
   z-index: 100;
 }
 
@@ -611,11 +810,13 @@ main.expanded {
   z-index: 1000;
 }
 
-.coreResizeHandle.topLeft,.coreResizeHandle.bottomRight {
+.coreResizeHandle.topLeft,
+.coreResizeHandle.bottomRight {
   cursor: nwse-resize
 }
 
-.coreResizeHandle.topRight,.coreResizeHandle.bottomLeft {
+.coreResizeHandle.topRight,
+.coreResizeHandle.bottomLeft {
   cursor: nesw-resize
 }
 
@@ -626,7 +827,8 @@ svg {
 
 #VirtualGridSVSContainer {
   display: grid;
-  gap: 10px; /* Increased gap for better visual separation */
+  gap: 10px;
+  /* Increased gap for better visual separation */
   padding: 10px;
   background-color: #fff;
   border-radius: 8px;
@@ -660,7 +862,8 @@ svg {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(33, 37, 41, 0.55); /* Dark overlay with increased opacity */
+  background-color: rgba(33, 37, 41, 0.55);
+  /* Dark overlay with increased opacity */
   color: white;
   display: none;
   justify-content: center;
@@ -672,7 +875,8 @@ svg {
   display: flex;
   opacity: 1;
 }
-.box-files-container{
+
+.box-files-container {
   height: 90%;
 }
 
@@ -681,61 +885,107 @@ svg {
   background-color: #fff;
   padding: 20px;
   border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
-  border-left: 4px solid #5cb85c; /* Bootstrap green */
+  border-left: 4px solid #5cb85c;
+  /* Bootstrap green */
   background-color: #fdfdfd;
   padding: 15px;
   margin-top: 20px;
   margin-bottom: 20px;
   position: relative;
-  padding-right: 40px; /* Give some space for the close button */
-  display: none; /* Hide by default */
+  padding-right: 40px;
+  /* Give some space for the close button */
+  display: none;
+  /* Hide by default */
 }
 
 .instructions-container h2 {
-font-size: 1.2em;
-color: #333;
-margin-top: 0;
+  font-size: 1.2em;
+  color: #333;
+  margin-top: 0;
 }
 
 .instructions-container p {
-font-size: 1em;
-color: #666;
+  font-size: 1em;
+  color: #666;
 }
 
 .instructions-container kbd {
-padding: 2px 4px;
-font-size: 90%;
-color: #fff;
-background-color: #333;
-border-radius: 3px;
-box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #fff;
+  background-color: #333;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
 }
+
 .close-instructions {
-position: absolute;
-top: 10px; /* Adjust as needed */
-right: 25px; /* Adjust as needed */
-border: none;
-background: #faf7f7;
-border-radius: 50%; /* Circular shape for the button */
-padding: 5px 8px;
-font-size: 1rem;
-color: #e14949;
-cursor: pointer;
-transition: background-color 0.3s, color 0.3s;
-display: flex;
-align-items: center;
-justify-content: center;
-line-height: 1; /* Aligns the close icon vertically */
+  position: absolute;
+  top: 10px;
+  /* Adjust as needed */
+  right: 25px;
+  /* Adjust as needed */
+  border: none;
+  background: #faf7f7;
+  border-radius: 50%;
+  /* Circular shape for the button */
+  padding: 5px 8px;
+  font-size: 1rem;
+  color: #e14949;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  /* Aligns the close icon vertically */
 }
 
-.close-instructions:hover, .close-instructions:focus {
-background-color: #e14949; /* Color change on hover/focus for feedback */
-color: white;
-outline: none; /* Removes the outline to maintain the style on focus */
+.close-instructions:hover,
+.close-instructions:focus {
+  background-color: #e14949;
+  /* Color change on hover/focus for feedback */
+  color: white;
+  outline: none;
+  /* Removes the outline to maintain the style on focus */
 }
 
-.core-edit-container{
-  width:auto
+.core-edit-container {
+  width: auto
+}
+
+.load-status {
+  margin-top: 10px;
+  padding: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease-in-out;
+}
+
+.success-message {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.error-message {
+  background-color: var(--error-color);
+  color: white;
+}
+.standard-button{
+    background-color: #0056b3;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 10px 5px; /* Increased padding for a larger clickable area */
+    font-size: 1rem; /* Increased font size for readability */
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-weight: 500;
+    margin: 5px 0;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }

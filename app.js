@@ -52,7 +52,7 @@ advancedSettingsCheckbox.addEventListener('change', function () {
 document.querySelectorAll('.btn-proceed').forEach(button => {
     button.addEventListener('click', function () {
         // Move to the next step
-        let nextStep = getCurrentStep() + 1;
+        let nextStep = currentStep + 1;
 
         const sections = [uploadSection, segmentationSection, griddingSection, virtualGridSection];
         const nextSection = sections[nextStep];
@@ -69,7 +69,7 @@ document.querySelectorAll('.btn-proceed').forEach(button => {
 document.querySelectorAll('.btn-back').forEach(button => {
     button.addEventListener('click', function () {
         // Move to the next step
-        let lastStep = getCurrentStep() - 1;
+        let lastStep = currentStep - 1;
         const sections = [uploadSection, segmentationSection, griddingSection, virtualGridSection];
         const lastSection = sections[lastStep];
         if (lastSection) {
@@ -86,7 +86,7 @@ document.querySelectorAll('.carousel-control').forEach((control, index) => {
     control.addEventListener('click', function () {
         // Jump to the clicked step
         updateCurrentStep(index + 1);
-        currentStep = index + 1;
+        currentStep = index;
 
         const sections = [uploadSection, segmentationSection, griddingSection, virtualGridSection];
         const targetSection = sections[index];
@@ -121,11 +121,6 @@ function updateCurrentStep(step) {
             control.innerHTML = ''; // Remove the checkmark
         }
     });
-}
-
-// Get the current step
-function getCurrentStep() {
-    return currentStep;
 }
 
 // Initialize the current step

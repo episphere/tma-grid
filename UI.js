@@ -61,7 +61,6 @@ function makeElementDraggable(element) {
     if (e.target.classList.contains('draggable-area')) {
     // Prevent any other drag behavior
     e.preventDefault();
-
     // Store the initial position of the mouse and element
     initialMouseX = e.clientX;
     initialMouseY = e.clientY;

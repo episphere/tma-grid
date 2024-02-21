@@ -255,7 +255,6 @@ function addSegmentationCanvasEventListeners(canvas) {
       lastActionTime = currentTime;
     }
   });
-
 }
 
 function drawCoresOnCanvasForTravelingAlgorithm() {
@@ -730,7 +729,7 @@ function drawCore(core, index = -1) {
 
         const imageRotation = document.getElementById("originAngle").value;
         flagMisalignedCores(window.sortedCoresData, imageRotation, false);
-      } 
+      }
       if (index !== -1) {
         drawCores();
       }
@@ -1046,8 +1045,6 @@ function removeCoreFromGrid(core) {
     // Remove the selected core
     window.sortedCoresData.splice(coreIndex, 1);
   }
-
-  updateSidebar(null); // Update the sidebar to reflect no selection
 
   drawCores(); // Redraw the cores
 }
@@ -1600,7 +1597,13 @@ function obtainHyperparametersAndDrawVirtualGrid() {
   );
   document.getElementById("virtualGridTabButton").disabled = false;
 
-  showPopup("popupGridding");
+  // If an element with id of popupGridding exists, show the popup
+
+  var element = document.getElementById("popupGridding");
+
+  if (element) {
+    showPopup("popupGridding");
+  }
 }
 
 async function createVirtualGrid(
@@ -1617,7 +1620,7 @@ async function createVirtualGrid(
     ? URL.createObjectURL(document.getElementById("fileInput").files[0])
     : window.boxFileInfo
     ? URL.createObjectURL(window.boxFile)
-    :"path/to/default/image.jpg";
+    : "path/to/default/image.jpg";
 
   if (window.uploadedImageFileType === "svs") {
     if (firstRun) {
@@ -1633,11 +1636,7 @@ async function createVirtualGrid(
         startingY
       );
 
-      await drawVirtualGridFromWSI(
-        imageSrc,
-        sortedCoresData,
-        64
-      );
+      await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 64);
     } else {
       updateGridSpacingInVirtualGridForSVS(
         horizontalSpacing,
@@ -1807,7 +1806,6 @@ async function drawVirtualGridFromWSI(
   sortedCoresData,
   coreSize = 256
 ) {
-
   // Do not draw the markers
   sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
 
