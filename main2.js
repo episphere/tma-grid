@@ -4,6 +4,7 @@ import {
     resetApplication,
     makeElementDraggable,
     getHyperparametersFromUI,
+    updateImagePreview
   } from "./UI.js";
   
   import {
@@ -35,41 +36,7 @@ import {
   const originalImageContainer = document.getElementById("originalImage");
   const processedImageCanvasID = "segmentationResultsCanvas";
   
-  // Call this function to open the default tab
-  function openDefaultTab() {
-    // Get the element with id="defaultOpen" and click on it
-    document.getElementById("imageUploadTabButton").click();
-  }
-  
-  // The openTab function as before
-  function openTab(evt, tabName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-      tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
-  }
-  
-  // When the window loads, open the default tab
-  window.onload = openDefaultTab;
-  
-  // Function to switch to the gridding tab
-  function switchToGridding() {
-    document.getElementById("rawDataTabButton").click(); // Activate the gridding tab
-    // Deactivate the segmentation tab if needed
-  }
-  
-  function switchToVirtualGrid() {
-    document.getElementById("virtualGridTabButton").click(); // Activate the gridding tab
-    // Deactivate the segmentation tab if needed
-  }
-  
+
   // Load dependencies and return updated state
   const loadDependencies = async () => ({
     model: await loadModel("./tfjs_model/model.json"),
@@ -156,6 +123,7 @@ import {
         "success-message"
       );
   
+      updateImagePreview(originalImageContainer.src);
       processCallback();
   
       window.loadedImg = originalImageContainer;
@@ -180,6 +148,7 @@ import {
               "Image loaded successfully.",
               "success-message"
             );
+            updateImagePreview(originalImageContainer.src);
             processCallback();
             window.loadedImg = originalImageContainer;
             document.getElementById("loadingSpinner").style.display = "none";
@@ -359,6 +328,7 @@ import {
       "File successfully uploaded and validated.",
       "success-message"
     );
+    updateImagePreview(originalImageContainer.src);
   }
   
   // Function to get input parameters from the UI
@@ -481,6 +451,7 @@ import {
               "Image loaded successfully.",
               "success-message"
             );
+            updateImagePreview(originalImageContainer.src);
             await segmentImage(true);
           };
         })

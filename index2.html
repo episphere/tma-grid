@@ -18,9 +18,9 @@
 </head>
 
 <body class="bg-gray-100">
-    <div class="container mx-auto px-4">
+    <div class="body-container mx-auto px-4 lg:ma">
 
-        <header class="bg-gray-100 px-6 py-4 shadow-sm relative">
+        <header class="px-1 py-1 shadow-sm relative">
             <div class="container mx-auto flex justify-between items-center">
                 <a href="#" class="flex items-center">
                     <img src="./icons/Designer.png" alt="Your Logo" class="h-8 w-8 mr-2 rounded-full">
@@ -46,7 +46,7 @@
                         class="text-sm text-gray-800 hover:text-blue-600 transition-colors duration-200 block px-4 py-2">GitHub</a>
                     <a href="#"
                         class="text-sm text-gray-800 hover:text-blue-600 transition-colors duration-200 block px-4 py-2">Manuscript</a>
-                    <button id="helpButton" class="actionButton">?</button> <!-- Add this line -->
+                    <button id="helpButton" class="actionButton px-4">?</button> <!-- Add this line -->
 
                 </div>
                 <!-- Desktop Navigation Menu -->
@@ -76,110 +76,116 @@
         </header>
         <div id="app">
 
-            <section id="upload" class="py-5">
-                <div class="container mx-auto px-4">
+            <section id="upload" class="py-5 ">
 
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+
+                    <nav class="flex mb-5 border-b justify-center">
+                        <button
+                            class="active upload-option-tab px-6 py-2 text-gray-800 border-b-2 border-blue-500 hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
+                            data-target="direct-upload">Direct Upload</button>
+                        <button
+                            class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
+                            data-target="url-upload">Image URL</button>
+                        <button
+                            class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
+                            data-target="box-upload">Box Integration</button>
+                    </nav>
+                    <div class="preview-image">
+                        <img src="./icons/Placeholder_view_vector.svg" alt="Uploaded Image" class="mx-auto w-96 h-64 mb-6" id="previewImage">
+                    </div>
                     <div id="imageLoadStatus" class="load-status neutral-message">
                         No image file uploaded.
                     </div>
 
-                    <div class="bg-white p-6 rounded-lg shadow-lg">
-                        <nav class="flex mb-5 border-b">
-                            <button
-                                class="active upload-option-tab px-6 py-2 text-gray-800 border-b-2 border-blue-500 hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
-                                data-target="direct-upload">Direct Upload</button>
-                            <button
-                                class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
-                                data-target="url-upload">Image URL</button>
-                            <button
-                                class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
-                                data-target="box-upload">Box Integration</button>
-                        </nav>
 
-                        <div id="tab-contents">
-                            <div id="direct-upload" class="tab-content active">
-                                <div id="drop-area">
-                                    <form class="my-form">
-                                        <p>Drag and drop files here</p>
-                                        <p>or</p>
-                                        <label class="browse-button" for="fileInput">Browse Files</label>
-                                        <input type="file" id="fileInput" accept="image/*,.svs" style="display: none;">
-                                        <p class="small">Maximum file size is 100MB.</p>
-                                    </form>
-                                    <div id="file-info" class="hidden">
-                                        <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon"
-                                            class="file-icon">
-                                        <div id="file-details">
-                                            <span id="file-name">screenshot.png</span>
-                                            <span id="file-size">(2MB)</span>
-                                        </div>
-                                        <button type="button" id="remove-file" class="remove-button">×</button>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div id="url-upload" class="flex gap-6 hidden">
-
-                                <input type="text" id="imageUrlInput"
-                                    class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                    placeholder="Enter Image URL"
-                                    value="https://episphere.github.io/TMA-De-arraying/HD%20TMA%202%202011%20H&E%20stain.svs-[1499,1169,42287,37957]1x.png" />
-                                <button id="loadImageUrlBtn" type="button" class="standard-button">Load Image</button>
-                            </div>
-
-                            <div id="box-upload" class="hidden">
-                                <button id="boxLoginBtn"
-                                    class="btn-box-connect mt-1 px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Connect
-                                    to Box</button>
-
-                                    <div id="boxFilesContainer" class="box-files-container">
-                                        <!-- Dynamically loaded Box files will go here -->
-                                    </div>
+                    <div id="tab-contents" class="mb-20">
+                        <div id="direct-upload" class="tab-content active">
+                            <div id="drop-area">
+                                <form class="my-form">
+                                    <p>Drag and drop files here</p>
+                                    <p>or</p>
+                                    <label class="browse-button" for="fileInput">Browse Files</label>
+                                    <input type="file" id="fileInput" accept="image/*,.svs" style="display: none;">
+                                    <p class="small">Maximum file size is 100MB.</p>
+                                </form>
 
                             </div>
-                        </div>
-
-                        <div class="mt-6">
-                            <label class="block text-sm font-semibold text-gray-700">Optional Metadata File:</label>
-                            <div class="file-upload-wrapper">
-                                <input type="file" id="metadataFile" class="file-input" accept=".txt,.json"
-                                    onchange="displayFileInfo(this)">
-                                <label for="metadataFile" class="file-upload-button">Choose files to upload</label>
-                                <button class="browse-button">Browse Files</button>
-
-                            </div>
-                            <div id="metadata-file-info" class="hidden" style="width: 100%;">
+                            <div id="file-info" class="hidden">
                                 <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
-                                <div id="metadata-file-details">
-                                    <span id="metadata-file-name"></span>
-                                    <span id="metadata-file-size"></span>
+                                <div id="file-details">
+                                    <span id="file-name">screenshot.png</span>
+                                    <span id="file-size">(2MB)</span>
                                 </div>
-                                <button type="button" id="metadata-remove-file" class="remove-button">×</button>
+                                <button type="button" id="remove-file" class="remove-button">×</button>
                             </div>
                         </div>
 
-                        <script>
-                            function displayFileInfo(input) {
-                                if (input.files && input.files[0]) {
-                                    var size = (input.files[0].size / 1024).toFixed(2); // size in KB
-                                    var name = input.files[0].name;
-                                    document.getElementById('metadata-file-name').textContent = name;
-                                    document.getElementById('metadata-file-size').textContent = '(' + size + ' KB)';
-                                    document.getElementById('metadata-file-info').classList.remove('hidden');
-                                }
-                            }
+                        <div id="url-upload" class="tab-content flex gap-6 hidden">
 
-                            document.getElementById('metadata-remove-file').addEventListener('click', function () {
-                                document.getElementById('metadataFile').value = '';
-                                document.getElementById('metadata-file-info').classList.add('hidden');
-                            });
-                        </script>
+                            <input type="text" id="imageUrlInput"
+                                class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                placeholder="Enter Image URL"
+                                value="https://episphere.github.io/TMA-De-arraying/HD%20TMA%202%202011%20H&E%20stain.svs-[1499,1169,42287,37957]1x.png" />
+                            <button id="loadImageUrlBtn" type="button" class="standard-button">Load Image</button>
+                        </div>
 
+                        <div id="box-upload" class="tab-content hidden">
 
+                            <button id="boxLoginBtn"
+                                class="btn-box-connect flex justify-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-auto">Connect
+                                to Box</button>
 
+                            <div id="boxFilesContainer" class="box-files-container w-full">
+                                <!-- Dynamically loaded Box files will go here -->
+                            </div>
 
+                        </div>
 
                     </div>
+
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-semibold text-gray-700">Optional Metadata File:</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="metadataFile" class="file-input" accept=".txt,.json"
+                                onchange="displayFileInfo(this)">
+                            <label for="metadataFile" class="file-upload-button">Choose files to upload</label>
+                            <button class="browse-button">Browse Files</button>
+
+                        </div>
+                        <div id="metadata-file-info" class="hidden" style="width: 100%;">
+                            <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
+                            <div id="metadata-file-details">
+                                <span id="metadata-file-name"></span>
+                                <span id="metadata-file-size"></span>
+                            </div>
+                            <button type="button" id="metadata-remove-file" class="remove-button">×</button>
+                        </div>
+                    </div>
+
+                    <script>
+                        function displayFileInfo(input) {
+                            if (input.files && input.files[0]) {
+                                var size = (input.files[0].size / 1024).toFixed(2); // size in KB
+                                var name = input.files[0].name;
+                                document.getElementById('metadata-file-name').textContent = name;
+                                document.getElementById('metadata-file-size').textContent = '(' + size + ' KB)';
+                                document.getElementById('metadata-file-info').classList.remove('hidden');
+                            }
+                        }
+
+                        document.getElementById('metadata-remove-file').addEventListener('click', function () {
+                            document.getElementById('metadataFile').value = '';
+                            document.getElementById('metadata-file-info').classList.add('hidden');
+                        });
+                    </script>
+
+
+
+
+
                 </div>
                 <div class="flex justify-end mt-6">
                     <button
@@ -188,104 +194,97 @@
             </section>
 
             <section id="segmentation" class="hidden py-12">
-                <div class="container mx-auto px-4">
-                    <div class="flex flex-wrap-mx-4">
-                        <!-- Sidebar -->
-                        <aside id="segmentation-sidebar"
-                            class="md:w-1/5 lg:w-1/4 bg-gray-50 rounded-lg shadow-lg p-6 transition-all duration-300 transform md:translate-x-0 collapsed">
-                            <fieldset>
-                                <legend class="text-lg font-semibold text-gray-800 mb-4">Segmentation Parameters
-                                </legend>
+                <div class="flex flex-wrap-mx-4">
+                    <!-- Sidebar -->
+                    <aside id="segmentation-sidebar"
+                        class="bg-gray-50 rounded-lg shadow-lg p-1 transition-all duration-300 transform md:translate-x-0 sm:block collapsed">
+                        <fieldset>
 
-                                <div class="space-y-3">
-                                    <label for="maskAlphaSlider" class="text-sm font-medium text-gray-700 block">Mask
-                                        Alpha: <span id="maskAlphaValue">0.3</span></label>
-                                    <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.3"
-                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-
-                                    <label for="thresholdSlider"
-                                        class="text-sm font-medium text-gray-700 block">Threshold: <span
-                                            id="thresholdValue">0.5</span></label>
-                                    <input type="range" id="thresholdSlider" min="0" max="1" step="0.0025" value="0.5"
-                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-
-                                    <label for="minAreaInput" class="text-sm font-medium text-gray-700 block">Min
-                                        Area:</label>
-                                    <input type="number" id="minAreaInput" value="1" step="1" min="1"
-                                        class="w-full border-gray-300 rounded-md shadow-sm">
-
-                                    <label for="maxAreaInput" class="text-sm font-medium text-gray-700 block">Max
-                                        Area:</label>
-                                    <input type="number" id="maxAreaInput" value="2000" step="1" min="1"
-                                        class="w-full border-gray-300 rounded-md shadow-sm">
-
-                                    <label for="disTransformMultiplierInput"
-                                        class="text-sm font-medium text-gray-700 block">Distance Transform
-                                        Multiplier:</label>
-                                    <input type="number" id="disTransformMultiplierInput" value="0.65" step="0.025"
-                                        min="0.1" max="1" class="w-full border-gray-300 rounded-md shadow-sm">
+                            <div class="text-xl font-semibold mb-4 parameters-header">
+                                <h2 class="title">Segmentation Parameters</h2>
+                                <div class="window-controls">
+                                    <button class="close-button" onclick="toggleSidebarSegmentation()">×</button>
                                 </div>
+                            </div>
 
-                                <button type="button" id="applySegmentation"
-                                    class="mt-4 w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out">
-                                    Apply
-                                </button>
-                                <button onclick="toggleSidebarSegmentation()"
-                                    class="mt-4 w-full bg-blue-500 text-white rounded-lg py-2 font-medium hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out">
-                                    <span>Hide</span>
-                                </button>
-                            </fieldset>
+                            <div class="space-y-3">
+                                <label for="maskAlphaSlider" class="text-sm font-medium text-gray-700 block">Mask
+                                    Alpha: <span id="maskAlphaValue">0.3</span></label>
+                                <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.3"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+                                <label for="thresholdSlider" class="text-sm font-medium text-gray-700 block">Threshold:
+                                    <span id="thresholdValue">0.5</span></label>
+                                <input type="range" id="thresholdSlider" min="0" max="1" step="0.0025" value="0.5"
+                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+
+                                <label for="minAreaInput" class="text-sm font-medium text-gray-700 block">Min
+                                    Area:</label>
+                                <input type="number" id="minAreaInput" value="1" step="1" min="1"
+                                    class="w-full border-gray-300 rounded-md shadow-sm">
+
+                                <label for="maxAreaInput" class="text-sm font-medium text-gray-700 block">Max
+                                    Area:</label>
+                                <input type="number" id="maxAreaInput" value="2000" step="1" min="1"
+                                    class="w-full border-gray-300 rounded-md shadow-sm">
+
+                                <label for="disTransformMultiplierInput"
+                                    class="text-sm font-medium text-gray-700 block">Distance
+                                    Transform
+                                    Multiplier:</label>
+                                <input type="number" id="disTransformMultiplierInput" value="0.65" step="0.025"
+                                    min="0.1" max="1" class="w-full border-gray-300 rounded-md shadow-sm">
+                            </div>
+
+                            <button type="button" id="applySegmentation"
+                                class="mt-4 w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out">
+                                Apply
+                            </button>
+                        </fieldset>
 
 
-                        </aside>
-<!-- Sidebar Toggle Icon -->
-<div id="segmentationSidebarIcon" class="parameterSidebar"
-onclick="toggleSidebarSegmentation()">
-<!-- Menu Icon (three horizontal lines) -->
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M4 6h16M4 12h16M4 18h16" />
-</svg>
-</div>
-                        <div class="flex justify-center">
-                            
-
-                            <!-- Main Content -->
-                            <main class="flex-1 p-4">
-                                <div id="ImageSegmentation">
-                                    <div class="instructions-container space-y-4">
-                                        <button class="close-instructions text-right">✕</button>
-                                        <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
-                                        <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm
-                                            detects
-                                            most of the cores. Make any manual adjustments if needed to capture all
-                                            cores
-                                            accurately.</p>
-                                        <p>Once you're satisfied with the segmentation, click the "Finalize
-                                            Segmentation"
-                                            button. You can then proceed to the Gridding tab to continue.</p>
-                                    </div>
-
-                                    <div class="instructions-container mt-4 space-y-4">
-                                        <button class="close-instructions text-right">✕</button>
-                                        <h2>Interactive Core Editing</h2>
-                                        <p>To add a core, simply click on the desired location within the image.</p>
-                                        <p> If you wish to remove a core, hold the <kbd>Shift</kbd> key and click on the
-                                            core you want to remove.</p>
-                                    </div>
-
-                                    <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
-                                    <canvas id="segmentationResultsCanvas" alt="Processed Tissue"
-                                        class="w-full h-full"></canvas>
-                                    <div id="loadingSpinner" class="hidden">
-                                        <div class="spinner"></div>
-                                    </div>
-                                </div>
-                            </main>
-                        </div>
+                    </aside>
+                    <!-- Sidebar Toggle Icon -->
+                    <div id="segmentationSidebarIcon" class="parameterSidebar"
+                        onclick="toggleSidebarSegmentation()">
+                        <!-- Menu Icon (three horizontal lines) -->
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
                     </div>
 
+
+                    <div id="ImageSegmentation" class="flex-grow sm:block sm:w-full">
+                        <div class="instructions-container space-y-4">
+                            <button class="close-instructions text-right">✕</button>
+                            <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
+                            <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm
+                                detects
+                                most of the cores. Make any manual adjustments if needed to capture all
+                                cores
+                                accurately.</p>
+                            <p>Once you're satisfied with the segmentation, click the "Finalize
+                                Segmentation"
+                                button. You can then proceed to the Gridding tab to continue.</p>
+                        </div>
+
+                        <div class="instructions-container mt-4 space-y-4">
+                            <button class="close-instructions text-right">✕</button>
+                            <h2>Interactive Core Editing</h2>
+                            <p>To add a core, simply click on the desired location within the image.</p>
+                            <p> If you wish to remove a core, hold the <kbd>Shift</kbd> key and click on the
+                                core you want to remove.</p>
+                        </div>
+
+                        <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
+                        <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="w-full h-full"></canvas>
+                        <div id="loadingSpinner" class="hidden">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="flex justify-between items-center mt-8">
                     <button
                         class="btn-back px-6 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg">Back</button>
@@ -307,279 +306,275 @@ onclick="toggleSidebarSegmentation()">
 
 
 
-            <section id="gridding" class="py-10 bg-gray-100 hidden">
-                <div class="container mx-auto px-4">
+            <section id="gridding" class="hidden">
 
-                    <div class="flex flex-wrap lg:flex-nowrap gap-6">
-                        <!-- Sidebar Toggle Icon -->
-
-
-                        <!-- Sidebar -->
-                        <aside id="gridding-sidebar"
-                            class="w-full lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
-                            <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content" >
-                                <h3 class="text-xl font-semibold mb-4">Configure Parameters</h3>
-                                <!-- Image Parameters Section -->
-                                <fieldset class="p-4 bg-gray-50 rounded-lg">
-                                    <legend class="font-medium text-lg">Image Parameters</legend>
-                                    <div class=" flex-col space-y-4 mt-2">
-                                        <label for="userRadius" class="block">
-                                            Core Radius: <output id="radiusValue" for="userRadius">20</output>
-                                        </label>
-                                        <input type="range" id="userRadius" name="userRadius" min="1" max="100"
-                                            value="20" class="w-full">
-                                    </div>
-                                </fieldset>
-                                <!-- Traveling Algorithm Section -->
-                                <fieldset class="p-4 bg-gray-50 rounded-lg mt-4">
-                                    <legend class="font-medium text-lg">Traveling Algorithm Parameters</legend>
-                                    <div class=" flex-col space-y-4 mt-2">
-                                        <label for="originAngle" title="Rotation of the image in degrees">
-                                            Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
-                                        </label>
-                                        <input type="range" id="originAngle" name="originAngle" min="-90" max="90"
-                                            value="0" class="w-full">
-                                    </div>
-                                </fieldset>
-                                <fieldset>
-                                    <legend>Display Parameters</legend>
-                                    <!-- Check box for whether adjacent cores should be connected by lines -->
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
-                                        <label for="connectCoresCheckbox">Connect Cores</label>
-                                    </div>
+                <div class="flex flex-wrap lg:flex-nowrap">
+                    <!-- Sidebar Toggle Icon -->
 
 
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="flagMisalignmentCheckbox"
-                                            name="flagMisalignmentCheckbox" checked>
-                                        <label for="flagMisalignmentCheckbox">Flag Misaligned Cores</label>
-                                    </div>
+                    <!-- Sidebar -->
+                    <aside id="gridding-sidebar"
+                        class="sm:w-full lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
+                        <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content">
+                            <div class="text-xl font-semibold mb-4 parameters-header">
+                                <h2 class="title">Configure Parameters</h2>
+                                <div class="window-controls">
+                                    <button class="close-button" onclick="toggleSidebarGridding()">×</button>
+                                </div>
+                            </div>
 
-                                </fieldset>
-
-                                <!-- Advanced Settings Toggle -->
-                                <div class="mt-4">
-                                    <label for="advanced-settings" class=" items-center cursor-pointer">
-                                        <input type="checkbox" id="advanced-settings" class="toggle-checkbox">
-                                        <span class="text-gray-700">Advanced Settings</span>
+                            <!-- Image Parameters Section -->
+                            <fieldset class="p-4 bg-gray-50 rounded-lg">
+                                <legend class="font-medium text-lg">Image Parameters</legend>
+                                <div class=" flex-col space-y-4 mt-2">
+                                    <label for="userRadius" class="block">
+                                        Core Radius: <output id="radiusValue" for="userRadius">20</output>
                                     </label>
+                                    <input type="range" id="userRadius" name="userRadius" min="1" max="100" value="20"
+                                        class="w-full">
                                 </div>
-                                <!-- Advanced Settings Content -->
-                                <!-- Wrap hidden fieldsets in a div -->
-                                <div id="advanced-settings-content" class="hidden">
-                                    <!-- More Traveling Algorithm Parameters -->
-                                    <fieldset>
-
-                                        <legend>Traveling Algorithm Parameters</legend>
-                                        <label for="radiusMultiplier"
-                                            title="Multiplier for the radius used in the traveling algorithm">Radius
-                                            Multiplier</label>
-                                        <input type="number" id="radiusMultiplier" name="radiusMultiplier" step="0.1"
-                                            value="0.6">
-
-                                        <label for="gridWidth"
-                                            title="Width of one square in the grid used in the traveling algorithm">Grid
-                                            Width</label>
-                                        <input type="number" id="gridWidth" name="gridWidth" step="1" value="70">
-
-                                        <label for="gamma"
-                                            title="Distance after the the core with the greatest X value to stop the traveling algorithm">Stopping
-                                            Distance</label>
-                                        <input type="number" id="gamma" name="gamma" step="1" value="60">
-
-                                        <label for="multiplier"
-                                            title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
-                                            for
-                                            Grid Width</label>
-                                        <input type="number" id="multiplier" name="multiplier" step="0.1" value="1.5">
-
-                                        <label for="imageWidth"
-                                            title="Width of the entire gird used in the traveling algorithm">Image
-                                            Width</label>
-                                        <input type="number" id="imageWidth" name="imageWidth" step="1" value="1024">
-
-                                        <label for="searchAngle"
-                                            title="Angle to search in the traveling algorithm">Search
-                                            Angle</label>
-                                        <input type="number" id="searchAngle" name="searchAngle" step="1" value="5">
-
-                                    </fieldset>
-
-                                    <!-- Edge Detection Section -->
-                                    <fieldset>
-                                        <legend>Edge Detection Parameters</legend>
-
-                                        <label for="thresholdMultiplier"
-                                            title="Multiplier for the median absolute deviation to filter edges by length">Length
-                                            Threshold
-                                            Multiplier</label>
-                                        <input type="number" id="thresholdMultiplier" name="thresholdMultiplier"
-                                            step="0.1" value="1.2">
-
-                                        <label for="thresholdAngle"
-                                            title="The angle within which edges are considered valid">Threshold
-                                            Angle</label>
-                                        <input type="number" id="thresholdAngle" name="thresholdAngle" step="1"
-                                            value="10">
-                                    </fieldset>
-
-                                    <!-- Image Rotation Section -->
-                                    <fieldset>
-                                        <legend>Image Rotation Parameters</legend>
-
-                                        <label for="minAngle" title="Minimum angle to test for image rotation">Minimum
-                                            Angle</label>
-                                        <input type="number" id="minAngle" name="minAngle" step="1" value="0">
-
-                                        <label for="maxAngle" title="Maximum angle to test for image rotation">Maximum
-                                            Angle</label>
-                                        <input type="number" id="maxAngle" name="maxAngle" step="1" value="5">
-
-                                        <label for="angleStepSize"
-                                            title="Incremental step size for testing angles during image rotation">Angle
-                                            Step
-                                            Size</label>
-                                        <input type="number" id="angleStepSize" name="angleStepSize" step="1" value="5">
-
-                                        <label for="angleThreshold"
-                                            title="Angle threshold used when filtering edges by angle for image rotation">Angle
-                                            Threshold</label>
-                                        <input type="number" id="angleThreshold" name="angleThreshold" step="1"
-                                            value="20">
-                                    </fieldset>
-
+                            </fieldset>
+                            <!-- Traveling Algorithm Section -->
+                            <fieldset class="p-4 bg-gray-50 rounded-lg mt-4">
+                                <legend class="font-medium text-lg">Traveling Algorithm Parameters</legend>
+                                <div class=" flex-col space-y-4 mt-2">
+                                    <label for="originAngle" title="Rotation of the image in degrees">
+                                        Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
+                                    </label>
+                                    <input type="range" id="originAngle" name="originAngle" min="-90" max="90" value="0"
+                                        class="w-full">
                                 </div>
-                                <!-- Button Group -->
-                                <div class="flex space-x-2 mt-4">
-                                    <button type="button" id="apply-hyperparameters"
-                                        class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Apply</button>
-                                        <button onclick="toggleSidebarGridding()"
-                                        class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
-                                        Hide
-                                    </button>
-                                </div>
-                                <div class="flex gap-2"> <!-- Added gap-2 for spacing between buttons -->
-                                    <button type="button"
-                                        class="mb-4 w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 focus:outline-none shadow transition duration-150 ease-in-out px-4 py-2 text-sm"
-                                        id="saveResultsAsJson">Save JSON</button>
-                                    <button type="button"
-                                        class="mb-4 w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 focus:outline-none shadow transition duration-150 ease-in-out px-4 py-2 text-sm"
-                                        id="saveResultsAsCsv">Save CSV</button>
+                            </fieldset>
+                            <fieldset>
+                                <legend>Display Parameters</legend>
+                                <!-- Check box for whether adjacent cores should be connected by lines -->
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
+                                    <label for="connectCoresCheckbox">Connect Cores</label>
                                 </div>
 
 
-                            </form>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="flagMisalignmentCheckbox" name="flagMisalignmentCheckbox"
+                                        checked>
+                                    <label for="flagMisalignmentCheckbox">Flag Misaligned Cores</label>
+                                </div>
 
-                        </aside>
-                        <div id="rawDataLoadingSpinner" style="display: none;">
-                            <div class="spinner"></div>
+                            </fieldset>
+
+                            <!-- Advanced Settings Toggle -->
+                            <div class="mt-4">
+                                <label for="advanced-settings" class=" items-center cursor-pointer">
+                                    <input type="checkbox" id="advanced-settings" class="toggle-checkbox">
+                                    <span class="text-gray-700">Advanced Settings</span>
+                                </label>
+                            </div>
+                            <!-- Advanced Settings Content -->
+                            <!-- Wrap hidden fieldsets in a div -->
+                            <div id="advanced-settings-content" class="hidden">
+                                <!-- More Traveling Algorithm Parameters -->
+                                <fieldset>
+
+                                    <legend>Traveling Algorithm Parameters</legend>
+                                    <label for="radiusMultiplier"
+                                        title="Multiplier for the radius used in the traveling algorithm">Radius
+                                        Multiplier</label>
+                                    <input type="number" id="radiusMultiplier" name="radiusMultiplier" step="0.1"
+                                        value="0.6">
+
+                                    <label for="gridWidth"
+                                        title="Width of one square in the grid used in the traveling algorithm">Grid
+                                        Width</label>
+                                    <input type="number" id="gridWidth" name="gridWidth" step="1" value="70">
+
+                                    <label for="gamma"
+                                        title="Distance after the the core with the greatest X value to stop the traveling algorithm">Stopping
+                                        Distance</label>
+                                    <input type="number" id="gamma" name="gamma" step="1" value="60">
+
+                                    <label for="multiplier"
+                                        title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
+                                        for
+                                        Grid Width</label>
+                                    <input type="number" id="multiplier" name="multiplier" step="0.1" value="1.5">
+
+                                    <label for="imageWidth"
+                                        title="Width of the entire gird used in the traveling algorithm">Image
+                                        Width</label>
+                                    <input type="number" id="imageWidth" name="imageWidth" step="1" value="1024">
+
+                                    <label for="searchAngle" title="Angle to search in the traveling algorithm">Search
+                                        Angle</label>
+                                    <input type="number" id="searchAngle" name="searchAngle" step="1" value="5">
+
+                                </fieldset>
+
+                                <!-- Edge Detection Section -->
+                                <fieldset>
+                                    <legend>Edge Detection Parameters</legend>
+
+                                    <label for="thresholdMultiplier"
+                                        title="Multiplier for the median absolute deviation to filter edges by length">Length
+                                        Threshold
+                                        Multiplier</label>
+                                    <input type="number" id="thresholdMultiplier" name="thresholdMultiplier" step="0.1"
+                                        value="1.2">
+
+                                    <label for="thresholdAngle"
+                                        title="The angle within which edges are considered valid">Threshold
+                                        Angle</label>
+                                    <input type="number" id="thresholdAngle" name="thresholdAngle" step="1" value="10">
+                                </fieldset>
+
+                                <!-- Image Rotation Section -->
+                                <fieldset>
+                                    <legend>Image Rotation Parameters</legend>
+
+                                    <label for="minAngle" title="Minimum angle to test for image rotation">Minimum
+                                        Angle</label>
+                                    <input type="number" id="minAngle" name="minAngle" step="1" value="0">
+
+                                    <label for="maxAngle" title="Maximum angle to test for image rotation">Maximum
+                                        Angle</label>
+                                    <input type="number" id="maxAngle" name="maxAngle" step="1" value="5">
+
+                                    <label for="angleStepSize"
+                                        title="Incremental step size for testing angles during image rotation">Angle
+                                        Step
+                                        Size</label>
+                                    <input type="number" id="angleStepSize" name="angleStepSize" step="1" value="5">
+
+                                    <label for="angleThreshold"
+                                        title="Angle threshold used when filtering edges by angle for image rotation">Angle
+                                        Threshold</label>
+                                    <input type="number" id="angleThreshold" name="angleThreshold" step="1" value="20">
+                                </fieldset>
+
+                            </div>
+                            <button type="button" id="apply-hyperparameters"
+                                class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Apply</button>
+
+                            <div class="flex gap-2"> <!-- Added gap-2 for spacing between buttons -->
+                                <button type="button"
+                                    class="mb-4 w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 focus:outline-none shadow transition duration-150 ease-in-out px-4 py-2 text-sm"
+                                    id="saveResultsAsJson">Save JSON</button>
+                                <button type="button"
+                                    class="mb-4 w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 focus:outline-none shadow transition duration-150 ease-in-out px-4 py-2 text-sm"
+                                    id="saveResultsAsCsv">Save CSV</button>
+                            </div>
+
+
+                        </form>
+
+                    </aside>
+                    <div id="rawDataLoadingSpinner" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <main class="flex-1 " id="main-container">
+
+
+
+
+                        <!-- Main content goes here -->
+                        <div class="instructions-container mb-4">
+                            <h2 class="text-lg font-semibold">Gridding Instructions</h2>
+                            <p>First, ensure that the image is rotated correctly. If not, adjust the image
+                                rotation
+                                parameter.</p>
+                            <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
+                                cursor.</p>
+                        </div>
+                        <!-- Similar structure for Adding Cores Instructions -->
+                        <div class="instructions-container mb-4">
+                            <h2 class="text-lg font-semibold">Adding Cores</h2>
+                            <p>To add a core, click on the desired location within the image. Your first click
+                                will set the
+                                center of the core, and your second click will set the radius.</p>
                         </div>
 
-                        <!-- Main Content -->
-                        <main class="flex-1 bg-white p-6 rounded-lg shadow" id="main-container">
-
-
-
-
-                            <!-- Main content goes here -->
-                            <div class="instructions-container mb-4">
-                                <h2 class="text-lg font-semibold">Gridding Instructions</h2>
-                                <p>First, ensure that the image is rotated correctly. If not, adjust the image
-                                    rotation
-                                    parameter.</p>
-                                <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
-                                    cursor.</p>
-                            </div>
-                            <!-- Similar structure for Adding Cores Instructions -->
-                            <div class="instructions-container mb-4">
-                                <h2 class="text-lg font-semibold">Adding Cores</h2>
-                                <p>To add a core, click on the desired location within the image. Your first click
-                                    will set the
-                                    center of the core, and your second click will set the radius.</p>
+                        <div class="flex">
+                            <div id="griddingSidebarIcon" class="parameterSidebar" onclick="toggleSidebarGridding()">
+                                <!-- Menu Icon (three horizontal lines) -->
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
                             </div>
                             <!-- Image Viewer or other main content -->
                             <div id="osdViewer" class="flex w-full h-112 bg-gray-200 rounded-lg">
 
-                                <div id="griddingSidebarIcon" class="parameterSidebar"
-                                    onclick="toggleSidebarGridding()">
-                                    <!-- Menu Icon (three horizontal lines) -->
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 6h16M4 12h16M4 18h16" />
-                                    </svg>
+                            </div>
+                        </div>
+                        <div class="edit-sidebar" id="editSidebar">
+                            <div class="sidebar-header draggable-area">
+                                <h2 class="title">Edit Core</h2>
+                                <div class="window-controls">
+                                    <button class="close-button" id="closeEditCoreButton">×</button>
                                 </div>
                             </div>
-                            <div class="edit-sidebar" id="editSidebar">
-                                <div class="sidebar-header draggable-area">
-                                    <h2 class="title">Edit Core</h2>
-                                    <div class="window-controls">
-                                        <button class="close-button" id="closeEditCoreButton">×</button>
-                                    </div>
+                            <form id="editCoreForm" class="main-content">
+
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
+                                    <label for="editIsMarkerInput">Is a Marker</label>
                                 </div>
-                                <form id="editCoreForm" class="main-content">
-
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
-                                        <label for="editIsMarkerInput">Is a Marker</label>
-                                    </div>
 
 
-                                    <label for="editRowInput">Row:</label>
-                                    <input type="number" id="editRowInput" name="editRowInput" disabled>
+                                <label for="editRowInput">Row:</label>
+                                <input type="number" id="editRowInput" name="editRowInput" disabled>
 
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="editAutoUpdateRowsCheckbox"
-                                            name="editAutoUpdateRowsCheckbox" checked>
-                                        <label for="editAutoUpdateRowsCheckbox">Auto Assign Row</label>
-                                    </div>
-
-
-                                    <label for="editColumnInput">Column:</label>
-                                    <input type="number" id="editColumnInput" name="editColumnInput" disabled>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="editAutoUpdateRowsCheckbox"
+                                        name="editAutoUpdateRowsCheckbox" checked>
+                                    <label for="editAutoUpdateRowsCheckbox">Auto Assign Row</label>
+                                </div>
 
 
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
-                                            name="editAutoUpdateColumnsCheckbox" checked>
-                                        <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
-                                    </div>
-
-                                    <label for="editXInput">X Position:</label>
-                                    <input type="number" id="editXInput" name="editXInput">
-
-                                    <label for="editYInput">Y Position:</label>
-                                    <input type="number" id="editYInput" name="editYInput">
-
-                                    <label for="editRadiusInput">Radius:</label>
-                                    <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
-
-                                    <label for="editAnnotationsInput">Annotations:</label>
-                                    <textarea type="text" id="editAnnotationsInput"
-                                        name="editAnnotationsInput"></textarea>
-
-                                    <div class="radio-group">
-                                        <input type="radio" id="editRealInput" name="coreType" value="real">
-                                        <label for="editRealInput" class="radio-button">Normal</label>
-
-                                        <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
-                                        <label for="editImaginaryInput" class="radio-button">Missing</label>
-                                    </div>
+                                <label for="editColumnInput">Column:</label>
+                                <input type="number" id="editColumnInput" name="editColumnInput" disabled>
 
 
-                                    <div class="button-group">
-                                        <button type="button" id="saveCoreEdits">Save</button>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
+                                        name="editAutoUpdateColumnsCheckbox" checked>
+                                    <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
+                                </div>
 
-                                        <button type="button" id="removeCoreButton">Remove</button>
+                                <label for="editXInput">X Position:</label>
+                                <input type="number" id="editXInput" name="editXInput">
 
-                                    </div>
+                                <label for="editYInput">Y Position:</label>
+                                <input type="number" id="editYInput" name="editYInput">
 
-                                </form>
-                            </div>
-                        </main>
-                    </div>
+                                <label for="editRadiusInput">Radius:</label>
+                                <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
 
+                                <label for="editAnnotationsInput">Annotations:</label>
+                                <textarea type="text" id="editAnnotationsInput" name="editAnnotationsInput"></textarea>
+
+                                <div class="radio-group">
+                                    <input type="radio" id="editRealInput" name="coreType" value="real">
+                                    <label for="editRealInput" class="radio-button">Normal</label>
+
+                                    <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
+                                    <label for="editImaginaryInput" class="radio-button">Missing</label>
+                                </div>
+
+
+                                <div class="button-group">
+                                    <button type="button" id="saveCoreEdits">Save</button>
+
+                                    <button type="button" id="removeCoreButton">Remove</button>
+
+                                </div>
+
+                            </form>
+                        </div>
+                    </main>
                 </div>
+
                 <div class="flex justify-between items-center mt-8">
                     <button
                         class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Back</button>
@@ -618,9 +613,15 @@ onclick="toggleSidebarSegmentation()">
                 <div class="flex">
 
                     <aside id="virtual-grid-sidebar"
-                        class="w-1/3 bg-gray-50 p-6 rounded-lg shadow-lg mr-6 transition-all duration-300 collapsed">
-                        <fieldset>
-                            <legend>Grid Spacing Parameters</legend>
+                        class="w-1/3 bg-gray-50 p-1 rounded-lg shadow-lg mr-6 transition-all duration-300 collapsed">
+                        <div class="text-xl font-semibold mb-4 parameters-header">
+                            <h2 class="title">Grid Spacing Parameters</h2>
+                            <div class="window-controls">
+                                <button class="close-button" onclick="toggleSidebarVirtual()">×</button>
+                            </div>
+                        </div>
+                        <fieldset style="display: none;">
+                            
                             <label for="horizontalSpacing">Horizontal Spacing:</label>
                             <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
                                 value="100">
@@ -638,15 +639,9 @@ onclick="toggleSidebarSegmentation()">
                             <label for="startingY">Starting Y:</label>
                             <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
                             <output id="startingYValue" for="startingY">0</output>
-                            <!-- Button container -->
-                            <div class="flex space-x-2 mt-4">
-                                <button type="button" id="applyVirtualGridSettings"
-                                    class="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-150 ease-in-out">Apply</button>
-                                <button onclick="toggleSidebarVirtual()"
-                                    class="flex-1 text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-150 ease-in-out">
-                                    <span>Hide</span>
-                                </button>
-                            </div>
+
+                            <button type="button" id="applyVirtualGridSettings"
+                                class="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-150 ease-in-out">Apply</button>
                         </fieldset>
 
                     </aside>
@@ -696,28 +691,28 @@ onclick="toggleSidebarSegmentation()">
 
 
         <!-- Carousel controls for the sections -->
-        <div class="carousel-controls flex justify-center space-x-1 md:space-x-3 p-4">
+        <div class="carousel-controls flex justify-center space-x-1 md:space-x-3 p-4 mb-10">
             <button id="imageUploadTabButton"
                 class="carousel-control active w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
                 data-step="1"></button>
             <button id="imageSegmentationTabButton"
                 class="carousel-control w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="2"></button>
+                data-step="2" disabled></button>
             <button id="rawDataTabButton"
                 class="carousel-control w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="3"></button>
+                data-step="3" disabled></button>
             <button id="virtualGridTabButton"
                 class="carousel-control w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="4"></button>
+                data-step="4" disabled></button>
             <!-- ... Add more buttons if you have more steps -->
         </div>
 
 
+        <footer class="py-5">
+            <p class="text-center text-sm text-gray-500">© 2024 Tissue Microarray De-Arraying Tool</p>
+        </footer>
     </div>
 
-    <footer class="py-5">
-        <p class="text-center text-sm text-gray-500">© 2024 Tissue Microarray De-Arraying Tool</p>
-    </footer>
     </div>
     <script src="app.js"></script>
 

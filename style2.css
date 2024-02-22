@@ -14,7 +14,29 @@ body {
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  height:100%;
+  position: relative;
+
 }
+
+.body-container{
+  margin: auto;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  height:100%;
+  position: relative;
+}
+
+/* For large screens, set body-container's max-width to 80% */
+@media (min-width: 1024px) {
+  .body-container {
+    max-width: 80%;
+  }
+}
+
+
 
 /* Header Styles */
 header {
@@ -43,7 +65,8 @@ nav a {
 
 /* Active Tab Indicator */
 .upload-option-tab.active {
-  background-color: #eff6ff;
+  background-color: #007BFF;
+  
   /* Light blue background for active tab */
   font-weight: 600;
   /* Bold font for active tab */
@@ -149,7 +172,7 @@ footer {
 
 /* Color Palette for Branding */
 :root {
-  --primary-color: #5582e2;
+  --primary-color: #3c8fe7;
   /* Example primary color */
   --secondary-color: #60bd9e;
   /* Example secondary color */
@@ -175,7 +198,7 @@ a:hover,
 /* Responsive Design */
 @media (min-width: 1024px) {
   .container {
-    max-width: 90%;
+    max-width: 100%;
     /* Increased width for larger screens */
   }
 
@@ -266,10 +289,14 @@ button {
   border-radius: 5px;
   width: 90%;
   margin: 30px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
   text-align: center;
   position: relative;
   background: #f8f8f8;
+  min-height: 300px;
 }
 
 #upload-instructions {
@@ -347,9 +374,10 @@ button {
 }
 
 .browse-button {
-  background-color: #ddd;
+
+  background-color: var(--primary-color);
+  color: #FFFFFF;
   border: none;
-  color: #5a5a5a;
   padding: 8px 15px;
   cursor: pointer;
   border-radius: 5px;
@@ -381,7 +409,8 @@ button {
 
 .file-upload-button,
 .browse-button {
-  background-color: #e2e8f0;
+  background-color: var(--primary-color);
+  color: #FFFFFF;
   border: none;
   padding: 8px 12px;
   text-align: center;
@@ -560,10 +589,6 @@ select {
 }
 
 
-.container {
-  position: relative;
-}
-
 main {
   transition: margin-left 0.3s ease-in-out;
 }
@@ -591,6 +616,52 @@ main.expanded {
 }
 #virtualGridSidebarIcon.hidden{
   display:none;
+}
+
+
+/* Window Controls */
+.window-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  margin-left: 5px;
+  padding: 0;
+}
+
+/* Hover effect for all buttons */
+.window-controls button:hover {
+  color: white; /* White text for all buttons on hover for better contrast */
+}
+
+/* Hover color for the close button */
+.window-controls .close-button:hover {
+  background-color: #dc3545; /* Red color for an alert, 'stop' signal hover state */
+}
+
+
+/* Sidebar Header Styles */
+.parameters-header {
+  background-color: #f9f9f9; /* Updated to a slightly warmer shade of light grey */
+  padding: 15px; /* Padding only on the top and bottom */
+  width: 100%; /* Ensure the header takes the full width */
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
+  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; /* Modern font-family */
+  transition: all 0.3s ease; /* Smooth transition for interactive elements */
+  top: 0; /* Align the top edge with the parent's top */
+  left: 0; /* Align the left edge with the parent's left */
 }
 
 
@@ -955,8 +1026,23 @@ svg {
   width: auto
 }
 
+.preview-image{
+  margin: 25px auto auto auto;
+  width: 90%;
+}
+#url-upload{
+  width: 90%;
+  margin: auto;
+}
+.metadata-container{
+  width: 90%;
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 30px;
+  margin-bottom: 20px;
+
+}
 .load-status {
-  margin-top: 10px;
   padding: 8px;
   text-align: center;
   font-size: 14px;
@@ -964,6 +1050,8 @@ svg {
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: opacity 0.3s ease-in-out;
+  width: 90%;
+  margin: 25px auto 50px auto;
 }
 
 .success-message {
@@ -976,11 +1064,12 @@ svg {
   color: white;
 }
 .standard-button{
-    background-color: #0056b3;
+    background-color: var(--primary-color);
     border: none;
     border-radius: 4px;
+    width: 15%;
     color: white;
-    padding: 10px 5px; /* Increased padding for a larger clickable area */
+    padding: 8px 8px; /* Increased padding for a larger clickable area */
     font-size: 1rem; /* Increased font size for readability */
     text-transform: uppercase;
     cursor: pointer;

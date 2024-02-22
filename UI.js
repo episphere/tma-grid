@@ -220,6 +220,11 @@ function updateStatusMessage(elementId, message, statusType) {
   statusElement.textContent = message; // Set the text message
 }
 
+function updateImagePreview (imageSource) {
+  const imageElement = document.getElementById("previewImage");
+  imageElement.src = imageSource;
+}
+
 // Function to highlight the active tab
 function highlightTab(activeTab) {
   // Remove active class from all tabs
@@ -332,9 +337,13 @@ function resetApplication() {
   );
   segmentationResultsCanvas.height = 0;
 
-  // Disable Gridding and Virtual Grid Tabs: 
+  // Disable Segmentation, Gridding and Virtual Grid Tabs: 
   document.getElementById("rawDataTabButton").disabled = true;
   document.getElementById("virtualGridTabButton").disabled = true;
+  document.getElementById("imageSegmentationTabButton").disabled = true;
+
+  // Reset the previewImage
+  updateImagePreview("./icons/Placeholder_view_vector.svg");
 
   // Reset the data structures that hold the core data
   window.preprocessedCores = [];
@@ -384,4 +393,5 @@ export {
   makeElementDraggable,
   showPopup,
   closePopup,
+  updateImagePreview
 };
