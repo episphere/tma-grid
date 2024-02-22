@@ -244,7 +244,7 @@ function updateSpacingInVirtualGrid(distance) {
     document.getElementById("horizontalSpacing").value = 0;
     document.getElementById("verticalSpacing").value = 0;
 
-    document.getElementById("horizontalSpacingValue").textContent = "0";
+    document.getElementById("horizontalSpacingValue").textContent = 0;
 
     document.getElementById("verticalSpacingValue").textContent = 0;
   } else {
@@ -256,6 +256,10 @@ function updateSpacingInVirtualGrid(distance) {
 
     document.getElementById("verticalSpacingValue").textContent =
       distance.toFixed(2);
+
+      document.getElementById("startingX").value = distance.toFixed(2);
+      document.getElementById("startingY").value = distance.toFixed(2);
+
   }
 }
 

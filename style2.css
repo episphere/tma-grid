@@ -270,6 +270,7 @@ button {
   width: 3rem;
   height: 3rem;
   animation: spin 1s linear infinite;
+  z-index: 1001;
 }
 
 @keyframes spin {
@@ -968,6 +969,7 @@ svg {
   padding: 15px;
   margin-top: 20px;
   margin-bottom: 20px;
+  margin-left: 20px;
   position: relative;
   padding-right: 40px;
   /* Give some space for the close button */
@@ -1112,4 +1114,5 @@ svg {
   height: 50px;
   animation: spin 2s linear infinite;
   margin: auto;
+  z-index: 2000;
 }

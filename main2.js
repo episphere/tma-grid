@@ -87,7 +87,6 @@ import {
   };
   
   const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
-    debugger
     originalImageContainer.src = src;
     const osdCanvasParent = document.getElementById("osdViewer");
     osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
@@ -1048,7 +1047,6 @@ import {
   
         const imageInfo = await getImageInfo();
         if (imageInfo.isSimpleImage) {
-          debugger
           tileSources = {
             type: "image",
             url: imageInfo.url,

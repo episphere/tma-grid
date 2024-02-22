@@ -1902,7 +1902,7 @@ function drawVirtualGridFromPNG(
   img.onload = () => {
     vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
 
-    sortedCoresData.forEach((core) => {
+    sortedCoresData.filter(core => !core.isMarker).forEach((core) => {
       const idealX = startingX + core.col * horizontalSpacing;
       const idealY = startingY + core.row * verticalSpacing;
       const userRadius = core.currentRadius * window.scalingFactor;

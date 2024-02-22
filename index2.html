@@ -46,7 +46,7 @@
                         class="text-sm text-gray-800 hover:text-blue-600 transition-colors duration-200 block px-4 py-2">GitHub</a>
                     <a href="#"
                         class="text-sm text-gray-800 hover:text-blue-600 transition-colors duration-200 block px-4 py-2">Manuscript</a>
-                    <button id="helpButton" class="actionButton px-4">?</button> <!-- Add this line -->
+                    <button id="helpButtonMobile" class="actionButton px-4">?</button> <!-- Add this line -->
 
                 </div>
                 <!-- Desktop Navigation Menu -->
@@ -196,6 +196,25 @@
             </section>
 
             <section id="segmentation" class="hidden py-12">
+                <div class="instructions-container space-y-4">
+                    <button class="close-instructions text-right">✕</button>
+                    <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
+                    <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm
+                        detects
+                        most of the cores. Make any manual adjustments if needed to capture all
+                        cores
+                        accurately.</p>
+                    <p>Once you're satisfied with the segmentation, click the "Proceed"
+                        button. You can then proceed to the Gridding tab to continue.</p>
+                </div>
+
+                <div class="instructions-container mt-4 space-y-4">
+                    <button class="close-instructions text-right">✕</button>
+                    <h2 class="text-xl font-semibold">Interactive Core Editing</h2>
+                    <p>To add a core, simply click on the desired location within the image.</p>
+                    <p> If you wish to remove a core, hold the <kbd>Shift</kbd> key and click on the
+                        core you want to remove.</p>
+                </div>
                 <div class="flex flex-wrap-mx-4">
                     <!-- Sidebar -->
                     <aside id="segmentation-sidebar"
@@ -243,8 +262,6 @@
                                 Apply
                             </button>
                         </fieldset>
-
-
                     </aside>
                     <!-- Sidebar Toggle Icon -->
                     <div id="segmentationSidebarIcon" class="parameterSidebar"
@@ -258,30 +275,8 @@
 
 
                     <div id="ImageSegmentation" class="flex-grow sm:block sm:w-full">
-                        <div class="instructions-container space-y-4">
-                            <button class="close-instructions text-right">✕</button>
-                            <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
-                            <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm
-                                detects
-                                most of the cores. Make any manual adjustments if needed to capture all
-                                cores
-                                accurately.</p>
-                            <p>Once you're satisfied with the segmentation, click the "Finalize
-                                Segmentation"
-                                button. You can then proceed to the Gridding tab to continue.</p>
-                        </div>
-
-                        <div class="instructions-container mt-4 space-y-4">
-                            <button class="close-instructions text-right">✕</button>
-                            <h2>Interactive Core Editing</h2>
-                            <p>To add a core, simply click on the desired location within the image.</p>
-                            <p> If you wish to remove a core, hold the <kbd>Shift</kbd> key and click on the
-                                core you want to remove.</p>
-                        </div>
-
                         <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
-                        <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="w-full h-full"></canvas>
-
+                        <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="mx-auto w-full"></canvas>
                     </div>
                 </div>
 
@@ -310,13 +305,41 @@
                 <div id="rawDataLoadingSpinner" style="display: none;">
                     <div class="spinner"></div>
                 </div>
+
+
+                <div class="instructions-container mb-4">
+
+                    <button class="close-instructions text-right">✕</button>
+
+                    <h2 class="text-lg font-semibold">Gridding Instructions</h2>
+                    <p>First, ensure that the image is rotated correctly. If not, adjust the image
+                        rotation
+                        parameter.</p>
+                    <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
+                        cursor.</p>
+                </div>
+                <!-- Similar structure for Adding Cores Instructions -->
+                <div class="instructions-container mb-4">
+                    <button class="close-instructions text-right">✕</button>
+
+                    <h2 class="text-lg font-semibold">Adding Cores</h2>
+                    <p>To add a core, click on the desired location within the image. Your first click
+                        will set the
+                        center of the core, and your second click will set the radius.</p>
+                </div>
+
                 <div class="flex flex-wrap lg:flex-nowrap">
                     <!-- Sidebar Toggle Icon -->
-
-
+                    <div id="griddingSidebarIcon" class="parameterSidebar" onclick="toggleSidebarGridding()">
+                        <!-- Menu Icon (three horizontal lines) -->
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </div>
                     <!-- Sidebar -->
                     <aside id="gridding-sidebar"
-                        class="sm:w-full lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
+                        class="sm:w-full lg:w-1/5 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
                         <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content">
                             <div class="text-xl font-semibold mb-4 parameters-header">
                                 <h2 class="title">Configure Parameters</h2>
@@ -470,39 +493,15 @@
 
                     </aside>
 
-
-
                     <!-- Main Content -->
-                    <main >
-
+                    <main class="mx-auto w-full">
                         <!-- Main content goes here -->
-                        <div class="instructions-container mb-4">
-                            <h2 class="text-lg font-semibold">Gridding Instructions</h2>
-                            <p>First, ensure that the image is rotated correctly. If not, adjust the image
-                                rotation
-                                parameter.</p>
-                            <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
-                                cursor.</p>
-                        </div>
-                        <!-- Similar structure for Adding Cores Instructions -->
-                        <div class="instructions-container mb-4">
-                            <h2 class="text-lg font-semibold">Adding Cores</h2>
-                            <p>To add a core, click on the desired location within the image. Your first click
-                                will set the
-                                center of the core, and your second click will set the radius.</p>
-                        </div>
 
                         <div class="flex"  id="main-container">
-                            <div id="griddingSidebarIcon" class="parameterSidebar" onclick="toggleSidebarGridding()">
-                                <!-- Menu Icon (three horizontal lines) -->
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                            </div>
+                           
 
                             <!-- Image Viewer or other main content -->
-                            <div id="osdViewer" >
+                            <div id="osdViewer" style="margin:auto">
 
                             </div>
                         </div>
@@ -722,7 +721,7 @@
         referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js"
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k/GeoTIFFTileSource.js" type="module"
+    <script src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k@latest/GeoTIFFTileSource.js" type="module"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js"></script>
 

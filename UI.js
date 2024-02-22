@@ -217,6 +217,8 @@ function updateStatusMessage(elementId, message, statusType) {
 function updateImagePreview(imageSource) {
   const imageElement = document.getElementById("previewImage");
   if (imageElement) {
+    imageElement.width = 200;
+    imageElement.height = 200;
     imageElement.src = imageSource;
   }
 }
