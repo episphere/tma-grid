@@ -93,6 +93,9 @@
                     </nav>
                     <div class="preview-image">
                         <img src="./icons/Placeholder_view_vector.svg" alt="Uploaded Image" class="mx-auto w-96 h-64 mb-6" id="previewImage">
+                        <div id="loadingSpinner" style="display: none;">
+                            <div class="spinner" ></div>
+                        </div>
                     </div>
                     <div id="imageLoadStatus" class="load-status neutral-message">
                         No image file uploaded.
@@ -151,8 +154,7 @@
                         <div class="file-upload-wrapper">
                             <input type="file" id="metadataFile" class="file-input" accept=".txt,.json"
                                 onchange="displayFileInfo(this)">
-                            <label for="metadataFile" class="file-upload-button">Choose files to upload</label>
-                            <button class="browse-button">Browse Files</button>
+                            <label class="file-upload-button">Choose files to upload</label>
 
                         </div>
                         <div id="metadata-file-info" class="hidden" style="width: 100%;">
@@ -279,9 +281,7 @@
 
                         <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
                         <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="w-full h-full"></canvas>
-                        <div id="loadingSpinner" class="hidden">
-                            <div class="spinner"></div>
-                        </div>
+
                     </div>
                 </div>
 
