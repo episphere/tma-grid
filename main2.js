@@ -63,6 +63,8 @@ import {
       img.onerror = reject;
     });
   
+
+
   const scaleImageIfNeeded = (img) => {
     const scalingFactor =
       img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
@@ -73,7 +75,7 @@ import {
           )
         : 1;
     
-      window.scalingFactor = scalingFactor;
+    window.scalingFactor = scalingFactor;
   
     const canvas = document.createElement("canvas");
     canvas.width = img.width * scalingFactor;
@@ -81,13 +83,14 @@ import {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   
-    return { src: canvas.toDataURL(), scalingFactor };
+    return { downsampledSrc: canvas.toDataURL(), scalingFactor };
   };
   
   const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
+    debugger
     originalImageContainer.src = src;
     const osdCanvasParent = document.getElementById("osdViewer");
-    // osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
+    osdCanvasParent.style.width = `${imgDimensions.width * scalingFactor}px`;
     osdCanvasParent.style.height = `${imgDimensions.height * scalingFactor}px`;
     document.getElementById("loadingSpinner").style.display = "none";
   };
@@ -110,9 +113,9 @@ import {
   
     originalImageContainer.onload = () => {
       const osdCanvasParent = document.getElementById("osdViewer");
-      // osdCanvasParent.style.width = `${Math.ceil(
-      //   imageInfo.width * scalingFactor
-      // )}px`;
+      osdCanvasParent.style.width = `${Math.ceil(
+        imageInfo.width * scalingFactor
+      )}px`;
       osdCanvasParent.style.height = `${Math.ceil(
         imageInfo.height * scalingFactor
       )}px`;
@@ -141,7 +144,7 @@ import {
       loadImage(file)
         .then(createImageElement)
         .then((img) => {
-          const { src, scalingFactor } = scaleImageIfNeeded(img);
+          const { downsampledSrc, scalingFactor } = scaleImageIfNeeded(img);
           originalImageContainer.onload = () => {
             updateStatusMessage(
               "imageLoadStatus",
@@ -162,7 +165,7 @@ import {
             );
             console.error("Image failed to load.");
           };
-          updateUIForScaledImage(src, scalingFactor, {
+          updateUIForScaledImage(downsampledSrc, scalingFactor, {
             width: img.width,
             height: img.height,
           });
@@ -439,7 +442,7 @@ import {
             }
   
             const osdCanvasParent = document.getElementById("osdViewer");
-            // osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
+            osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
             osdCanvasParent.style.height = `${Math.ceil(
               height * scalingFactor
             )}px`;
@@ -997,7 +1000,7 @@ import {
           alert("No image uploaded!");
           return;
         }
-        const getImageInfo = () => {
+        const getImageInfo = async () => {
           const checkExtension = (path) =>
             path.endsWith(".png") ||
             path.endsWith(".jpg") ||
@@ -1016,7 +1019,7 @@ import {
               imageInfo.isSimpleImage = !localFile.name.endsWith(".svs");
               imageInfo.isOperable = true;
               imageInfo.url = imageInfo.isSimpleImage
-                ? window.loadedImg.src
+                ? await loadImage(localFile)
                 : document.getElementById("fileInput").files[0];
             }
           } else if (getInputValue("imageUrlInput")) {
@@ -1043,8 +1046,9 @@ import {
   
         let tileSources = {};
   
-        const imageInfo = getImageInfo();
+        const imageInfo = await getImageInfo();
         if (imageInfo.isSimpleImage) {
+          debugger
           tileSources = {
             type: "image",
             url: imageInfo.url,

@@ -236,6 +236,10 @@ button {
   margin-top: 0.5rem;
   /* Space out error message from inputs */
 }
+.actionButton{
+  width: 50px;
+  height: 50px;
+}
 
 /* Loading States */
 .loading-overlay {
@@ -624,7 +628,7 @@ main.expanded {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 28px;
   color: #666;
   width: 30px;
   height: 30px;
@@ -933,7 +937,7 @@ svg {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(33, 37, 41, 0.55);
+  background-color: rgba(31, 34, 36, 0.25);
   /* Dark overlay with increased opacity */
   color: white;
   display: none;
@@ -1023,9 +1027,11 @@ svg {
 }
 
 .core-edit-container {
-  width: auto
+  position: relative; /* This ensures that child elements with absolute positioning are relative to this container */
+  display: flex; /* Enable Flexbox */
+  justify-content: space-between; /* Space between items */
+  align-items: start; /* Align items to the top */
 }
-
 .preview-image{
   margin: 25px auto auto auto;
   width: 90%;
@@ -1080,6 +1086,13 @@ svg {
 }
 
 
+#rawDataLoadingSpinner{
+  /* Make the spinner appear in the middle of the screen with absolute positioning */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+}
 /* Spinner styles */
 @keyframes spin {
   0% {

@@ -52,34 +52,33 @@ function closePopup(id) {
   document.getElementById(id).style.display = "none";
 }
 
-
 function makeElementDraggable(element) {
   let isDragging = false;
   let initialMouseX, initialMouseY, initialElementX, initialElementY;
 
-  element.addEventListener('mousedown', function(e) {
-    if (e.target.classList.contains('draggable-area')) {
-    // Prevent any other drag behavior
-    e.preventDefault();
-    // Store the initial position of the mouse and element
-    initialMouseX = e.clientX;
-    initialMouseY = e.clientY;
+  element.addEventListener("mousedown", function (e) {
+    if (e.target.classList.contains("draggable-area")) {
+      // Prevent any other drag behavior
+      e.preventDefault();
+      // Store the initial position of the mouse and element
+      initialMouseX = e.clientX;
+      initialMouseY = e.clientY;
 
-    // Get the computed style of the element
-    let computedStyle = window.getComputedStyle(element);
-    // Retrieve the left and top values and remove the 'px' to convert to numbers
-    initialElementX = parseInt(computedStyle.left, 10);
-    initialElementY = parseInt(computedStyle.top, 10);
+      // Get the computed style of the element
+      let computedStyle = window.getComputedStyle(element);
+      // Retrieve the left and top values and remove the 'px' to convert to numbers
+      initialElementX = parseInt(computedStyle.left, 10);
+      initialElementY = parseInt(computedStyle.top, 10);
 
-    // Set dragging to true
-    isDragging = true;
+      // Set dragging to true
+      isDragging = true;
 
-    // Add a 'dragging' class for visual feedback
-    element.classList.add('dragging');
+      // Add a 'dragging' class for visual feedback
+      element.classList.add("dragging");
     }
   });
 
-  document.addEventListener('mousemove', function(e) {
+  document.addEventListener("mousemove", function (e) {
     if (isDragging) {
       // Calculate the distance the mouse has moved
       let dx = e.clientX - initialMouseX;
@@ -91,10 +90,10 @@ function makeElementDraggable(element) {
     }
   });
 
-  document.addEventListener('mouseup', function() {
+  document.addEventListener("mouseup", function () {
     // Stop dragging
     isDragging = false;
-    element.classList.remove('dragging');
+    element.classList.remove("dragging");
   });
 }
 
@@ -121,13 +120,12 @@ function positionSidebarNextToCore(event) {
   const offsetY = 0; // Vertical offset from the cursor
 
   // Apply the positions with the offsets
-  sidebar.style.left = (cursorXWithinContainer + offsetX) + 'px';
-  sidebar.style.top = (cursorYWithinContainer + offsetY) + 'px';
+  sidebar.style.left = cursorXWithinContainer + offsetX + "px";
+  sidebar.style.top = cursorYWithinContainer + offsetY + "px";
 }
 
 // Add this function to the mouse event listener for the container
 // container.addEventListener('mousemove', positionSidebarAtCursor);
-
 
 // Function to toggle the disabled state based on the checkbox
 function toggleColumnInput() {
@@ -167,47 +165,43 @@ document
   .getElementById("editAutoUpdateRowsCheckbox")
   .addEventListener("change", toggleRowInput);
 
-document.getElementById("editIsMarkerInput").addEventListener("change", function () {
+document
+  .getElementById("editIsMarkerInput")
+  .addEventListener("change", function () {
+    // If the checkbox is checked, disable the column and row input and set the values of editRowInput and editColumnInput to -1
 
-  // If the checkbox is checked, disable the column and row input and set the values of editRowInput and editColumnInput to -1
+    var editIsMarkerInput = document.getElementById("editIsMarkerInput");
+    var rowInput = document.getElementById("editRowInput");
+    var columnInput = document.getElementById("editColumnInput");
 
-  var editIsMarkerInput = document.getElementById("editIsMarkerInput");
-  var rowInput = document.getElementById("editRowInput");
-  var columnInput = document.getElementById("editColumnInput");
-
-  if (editIsMarkerInput.checked) {
-    rowInput.disabled = true;
-    columnInput.disabled = true;
-    rowInput.value = -1;
-    columnInput.value = -1;
-
-    
-
-  } else {
-    // Otherwise, enable it
-    rowInput.disabled = false;
-    columnInput.disabled = false;
-  }
-});
-
+    if (editIsMarkerInput.checked) {
+      rowInput.disabled = true;
+      columnInput.disabled = true;
+      rowInput.value = -1;
+      columnInput.value = -1;
+    } else {
+      // Otherwise, enable it
+      rowInput.disabled = false;
+      columnInput.disabled = false;
+    }
+  });
 
 function hideSidebar() {
   const sidebar = document.getElementById("editSidebar");
   sidebar.style.display = "none";
 
-  if (document.getElementById("editAutoUpdateRowsCheckbox").checked == false){
+  if (document.getElementById("editAutoUpdateRowsCheckbox").checked == false) {
     document.getElementById("editAutoUpdateRowsCheckbox").checked = true;
     toggleRowInput();
-  };
+  }
 
-  if (document.getElementById("editAutoUpdateColumnsCheckbox").checked == false){
+  if (
+    document.getElementById("editAutoUpdateColumnsCheckbox").checked == false
+  ) {
     document.getElementById("editAutoUpdateColumnsCheckbox").checked = true;
     toggleColumnInput();
   }
-  
 }
-
-
 
 // Pure function to update HTML element properties
 const updateElementProperty = (element, property, value) => {
@@ -220,9 +214,11 @@ function updateStatusMessage(elementId, message, statusType) {
   statusElement.textContent = message; // Set the text message
 }
 
-function updateImagePreview (imageSource) {
+function updateImagePreview(imageSource) {
   const imageElement = document.getElementById("previewImage");
-  imageElement.src = imageSource;
+  if (imageElement) {
+    imageElement.src = imageSource;
+  }
 }
 
 // Function to highlight the active tab
@@ -255,7 +251,6 @@ function showImageSegmentationSidebar() {
   document.getElementById("imageSegmentationSidebar").style.display = "block";
   document.getElementById("virtualGridSidebar").style.display = "none";
 }
-
 
 function resetSlidersAndOutputs() {
   // Reset Image Parameters
@@ -337,7 +332,7 @@ function resetApplication() {
   );
   segmentationResultsCanvas.height = 0;
 
-  // Disable Segmentation, Gridding and Virtual Grid Tabs: 
+  // Disable Segmentation, Gridding and Virtual Grid Tabs:
   document.getElementById("rawDataTabButton").disabled = true;
   document.getElementById("virtualGridTabButton").disabled = true;
   document.getElementById("imageSegmentationTabButton").disabled = true;
@@ -351,8 +346,8 @@ function resetApplication() {
   window.loadedImg = null;
   window.preprocessingData = null;
   window.neuralNetworkResult = null;
-  window.viewer?.destroy()
-  window.viewer = null
+  window.viewer?.destroy();
+  window.viewer = null;
   window.imageSource = "";
   window.scalingFactor = 1;
   window.uploadedImageFileType = null;
@@ -393,5 +388,5 @@ export {
   makeElementDraggable,
   showPopup,
   closePopup,
-  updateImagePreview
+  updateImagePreview,
 };

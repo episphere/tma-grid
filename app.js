@@ -214,30 +214,32 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// Get the help displays to work
-document.getElementById("helpButton").addEventListener("click", function () {
-  
+function openInstructions () {
     debugger
-  const sections = [
-    uploadSection,
-    segmentationSection,
-    griddingSection,
-    virtualGridSection,
-  ];
-
-  // Find all instructions containers within the active tabcontent
-  var instructionElements = sections[currentStep].getElementsByClassName(
-    "instructions-container"
-  );
-  // Loop through each instructions container and toggle its display
-  for (var j = 0; j < instructionElements.length; j++) {
-    if (
-      instructionElements[j].style.display === "none" ||
-      instructionElements[j].style.display === ""
-    ) {
-      instructionElements[j].style.display = "block";
-    } else {
-      instructionElements[j].style.display = "none";
+  
+    const sections = [
+      uploadSection,
+      segmentationSection,
+      griddingSection,
+      virtualGridSection,
+    ];
+  
+    // Find all instructions containers within the active tabcontent
+    var instructionElements = sections[currentStep].getElementsByClassName(
+      "instructions-container"
+    );
+    // Loop through each instructions container and toggle its display
+    for (var j = 0; j < instructionElements.length; j++) {
+      if (
+        instructionElements[j].style.display === "none" ||
+        instructionElements[j].style.display === ""
+      ) {
+        instructionElements[j].style.display = "block";
+      } else {
+        instructionElements[j].style.display = "none";
+      }
     }
   }
-});
+
+// Get the help displays to work
+document.getElementById("helpButton").addEventListener("click", openInstructions);

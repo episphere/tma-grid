@@ -307,7 +307,9 @@
 
 
             <section id="gridding" class="hidden">
-
+                <div id="rawDataLoadingSpinner" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
                 <div class="flex flex-wrap lg:flex-nowrap">
                     <!-- Sidebar Toggle Icon -->
 
@@ -467,15 +469,11 @@
                         </form>
 
                     </aside>
-                    <div id="rawDataLoadingSpinner" style="display: none;">
-                        <div class="spinner"></div>
-                    </div>
+
+
 
                     <!-- Main Content -->
-                    <main class="flex-1 " id="main-container">
-
-
-
+                    <main >
 
                         <!-- Main content goes here -->
                         <div class="instructions-container mb-4">
@@ -494,7 +492,7 @@
                                 center of the core, and your second click will set the radius.</p>
                         </div>
 
-                        <div class="flex">
+                        <div class="flex"  id="main-container">
                             <div id="griddingSidebarIcon" class="parameterSidebar" onclick="toggleSidebarGridding()">
                                 <!-- Menu Icon (three horizontal lines) -->
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -502,8 +500,9 @@
                                         d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </div>
+
                             <!-- Image Viewer or other main content -->
-                            <div id="osdViewer" class="flex w-full h-112 bg-gray-200 rounded-lg">
+                            <div id="osdViewer" >
 
                             </div>
                         </div>
