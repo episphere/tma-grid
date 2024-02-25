@@ -1,8 +1,11 @@
-import imagebox3 from "https://episphere.github.io/imagebox3/imagebox3.mjs"
+import imagebox3 from "./imagebox3.mjs"
 
 export const getWSIInfo = async (imageURL) => {
   console.log('imageURL', imageURL)
-  return await (await imagebox3.getImageInfo(imageURL)).json()
+  const imageInfoResponse = await imagebox3.getImageInfo(imageURL);
+  const imageInfo = await imageInfoResponse.json();
+  return imageInfo;
+  
 }
 
 
@@ -30,7 +33,7 @@ export const getPNGFromWSI = async (imageURL, maxDimension) => {
 }
 
 export const getRegionFromWSI = async (imageURL, tileParams) => {
-  
+
   const imageTile = await imagebox3.getImageTile(imageURL, tileParams, true)
   return imageTile
 

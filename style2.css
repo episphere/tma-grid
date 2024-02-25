@@ -178,6 +178,8 @@ footer {
   /* Example secondary color */
   --accent-color: #7c3aed;
   /* Example accent color */
+
+  --error-color: #d75959;
 }
 
 /* Apply branding colors to elements */
@@ -229,7 +231,8 @@ button {
 
 /* Error Handling Styles */
 .error-message {
-  color: #dc2626;
+  background-color: var(--error-color);
+  color: white;
   /* Red color for errors */
   font-size: 0.875rem;
   /* Readable font size for errors */
@@ -390,6 +393,21 @@ button {
 }
 
 .browse-button:hover {
+  background-color: #8fb7ea;
+}
+
+.skip-button {
+
+  background-color: #a8a6a6b8;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.skip-button:hover {
   background-color: #ccc;
 }
 
@@ -403,6 +421,12 @@ button {
   padding: 4px 8px;
 }
 
+.width-90-middle{
+  width: 90%;
+  margin: auto;
+
+}
+
 .file-input {
   width: 0.1px;
   height: 0.1px;
@@ -412,8 +436,7 @@ button {
   z-index: -1;
 }
 
-.file-upload-button,
-.browse-button {
+.file-upload-button{
   background-color: var(--primary-color);
   color: #FFFFFF;
   border: none;
@@ -429,7 +452,7 @@ button {
 
 .file-upload-button:hover,
 .browse-button:hover {
-  background-color: #cbd5e1;
+  background-color: #75aff6;
 }
 /* Enhancements for Form Controls */
 
@@ -489,6 +512,7 @@ select {
   display: flex;
   align-items: center;
   margin: 0.5rem 0;
+  gap: 1rem;
 }
 
 .checkbox-group label, .radio-group label {
@@ -673,17 +697,18 @@ main.expanded {
 
 /* Sidebar Header Styles */
 .sidebar-header {
+  
   background-color: #f9f9f9; /* Updated to a slightly warmer shade of light grey */
-  padding: 15px; /* Padding only on the top and bottom */
-  width: 100%; /* Ensure the header takes the full width */
-  margin: 0; /* Remove any default margins */
+  padding: 10px; /* Padding only on the top and bottom */
+  margin: -20px; /* Remove any default margins */
+  margin-bottom: 15px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
   font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; /* Modern font-family */
   transition: all 0.3s ease; /* Smooth transition for interactive elements */
-  position: absolute; /* Positioning it absolutely relative to its parent */
+  position: relative; /* Positioning it absolutely relative to its parent */
   top: 0; /* Align the top edge with the parent's top */
   left: 0; /* Align the left edge with the parent's left */
 }
@@ -1067,10 +1092,6 @@ svg {
   color: white;
 }
 
-.error-message {
-  background-color: var(--error-color);
-  color: white;
-}
 .standard-button{
     background-color: var(--primary-color);
     border: none;

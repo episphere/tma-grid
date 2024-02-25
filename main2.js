@@ -125,7 +125,7 @@ import {
         "success-message"
       );
   
-      updateImagePreview(originalImageContainer.src);
+      updateImagePreview(originalImageContainer.src, imageInfo.width * scalingFactor, imageInfo.height * scalingFactor);
       processCallback();
   
       window.loadedImg = originalImageContainer;
@@ -150,7 +150,7 @@ import {
               "Image loaded successfully.",
               "success-message"
             );
-            updateImagePreview(originalImageContainer.src);
+            updateImagePreview(originalImageContainer.src, img.width * scalingFactor, img.height * scalingFactor);
             processCallback();
             window.loadedImg = originalImageContainer;
             document.getElementById("loadingSpinner").style.display = "none";
@@ -330,7 +330,7 @@ import {
       "File successfully uploaded and validated.",
       "success-message"
     );
-    updateImagePreview(originalImageContainer.src);
+    updateImagePreview(originalImageContainer.src, originalImageContainer.width, originalImageContainer.height);
   }
   
   // Function to get input parameters from the UI
@@ -453,7 +453,7 @@ import {
               "Image loaded successfully.",
               "success-message"
             );
-            updateImagePreview(originalImageContainer.src);
+            updateImagePreview(originalImageContainer.src, width * scalingFactor, height * scalingFactor);
             await segmentImage(true);
           };
         })
@@ -836,6 +836,7 @@ import {
           10
         );
   
+        if (window.uploadedImageFileType == "simple") {
         // Update the virtual grid with the new spacing values
         updateVirtualGridSpacing(
           horizontalSpacing,
@@ -843,6 +844,14 @@ import {
           startingX,
           startingY
         );
+        } else {
+          updateVirtualGridSpacing(
+            horizontalSpacing,
+            verticalSpacing,
+            0,
+            0
+          );
+        }
       });
   
     document

@@ -214,13 +214,18 @@ function updateStatusMessage(elementId, message, statusType) {
   statusElement.textContent = message; // Set the text message
 }
 
-function updateImagePreview(imageSource) {
+function updateImagePreview(imageSource, width, height) {
   const imageElement = document.getElementById("previewImage");
-  if (imageElement) {
-    imageElement.width = 200;
-    imageElement.height = 200;
-    imageElement.src = imageSource;
+
+  if (!imageElement) {
+    return;
   }
+  imageElement.src = imageSource;
+
+  imageElement.width = width * 0.25;
+  imageElement.height = height * 0.25;
+
+
 }
 
 // Function to highlight the active tab
@@ -355,6 +360,7 @@ function resetApplication() {
   window.uploadedImageFileType = null;
   window.boxFile = null;
   window.boxFileInfo = null;
+  window.finalSaveData = null;
 
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();

@@ -316,57 +316,10 @@ function saveUpdatedCores(format) {
     return;
   }
 
-  // Create finalSaveData by mapping over sortedCoresData
-  const finalSaveData = window.sortedCoresData.map((core) => {
-    
-      return {
-        ...core,
-        x: core.x,
-        y: core.y,
-        currentRadius: core.currentRadius,
-        row: core.row + 1,
-        col: core.col + 1,
-      };
-  });
-
-  // Check if there's uploaded metadata to update
-  if (window.userUploadedMetadata && window.userUploadedMetadata.length > 0) {
-    // Assuming the row and column names are stored in these variables
-    const metadataRowName = window.metadataRowName;
-    const metadataColName = window.metadataColName;
-
-    // Update userUploadedMetadata with sortedCoresData information
-    finalSaveData.forEach((core) => {
-      // Finding the matching metadata entry by row and column values
-      const metadataEntry = window.userUploadedMetadata.find((entry) => {
-        // Ensure both row and column values match
-        // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
-        return (
-          entry[metadataRowName] == core.row &&
-          entry[metadataColName] == core.col
-        );
-      });
-
-      if (metadataEntry) {
-        // Merge the core data into the metadata entry
-
-        core["calculated_row"] = core.row;
-        core["calculated_col"] = core.col;
-        delete core.row;
-        delete core.col;
-
-        for (let key in core) {
-          // You might want to exclude some properties that should not be merged
-          // if (key !== 'propertyToExclude') {
-          metadataEntry[key] = core[key];
-          // }
-        }
-      }
-    });
-  }
+  
   // Save data as JSON or CSV
   if (format === "json") {
-    const dataStr = JSON.stringify(finalSaveData);
+    const dataStr = JSON.stringify(window.finalSaveData);
     const dataUri =
       "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
@@ -377,7 +330,7 @@ function saveUpdatedCores(format) {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   } else if (format === "csv") {
-    let csvStr = convertToCSV(finalSaveData);
+    let csvStr = convertToCSV(window.finalSaveData);
     let blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" });
     let url = URL.createObjectURL(blob);
 

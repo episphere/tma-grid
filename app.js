@@ -211,7 +211,30 @@ document.addEventListener("DOMContentLoaded", function () {
   removeButton.addEventListener("click", function () {
     fileInput.value = "";
     fileInfo.classList.add("hidden");
+
+    // Reset the file upload status
+    const imageLoadStatus = document.getElementById("imageLoadStatus");
+    imageLoadStatus.classList = "load-status neutral-message";
+    imageLoadStatus.textContent = "No image loaded";
+
+    // Reset image preview
+    const imagePreview = document.getElementById("previewImage");
+    imagePreview.src = "./icons/Placeholder_view_vector.svg";
   });
+
+  document.getElementById('metadata-remove-file').addEventListener('click', function () {
+    document.getElementById('metadataFile').value = '';
+    document.getElementById('metadata-file-info').classList.add('hidden');
+
+    // Reset the file upload status
+    const metadataLoadStatus = document.getElementById('metadataLoadStatus');
+    metadataLoadStatus.classList = 'load-status neutral-message';
+    metadataLoadStatus.textContent = 'No metadata loaded';
+
+    
+});
+
+
 });
 
 function openInstructions() {
