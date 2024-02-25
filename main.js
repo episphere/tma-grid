@@ -33,7 +33,7 @@ import {
   visualizeSegmentationResults,
 } from "./core_detection.js";
 
-import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
+import { getWSIInfo, getPNGFromWSI } from "./wsi.js";
 
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
 

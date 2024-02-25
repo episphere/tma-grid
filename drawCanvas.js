@@ -1676,7 +1676,7 @@ async function createVirtualGrid(
   const imageSrc = document.getElementById("imageUrlInput").value
     ? document.getElementById("imageUrlInput").value
     : document.getElementById("fileInput").files.length > 0
-    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+    ? document.getElementById("fileInput").files[0]
     : window.boxFileInfo
     ? URL.createObjectURL(window.boxFile)
     : "path/to/default/image.jpg";
@@ -2025,7 +2025,7 @@ async function drawVirtualGridFromWSI(
   virtualGridDiv.style.gridTemplateColumns = `auto repeat(${maxCol}, 1fr)`;
   virtualGridDiv.style.gridTemplateRows = `auto repeat(${maxRow}, 1fr)`;
 
-  const concurrencyLimit = 10;
+  const concurrencyLimit = 1;
   let activePromises = [];
   for (const core of sortedCoresData) {
     const promise = createImageForCore(svsImageURL, core, coreSize).then(

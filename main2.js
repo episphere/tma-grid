@@ -102,7 +102,7 @@ import {
     );
       window.scalingFactor = scalingFactor;
     const wsiThumbnail = await getPNGFromWSI(
-      URL.createObjectURL(file),
+      file,
       MAX_DIMENSION_FOR_DOWNSAMPLING
     );
     let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
@@ -1061,10 +1061,10 @@ import {
             url: imageInfo.url,
           };
         } else {
-          tileSources = await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(
+          tileSources = (await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(
             imageInfo.url,
-            { logLatency: false, cache: true }
-          );
+            { logLatency: false, cache: true, slideOnly: true, pool: window.viewer?.world?.getItemAt(0)?.source?._pool }
+          ))[0];
         }
         // document.getElementById(
         //   "osdViewer"

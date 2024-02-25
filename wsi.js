@@ -1,16 +1,30 @@
-import imagebox3 from "./imagebox3.mjs"
+import Imagebox3 from "https://cdn.jsdelivr.net/gh/episphere/imagebox3/imagebox3.mjs"
 
-export const getWSIInfo = async (imageURL) => {
-  console.log('imageURL', imageURL)
-  const imageInfoResponse = await imagebox3.getImageInfo(imageURL);
-  const imageInfo = await imageInfoResponse.json();
-  return imageInfo;
-  
+let imagebox3Instance;
+const numWorkers = Math.max(window.navigator.hardwareConcurrency/2, 1)
+
+const createImagebox3Instance = async (imageSource) => {
+   console.log(imageSource, imagebox3Instance?.getImageSource())
+  if (!imagebox3Instance?.getImageSource()) {
+    console.log("[ImgBox3] Creating new instance")
+    imagebox3Instance = new Imagebox3(imageSource, numWorkers)
+    await imagebox3Instance.init()
+  }
+  else if (imagebox3Instance?.getImageSource() !== imageSource) {
+    console.log("[ImgBox3] Changing image source")
+    imagebox3Instance.changeImageSource(imageSource)
+  }
 }
 
+export const getWSIInfo = async (imageURL) => {
+  await createImagebox3Instance(imageURL)
+  return (await imagebox3Instance.getInfo()).json()
+}
 
 export const getPNGFromWSI = async (imageURL, maxDimension) => {
-  const { width, height } = await (await imagebox3.getImageInfo(imageURL)).json()
+  await createImagebox3Instance(imageURL)
+  
+  const { width, height } = await getWSIInfo(imageURL)
   const scalingFactor = Math.min(
     1024 / width,
     1024 / height
@@ -25,16 +39,16 @@ export const getPNGFromWSI = async (imageURL, maxDimension) => {
   } else {
     thumbnailHeightToRender = maxDimension
   }
-  const imageThumbnail = await imagebox3.getImageThumbnail(imageURL, {
-    thumbnailWidthToRender,
-    thumbnailHeightToRender
-  }, true)
+  
+  const imageThumbnail = await imagebox3Instance.getThumbnail(thumbnailWidthToRender, thumbnailHeightToRender)
   return imageThumbnail
 }
 
 export const getRegionFromWSI = async (imageURL, tileParams) => {
-
-  const imageTile = await imagebox3.getImageTile(imageURL, tileParams, true)
+  await createImagebox3Instance(imageURL)
+  console.log(tileParams)
+  const { tileX, tileY, tileWidth, tileHeight, tileSize } = tileParams
+  const imageTile = await imagebox3Instance.getTile( tileX, tileY, tileWidth, tileHeight, tileSize )
   return imageTile
 
 }
