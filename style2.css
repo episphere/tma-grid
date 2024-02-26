@@ -184,8 +184,7 @@ footer {
 
 /* Apply branding colors to elements */
 .upload-option-tab.active,
-.btn-box-connect:hover,
-.btn-proceed:hover {
+.btn-box-connect:hover {
   background-color: var(--primary-color);
   color: white;
   /* White text for better contrast */
