@@ -92,9 +92,10 @@
                             data-target="box-upload">Box Integration</button>
                     </nav>
                     <div class="preview-image">
-                        <img src="./icons/Placeholder_view_vector.svg" alt="Uploaded Image" class="mx-auto w-96 h-64 mb-6" id="previewImage">
+                        <img src="./icons/Placeholder_view_vector.svg" alt="Uploaded Image"
+                            class="mx-auto w-96 h-64 mb-6" id="previewImage">
                         <div id="loadingSpinner" style="display: none;">
-                            <div class="spinner" ></div>
+                            <div class="spinner"></div>
                         </div>
                     </div>
                     <div id="imageLoadStatus" class="load-status neutral-message">
@@ -148,17 +149,18 @@
 
                     </div>
 
-                    
+
                     <div class="mt-6 width-90-middle">
                         <label class="block text-sm font-semibold text-gray-700">Optional Metadata File:</label>
                         <div class="file-upload-wrapper">
                             <input type="file" id="metadataFile" class="file-input" accept=".csv,.json,.xlsx, .xls"
                                 onchange="displayFileInfo(this)">
-                            <label class="file-upload-button" for ="metadataFile">Choose files to upload</label>
-                            <button class="skip-button" for ="metadataFile">Use Template Metadata</label>
+                            <label class="file-upload-button" for="metadataFile">Choose files to upload</label>
+                            <button class="skip-button" for="metadataFile">Use Template Metadata</label>
                         </div>
-                        
-                        <div id="metadata-file-info" class="hidden width-90-middle" style="width: 100%; margin-top: 20px;">
+
+                        <div id="metadata-file-info" class="hidden width-90-middle"
+                            style="width: 100%; margin-top: 20px;">
                             <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
                             <div id="metadata-file-details">
                                 <span id="metadata-file-name"></span>
@@ -170,7 +172,7 @@
                     <div id="metadataLoadStatus" class="load-status neutral-message">
                         No metadata uploaded.
                     </div>
-                    
+
 
                     <script>
                         function displayFileInfo(input) {
@@ -234,7 +236,7 @@
 
                                 <label for="thresholdSlider" class="text-sm font-medium text-gray-700 block">Threshold:
                                     <span id="thresholdValue">0.5</span></label>
-                                <input type="range" id="thresholdSlider" min="0" max="1" step="0.0025" value="0.5"
+                                <input type="range" id="thresholdSlider" min="0.01" max="0.99" step="0.0025" value="0.5"
                                     class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 
                                 <label for="minAreaInput" class="text-sm font-medium text-gray-700 block">Min
@@ -262,8 +264,7 @@
                         </fieldset>
                     </aside>
                     <!-- Sidebar Toggle Icon -->
-                    <div id="segmentationSidebarIcon" class="parameterSidebar"
-                        onclick="toggleSidebarSegmentation()">
+                    <div id="segmentationSidebarIcon" class="parameterSidebar" onclick="toggleSidebarSegmentation()">
                         <!-- Menu Icon (three horizontal lines) -->
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -495,8 +496,8 @@
                     <main class="mx-auto w-full">
                         <!-- Main content goes here -->
 
-                        <div class="flex"  id="main-container">
-                           
+                        <div class="flex" id="main-container">
+
 
                             <!-- Image Viewer or other main content -->
                             <div id="osdViewer" style="margin:auto">
@@ -616,13 +617,13 @@
                                 <button class="close-button" onclick="toggleSidebarVirtual()">×</button>
                             </div>
                         </div>
-                            <form id="editMetadataForm" class="main-content ">
+                        <form id="editMetadataForm" class="main-content ">
 
-                                
 
-                            </form>
+
+                        </form>
                         <fieldset style="display: none;">
-                            
+
                             <label for="horizontalSpacing">Horizontal Spacing:</label>
                             <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
                                 value="100">
@@ -661,15 +662,13 @@
                                     </svg>
                                 </div>
 
-                                <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;" class="w-full"></canvas>
+                                <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"
+                                    class="w-full"></canvas>
                                 <!-- Put other virtual grid related content here -->
 
                                 <div id="VirtualGridSVSContainer"></div>
                             </div>
-                            <button id="toggleEditor" class="standard-button" style="display: none;">Toggle Editor</button>
-                            <div id="jsoneditor-dialog" title="JSON Editor">
-                                <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
-                            </div>
+
                         </div>
 
 
@@ -726,8 +725,9 @@
         referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js"
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k@ed333822e17a52dbaf151312ec29c29b5b1d4da5/GeoTIFFTileSource.js" type="module"
-        crossorigin="anonymous"></script>
+    <script
+        src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k@ed333822e17a52dbaf151312ec29c29b5b1d4da5/GeoTIFFTileSource.js"
+        type="module" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js"></script>
 
     <!-- JSON Editor -->

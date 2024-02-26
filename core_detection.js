@@ -289,42 +289,6 @@ function thresholdDistanceTransform(matrix, disTransformMultiplier) {
   return sureFg;
 }
 
-// // Main segmentation function
-// function segmentationAlgorithm(
-//   data,
-//   minArea,
-//   maxArea,
-//   disTransformMultiplier = 0.6
-// ) {
-//   const gray = toGrayscale(data);
-//   const binary = toBinary(gray);
-//   const opening = applyOpening(binary);
-//   visualizeMarkers(opening, "opening03.png");
-
-//   const dilated = applyDilation(opening);
-//   const filledOpening = fillSmallHoles(opening, dilated);
-//   const sureFg = thresholdDistanceTransform(
-//     filledOpening,
-//     disTransformMultiplier
-//   );
-//   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
-
-//   // Visualize each step
-//   visualizeMarkers(gray, "grayScaleInput01.png");
-//   visualizeMarkers(binary, "binary02.png");
-//   visualizeMarkers(filledOpening, "filledOpening05.png");
-//   visualizeMarkers(sureFg, "sureFg06.png");
-
-//   // Cleanup
-//   gray.delete();
-//   binary.delete();
-//   opening.delete();
-//   dilated.delete();
-//   // filledOpening.delete(); // Ensure this is correct; may need to adjust based on actual use
-
-//   return centroidsFinal;
-// }
-
 function calculateMedianRadius(segmented, minArea, maxArea) {
   // Invert the colors: black to white, white to black
   let inverted = new cv.Mat();

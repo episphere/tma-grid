@@ -1574,10 +1574,9 @@ function filterAndReassignCores(coresData, imageRotation) {
   return filteredCores;
 }
 
-function finalizeSaveData(){
+function finalizeSaveData() {
   // Create finalSaveData by mapping over sortedCoresData
   const finalSaveData = window.sortedCoresData.map((core) => {
-    
     return {
       ...core,
       x: core.x,
@@ -1586,53 +1585,54 @@ function finalizeSaveData(){
       row: core.row + 1,
       col: core.col + 1,
     };
-});
+  });
 
-// Check if there's uploaded metadata to update
-if (window.userUploadedMetadata && window.userUploadedMetadata.length > 0) {
-  // Assuming the row and column names are stored in these variables
-  const metadataRowName = window.metadataRowName;
-  const metadataColName = window.metadataColName;
+  // Check if there's uploaded metadata to update
+  if (window.userUploadedMetadata && window.userUploadedMetadata.length > 0) {
+    // Assuming the row and column names are stored in these variables
+    const metadataRowName = window.metadataRowName;
+    const metadataColName = window.metadataColName;
 
-  // Update userUploadedMetadata with sortedCoresData information
-  finalSaveData.forEach((core) => {
-    // Finding the matching metadata entry by row and column values
-    const metadataEntry = window.userUploadedMetadata.find((entry) => {
-      // Ensure both row and column values match
-      // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
-      return (
-        entry[metadataRowName] == core.row &&
-        entry[metadataColName] == core.col
-      );
+    // Update userUploadedMetadata with sortedCoresData information
+    finalSaveData.forEach((core) => {
+      // Finding the matching metadata entry by row and column values
+      const metadataEntry = window.userUploadedMetadata.find((entry) => {
+        // Ensure both row and column values match
+        // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
+        return (
+          entry[metadataRowName] == core.row &&
+          entry[metadataColName] == core.col
+        );
+      });
+
+      if (metadataEntry) {
+        // Merge the core data into the metadata entry
+
+        // core["calculated_row"] = core.row;
+        // core["calculated_col"] = core.col;
+        delete core.row;
+        delete core.col;
+
+        for (let key in core) {
+          // You might want to exclude some properties that should not be merged
+          // if (key !== 'propertyToExclude') {
+          metadataEntry[key] = core[key];
+          // }
+        }
+        // update the finalSaveData with the metadataEntry
+        return metadataEntry;
+      }
     });
 
-    if (metadataEntry) {
-      // Merge the core data into the metadata entry
-
-      core["calculated_row"] = core.row;
-      core["calculated_col"] = core.col;
-      delete core.row;
-      delete core.col;
-
-      for (let key in core) {
-        // You might want to exclude some properties that should not be merged
-        // if (key !== 'propertyToExclude') {
-        metadataEntry[key] = core[key];
-        // }
-      }
-    }
-  });
-}
-
-// Return the finalSaveData
-window.finalSaveData = finalSaveData;
-
+    window.finalSaveData = userUploadedMetadata;
+  } else {
+    // Return the finalSaveData
+    window.finalSaveData = finalSaveData;
+  }
 }
 
 function obtainHyperparametersAndDrawVirtualGrid() {
-
   finalizeSaveData();
-
 
   const horizontalSpacing = parseInt(
     document.getElementById("horizontalSpacing").value,
@@ -1695,7 +1695,7 @@ async function createVirtualGrid(
         startingY
       );
 
-      await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 64);
+      await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 12);
     } else {
       updateGridSpacingInVirtualGridForSVS(
         horizontalSpacing,
@@ -1775,13 +1775,16 @@ async function initiateDownload(
   downloadLink.click();
   document.body.removeChild(downloadLink);
 }
+
+
+
 // Create an array to store all the core containers
 const coreContainers = [];
 
 function adjustSidebarHeight() {
-  const virtualGrid = document.getElementById('VirtualGrid');
-  const sidebar = document.getElementById('virtual-grid-sidebar');
-  
+  const virtualGrid = document.getElementById("VirtualGrid");
+  const sidebar = document.getElementById("virtual-grid-sidebar");
+
   if (virtualGrid && sidebar) {
     const virtualGridHeight = virtualGrid.offsetHeight; // Get the current height of the VirtualGrid
     sidebar.style.height = `${virtualGridHeight}px`; // Set the sidebar's height to match
@@ -1795,52 +1798,52 @@ function populateAndEditMetadataForm(rowValue, colValue) {
   const colKeyName = window.metadataColName || "col";
 
   // Find the metadata object with the matching row and column values
-  const metadataObj = window.finalSaveData.find(metadata => {
+  const metadataObj = window.finalSaveData.find((metadata) => {
     return metadata[rowKeyName] == rowValue && metadata[colKeyName] == colValue;
   });
 
   if (metadataObj) {
     // Get the form element
-    const form = document.getElementById('editMetadataForm');
+    const form = document.getElementById("editMetadataForm");
 
-    const virtualGrid = document.getElementById("VirtualGrid")
-    
-    
+    const virtualGrid = document.getElementById("VirtualGrid");
+
     // Clear existing form contents
-    form.innerHTML = '';
-    form.className = 'space-y-4';
+    form.innerHTML = "";
+    form.className = "space-y-4";
 
     // Dynamically create form elements for each metadata property
     for (const key in metadataObj) {
       const value = metadataObj[key];
 
       // Determine input type based on the value type
-      let inputType = 'text'; // Default input type
-      if (typeof value === 'number') {
-        inputType = 'number';
-      } else if (typeof value === 'boolean') {
-        inputType = 'checkbox';
+      let inputType = "text"; // Default input type
+      if (typeof value === "number") {
+        inputType = "number";
+      } else if (typeof value === "boolean") {
+        inputType = "checkbox";
       } // For more specific cases, like radio buttons, additional logic would be needed
 
       // Create a div wrapper for styling
-      const div = document.createElement('div');
-      div.className = 'flex flex-col justify-start';
+      const div = document.createElement("div");
+      div.className = "flex flex-col justify-start";
 
       // Create a label for the input
-      const label = document.createElement('label');
-      label.setAttribute('for', key);
-      label.textContent = key + ': ';
-      label.className = 'mb-2 text-sm font-medium text-gray-900';
+      const label = document.createElement("label");
+      label.setAttribute("for", key);
+      label.textContent = key + ": ";
+      label.className = "mb-2 text-sm font-medium text-gray-900";
       div.appendChild(label);
 
       // Create an input element
-      const input = document.createElement('input');
+      const input = document.createElement("input");
       input.type = inputType;
       input.name = key;
       input.id = key;
-      input.className = 'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5';
-      
-      if (inputType === 'checkbox') {
+      input.className =
+        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+
+      if (inputType === "checkbox") {
         input.checked = value;
       } else {
         input.value = value;
@@ -1852,45 +1855,40 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     }
 
     // Create a submit button
-    const submitButton = document.createElement('input');
-    submitButton.type = 'submit';
-    submitButton.value = 'Update Metadata';
-    submitButton.className = 'mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50';
+    const submitButton = document.createElement("input");
+    submitButton.type = "submit";
+    submitButton.value = "Update Metadata";
+    submitButton.className =
+      "mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
     form.appendChild(submitButton);
 
     // Handle form submission
-    form.onsubmit = function(event) {
+    form.onsubmit = function (event) {
       event.preventDefault(); // Prevent traditional form submission
-      
+
       // Update the metadata object with new form values
       for (const key in metadataObj) {
         if (metadataObj.hasOwnProperty(key)) {
           const input = form.elements.namedItem(key);
-          if (input.type === 'checkbox') {
+          if (input.type === "checkbox") {
             metadataObj[key] = input.checked;
           } else {
-            metadataObj[key] = input.type === 'number' ? Number(input.value) : input.value;
+            metadataObj[key] =
+              input.type === "number" ? Number(input.value) : input.value;
           }
         }
       }
 
       // Log the updated object for verification
-      console.log('Metadata updated successfully:', metadataObj);
+      console.log("Metadata updated successfully:", metadataObj);
       // Implement any follow-up action here
-
-
     };
 
     adjustSidebarHeight();
-
   } else {
-    console.error('No matching metadata found for the given row and column.');
+    console.error("No matching metadata found for the given row and column.");
   }
 }
-
-
-
-
 
 async function createImageForCore(svsImageURL, core, coreSize = 64) {
   const coreWidth = core.currentRadius * 2;
@@ -1928,17 +1926,11 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
     initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileName);
   };
 
-  container.onclick = () => { 
-
+  container.onclick = () => {
     // Select the core
     core.isSelected = true;
     populateAndEditMetadataForm(core.row + 1, core.col + 1);
-
-
-    
-
-  }
-
+  };
 
   // Append children to the container
   container.appendChild(img);
@@ -2087,48 +2079,50 @@ function drawVirtualGridFromPNG(
   img.onload = () => {
     vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
 
-    sortedCoresData.filter(core => !core.isMarker).forEach((core) => {
-      const idealX = startingX + core.col * horizontalSpacing;
-      const idealY = startingY + core.row * verticalSpacing;
-      const userRadius = core.currentRadius * window.scalingFactor;
+    sortedCoresData
+      .filter((core) => !core.isMarker)
+      .forEach((core) => {
+        const idealX = startingX + core.col * horizontalSpacing;
+        const idealY = startingY + core.row * verticalSpacing;
+        const userRadius = core.currentRadius * window.scalingFactor;
 
-      vctx.save();
-      vctx.beginPath();
-      vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
-      vctx.closePath();
+        vctx.save();
+        vctx.beginPath();
+        vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
+        vctx.closePath();
 
-      // Use the isImaginary flag to determine the stroke style
-      vctx.strokeStyle = core.isImaginary ? "red" : "green";
-      vctx.lineWidth = 2; // Adjust line width as needed
-      vctx.stroke();
+        // Use the isImaginary flag to determine the stroke style
+        vctx.strokeStyle = core.isImaginary ? "red" : "green";
+        vctx.lineWidth = 2; // Adjust line width as needed
+        vctx.stroke();
 
-      vctx.clip();
+        vctx.clip();
 
-      const sourceX = core.x * window.scalingFactor - userRadius;
-      const sourceY = core.y * window.scalingFactor - userRadius;
+        const sourceX = core.x * window.scalingFactor - userRadius;
+        const sourceY = core.y * window.scalingFactor - userRadius;
 
-      vctx.drawImage(
-        img,
-        sourceX,
-        sourceY,
-        userRadius * 2,
-        userRadius * 2,
-        idealX - userRadius,
-        idealY - userRadius,
-        userRadius * 2,
-        userRadius * 2
-      );
+        vctx.drawImage(
+          img,
+          sourceX,
+          sourceY,
+          userRadius * 2,
+          userRadius * 2,
+          idealX - userRadius,
+          idealY - userRadius,
+          userRadius * 2,
+          userRadius * 2
+        );
 
-      vctx.restore();
+        vctx.restore();
 
-      vctx.fillStyle = "black"; // Text color
-      vctx.font = "12px Arial"; // Text font and size
-      vctx.fillText(
-        `(${core.row + 1},${core.col + 1})`,
-        idealX - userRadius / 2,
-        idealY - userRadius / 2
-      );
-    });
+        vctx.fillStyle = "black"; // Text color
+        vctx.font = "12px Arial"; // Text font and size
+        vctx.fillText(
+          `(${core.row + 1},${core.col + 1})`,
+          idealX - userRadius / 2,
+          idealY - userRadius / 2
+        );
+      });
   };
 
   img.onerror = () => {
