@@ -1459,7 +1459,7 @@ function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
         !Object.keys(medianRotatedXValues).some(
           (col) =>
             Math.abs(medianRotatedXValues[col] - rotatedX) <
-            1.25 * core.currentRadius
+            1.5 * core.currentRadius
         )
       ) {
         core.row = -1;
