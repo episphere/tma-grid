@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>De-arraying Visualization</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+    <!-- Include Box CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.css" />
+
+
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <h1>Tissue Segmentation Tool</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="https://github.com/episphere/TMA-De-arraying">GitHub</a></li>
+                <li><a href="#paper">Paper</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="app-container">
+
+
+        <div class="sidebar" id="imageSegmentationSidebar">
+            <!-- Carousel Container -->
+            <div class="carousel-container">
+
+                <!-- Carousel Item for Image File Input -->
+                <div class="carousel-item active" id="imageInputSection">
+                    <!-- Image file input section -->
+                    <h2>1) Load Image</h2>
+
+                    <div class="file-upload-container" id="file-upload-container">
+
+                        <div id="imageLoadStatus" class="load-status neutral-message">
+                            No image file uploaded.
+                        </div>
+                        <label for="fileInput" class="file-dropzone">
+                            <div class="file-input-btn">Select an Image File</div>
+                            <input type="file" id="fileInput" accept="image/*,.svs" hidden>
+                            <p>Drop image file here</p>
+                        </label>
+                        <br>
+                        <p style="text-align: center;">OR</p>
+                        <br>
+                        <label for="imageUrlInput">Paste in Image URL:</label>
+                        <input type="text" id="imageUrlInput" placeholder="Enter Image URL"
+                            value="https://episphere.github.io/TMA-De-arraying/HD%20TMA%202%202011%20H&E%20stain.svs-[1499,1169,42287,37957]1x.png" />
+                        <button id="loadImageUrlBtn" type="button" class="load-img-btn">Load Image</button>
+                        <br>
+                        <p style="text-align: center;">OR</p>
+                        <button id="boxLoginBtn" type="button" class="box-login-btn">Login to Box</button>
+
+                    </div>
+
+                    <div id="boxFilesContainer" class="box-files-container">
+                        <!-- Dynamically loaded Box files will go here -->
+                    </div>
+
+                </div>
+
+                <!-- Carousel Item for Metadata File Input -->
+                <div class="carousel-item" id="metadataInputSection">
+                    <!-- Metadata file input section -->
+                    <div class="file-upload-container">
+                        <h2>2) Load Metadata (optional)</h2>
+                        <div id="metadataLoadStatus" class="load-status neutral-message">
+                            No metadata file uploaded.
+                        </div>
+
+                        <label for="metadataFileInput" class="file-dropzone">
+                            <div class="file-input-btn">Select an .xls/.csv File</div>
+                            <input type="file" id="metadataFileInput"
+                                accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                hidden>
+                            <p>Drop .xls/.csv file here</p>
+                        </label>
+                        <br>
+                        <p style="text-align: center;">OR</p>
+                        <br>
+                        <label for="metadataUrlInput">Paste in .csv/.xls URL:</label>
+                        <input type="text" id="metadataUrlInput" placeholder="Enter metadata URL" value="" />
+
+                        <div class="button-group">
+                            <button id="loadMetadataUrlBtn" type="button" class="load-img-btn">Load .xls/.csv</button>
+                            <br>
+                            <button id="skipLoadMetadataUrlBtn" type="button" class="skip-button">Skip</button>
+                        </div>
+                        <br>
+                    </div>
+                </div>
+
+                <!-- Form for hyperparameters (Note: Moved outside of the carousel items as a singular form) -->
+                <div class="carousel-item" id="hyperparameterSettingsSection">
+                    <!-- Form for hyperparameters -->
+                    <form id="segmentation-hyperparameters-form">
+                        <!-- Hyperparameter settings -->
+                        <div class="hyperparameters">
+                            <h2>3) Configure Parameters</h2>
+
+                            <!-- Segmentation Parameters Section -->
+                            <fieldset>
+                                <legend>Segmentation Parameters</legend>
+
+                                <label for="maskAlphaSlider">Mask Alpha: <span id="maskAlphaValue">0.3</span></label>
+                                <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.3">
+
+
+                                <label for="thresholdSlider">Segmentation Threshold: <span
+                                        id="thresholdValue">0.5</span></label>
+                                <input type="range" id="thresholdSlider" min="0" max="1" step="0.0025" value="0.5">
+
+                                <label for="minAreaInput">Min Area:</label>
+                                <input type="number" id="minAreaInput" value="1" step="1" min="1" />
+
+                                <label for="maxAreaInput">Max Area:</label>
+                                <input type="number" id="maxAreaInput" value="2000" step="1" min="1" />
+
+                                <label for="disTransformMultiplierInput">Distance Transform Multiplier:</label>
+                                <input type="number" id="disTransformMultiplierInput" value="0.65" step="0.025"
+                                    min="0.1" max="1" />
+                            </fieldset>
+
+                            <button type="button" class="secondary-action-button" id="applySegmentation">Apply
+                                Settings</button>
+                            <button type="button" id="finalizeSegmentation">Finalize</button>
+
+                            <br>
+                        </div>
+
+                        <button type="button" style="display: none;" class="primary-action-button"
+                            id="downloadSegmentationResults">Download
+                            JSON</button>
+                    </form>
+                </div>
+
+                <!-- Carousel Navigation -->
+                <div class="carousel-controls">
+                    <button type="button" class="carousel-control-prev">
+                        <span class="icon">&lt;</span> <!-- Replace with a proper icon if available -->
+                    </button>
+                    <button type="button" class="carousel-control-next">
+                        <span class="icon">&gt;</span> <!-- Replace with a proper icon if available -->
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="sidebar" id="rawDataSidebar" style="display: none;">
+            <!-- Form for hyperparameters -->
+            <form id="hyperparameters-form">
+
+
+                <div class="hyperparameters">
+
+                    <!-- Hyperparameter form section -->
+                    <h2>Configure Parameter</h2>
+
+                    <!-- Image Parameters Section -->
+                    <fieldset>
+                        <legend>Image Parameters</legend>
+                        <label for="userRadius">Core Radius: <output id="radiusValue"
+                                for="userRadius">20</output></label>
+                        <input type="range" id="userRadius" name="userRadius" min="1" max="100" value="20">
+                    </fieldset>
+
+
+                    <!-- Traveling Algorithm Section -->
+                    <fieldset>
+                        <legend>Traveling Algorithm Parameters</legend>
+
+
+                        <label for="originAngle" title="Rotation of the image in degrees">Image Rotation: <output
+                                id="originAngleValue" for="originAngle">0</output></label>
+                        <input type="range" id="originAngle" name="originAngle" min="-90" max="90" value="0">
+
+
+
+
+
+
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Display Parameters</legend>
+                        <!-- Check box for whether adjacent cores should be connected by lines -->
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
+                            <label for="connectCoresCheckbox">Connect Cores</label>
+                        </div>
+
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="flagMisalignmentCheckbox" name="flagMisalignmentCheckbox"
+                                checked>
+                            <label for="flagMisalignmentCheckbox">Flag Misaligned Cores</label>
+                        </div>
+
+                    </fieldset>
+
+                    <!-- Add a button/link for the collapsible dropdown -->
+                    <button id="toggle-advanced-settings" type="button">Show Advanced Settings</button>
+                    <!-- Wrap hidden fieldsets in a div -->
+                    <div id="advanced-settings" style="display: none;">
+                        <!-- More Traveling Algorithm Parameters -->
+                        <fieldset>
+
+                            <legend>Traveling Algorithm Parameters</legend>
+                            <label for="radiusMultiplier"
+                                title="Multiplier for the radius used in the traveling algorithm">Radius
+                                Multiplier</label>
+                            <input type="number" id="radiusMultiplier" name="radiusMultiplier" step="0.1" value="0.6">
+
+                            <label for="gridWidth"
+                                title="Width of one square in the grid used in the traveling algorithm">Grid
+                                Width</label>
+                            <input type="number" id="gridWidth" name="gridWidth" step="1" value="70">
+
+                            <label for="gamma"
+                                title="Distance after the the core with the greatest X value to stop the traveling algorithm">Stopping
+                                Distance</label>
+                            <input type="number" id="gamma" name="gamma" step="1" value="60">
+
+                            <label for="multiplier"
+                                title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
+                                for
+                                Grid Width</label>
+                            <input type="number" id="multiplier" name="multiplier" step="0.1" value="1.5">
+
+                            <label for="imageWidth"
+                                title="Width of the entire gird used in the traveling algorithm">Image
+                                Width</label>
+                            <input type="number" id="imageWidth" name="imageWidth" step="1" value="1024">
+
+                            <label for="searchAngle" title="Angle to search in the traveling algorithm">Search
+                                Angle</label>
+                            <input type="number" id="searchAngle" name="searchAngle" step="1" value="5">
+
+                        </fieldset>
+
+                        <!-- Edge Detection Section -->
+                        <fieldset>
+                            <legend>Edge Detection Parameters</legend>
+
+                            <label for="thresholdMultiplier"
+                                title="Multiplier for the median absolute deviation to filter edges by length">Length
+                                Threshold
+                                Multiplier</label>
+                            <input type="number" id="thresholdMultiplier" name="thresholdMultiplier" step="0.1"
+                                value="1.2">
+
+                            <label for="thresholdAngle"
+                                title="The angle within which edges are considered valid">Threshold
+                                Angle</label>
+                            <input type="number" id="thresholdAngle" name="thresholdAngle" step="1" value="10">
+                        </fieldset>
+
+                        <!-- Image Rotation Section -->
+                        <fieldset>
+                            <legend>Image Rotation Parameters</legend>
+
+                            <label for="minAngle" title="Minimum angle to test for image rotation">Minimum Angle</label>
+                            <input type="number" id="minAngle" name="minAngle" step="1" value="0">
+
+                            <label for="maxAngle" title="Maximum angle to test for image rotation">Maximum Angle</label>
+                            <input type="number" id="maxAngle" name="maxAngle" step="1" value="5">
+
+                            <label for="angleStepSize"
+                                title="Incremental step size for testing angles during image rotation">Angle Step
+                                Size</label>
+                            <input type="number" id="angleStepSize" name="angleStepSize" step="1" value="5">
+
+                            <label for="angleThreshold"
+                                title="Angle threshold used when filtering edges by angle for image rotation">Angle
+                                Threshold</label>
+                            <input type="number" id="angleThreshold" name="angleThreshold" step="1" value="20">
+                        </fieldset>
+
+                    </div>
+
+                    <div class="button-group">
+
+
+                        <button type="button" class="secondary-action-button" id="apply-hyperparameters">Rerun
+                            Gridding</button>
+                        <button type="button" id="create-virtual-grid">Create Virtual Grid</button>
+                    </div>
+                    <br>
+                </div>
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button type="button" class="primary-action-button" id="saveResultsAsJson">Save Results as
+                        JSON</button>
+                    <button type="button" class="primary-action-button" id="saveResultsAsCsv">Save Results as
+                        CSV</button>
+                </div>
+            </form>
+
+        </div>
+
+
+        <!-- Additional sidebar for Virtual Grid adjustments -->
+        <div class="sidebar" id="virtualGridSidebar" style="display: none;">
+            <h2>Virtual Grid Configuration</h2>
+            <div class="hyperparameters">
+                <fieldset>
+                    <legend>Grid Spacing Parameters</legend>
+                    <label for="horizontalSpacing">Horizontal Spacing:</label>
+                    <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200" value="100">
+                    <output id="horizontalSpacingValue" for="horizontalSpacing">50</output>
+
+                    <label for="verticalSpacing">Vertical Spacing:</label>
+                    <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200" value="100">
+                    <output id="verticalSpacingValue" for="verticalSpacing">50</output>
+
+                    <label for="startingX">Starting X:</label>
+                    <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
+                    <output id="startingXValue" for="startingX">0</output>
+
+                    <label for="startingY">Starting Y:</label>
+                    <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
+                    <output id="startingYValue" for="startingY">0</output>
+
+                </fieldset>
+                <button type="button" id="applyVirtualGridSettings">Apply Grid Settings</button>
+                <button id="downloadAllCoresButton">Download All Cores</button>
+            </div>
+        </div>
+
+        <div class="content" style="width: 100%; height: 100%">
+
+            <!-- Tab Links -->
+            <div class="tab">
+                <button class="tablinks active" id="imageSegmentationTabButton">1 - Image Segmentation</button>
+                <button disabled class="tablinks" id="rawDataTabButton">2 - Gridding</button>
+                <button disabled class="tablinks" id="virtualGridTabButton">3 - Virtual
+                    Grid</button>
+
+                <button id="helpButton" class="actionButton">?</button> <!-- Add this line -->
+
+            </div>
+
+            <!-- Tab content -->
+
+            <div id="ImageSegmentation" class="tabcontent" style="display: block;">
+
+                <div class="instructions-container">
+                    <button class="close-instructions">✕</button>
+                    <h2>Completing Core Segmentation</h2>
+                    <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm detects most of the
+                        cores. Make any manual adjustments if needed to capture all cores accurately. </p>
+                    <p>
+                        Once you're satisfied with the segmentation, click the "Finalize Segmentation" button. You can
+                        then proceed
+                        to the Gridding tab to continue.</p>
+                </div>
+
+                <div class="instructions-container">
+                    <button class="close-instructions">✕</button>
+                    <h2>Interactive Core Editing</h2>
+                    <p>To add a core, simply click on the desired location within the image.
+                    </p>
+                    <p> If you wish to remove a
+                        core, hold the <kbd>Shift</kbd> key and click on the core you want to remove.</p>
+                </div>
+
+                <img id="originalImage" src="#" alt="Original Tissue" style="display: none;">
+
+                <canvas id="segmentationResultsCanvas" alt="Processed Tissue" height="0px"></canvas>
+
+                <div id="loadingSpinner" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+
+            </div>
+
+            <div id="RawData" class="tabcontent">
+                <!-- <button id="switchToEditMode" class="mode-button active">Edit Mode</button>
+                <button id="switchToAddMode" class="mode-button">Add Mode</button> -->
+                <div class="instructions-container">
+                    <button class="close-instructions">×</button> <!-- This is the close button -->
+                    <h2>Gridding Instructions</h2>
+                    <p>First, ensure that the image is rotated correctly. If not, adjust the image rotation parameter.
+                    </p>
+                    <p> To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the cursor.
+                    </p>
+
+                    <p> To edit the
+                        properties of a core, double-click on the core to open the edit menu. By default, manual edits
+                        of the column value is disabled. To enable manual edits of the column value, uncheck the "Auto
+                        Update Columns" checkbox. </p>
+                </div>
+
+                <div class="instructions-container">
+                    <button class="close-instructions">×</button> <!-- This is the close button -->
+                    <h2>Adding Cores</h2>
+                    <p>To add a core, click on the desired location within the image. Your first click will set the
+                        center of the core, and your second click will set the radius. </p>
+                    To adjust the size of added cores, hold the <kbd>Shift</kbd> key and drag the cursor.
+                    </p>
+                    <p> To edit the properties of a core, use the edit menu to the right. Make sure to set the correct
+                        row of added cores</p>
+
+
+
+                </div>
+                <div id="rawDataLoadingSpinner" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+                <div class="core-edit-container" id="main-container"> <!-- This is the new flex container -->
+
+                    <div id="osdViewer" style="margin: auto; width: 100%;"></div>
+
+
+
+
+                    <div class="edit-sidebar" id="editSidebar">
+                        <div class="sidebar-header draggable-area">
+                            <h2 class="title">Edit Core</h2>
+                            <div class="window-controls">
+                                <button class="close-button" id="closeEditCoreButton">×</button>
+                            </div>
+                        </div>
+                        <form id="editCoreForm" class="main-content">
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
+                                <label for="editIsMarkerInput">Is a Marker</label>
+                            </div>
+
+
+                            <label for="editRowInput">Row:</label>
+                            <input type="number" id="editRowInput" name="editRowInput" disabled>
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="editAutoUpdateRowsCheckbox" name="editAutoUpdateRowsCheckbox"
+                                    checked>
+                                <label for="editAutoUpdateRowsCheckbox">Auto Assign Row</label>
+                            </div>
+
+
+                            <label for="editColumnInput">Column:</label>
+                            <input type="number" id="editColumnInput" name="editColumnInput" disabled>
+
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
+                                    name="editAutoUpdateColumnsCheckbox" checked>
+                                <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
+                            </div>
+
+                            <label for="editXInput">X Position:</label>
+                            <input type="number" id="editXInput" name="editXInput">
+
+                            <label for="editYInput">Y Position:</label>
+                            <input type="number" id="editYInput" name="editYInput">
+
+                            <label for="editRadiusInput">Radius:</label>
+                            <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
+
+                            <label for="editAnnotationsInput">Annotations:</label>
+                            <textarea type="text" id="editAnnotationsInput" name="editAnnotationsInput"></textarea>
+
+                            <!-- ...other inputs... -->
+
+                            <div class="radio-group">
+                                <input type="radio" id="editRealInput" name="coreType" value="real">
+                                <label for="editRealInput" class="radio-button">Normal</label>
+
+                                <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
+                                <label for="editImaginaryInput" class="radio-button">Missing</label>
+                            </div>
+
+
+                            <div class="button-group">
+                                <button type="button" id="saveCoreEdits">Save</button>
+
+                                <button type="button" id="removeCoreButton">Remove</button>
+
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div id="VirtualGrid" class="tabcontent">
+                <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"></canvas>
+                <!-- Put other virtual grid related content here -->
+
+                <div id="VirtualGridSVSContainer"></div>
+                <button id="toggleEditor" class="toggle-editor-button">Toggle Editor</button>
+                <div id="jsoneditor-dialog" title="JSON Editor">
+                    <div id="jsoneditor" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+
+    <!-- Popup HTML -->
+    <div id="popupSegmentation" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Segmentation Finalized</h2>
+            <p>Segmentation is now finalized. You can proceed to gridding or continue editing.</p>
+            <button id="openGriddingButton">Open Gridding Tab</button>
+            <button id="segmentationClosePopupButton">Continue Editing</button>
+        </div>
+    </div>
+
+    <div id="popupGridding" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Gridding Finalized</h2>
+            <p>Gridding is now finalized. You can download the results, proceed to the virtual grid, or continue
+                editing.</p>
+            <button id="openVirtualGridButton">Open Virtual Grid</button>
+            <button id="griddingClosePopupButton">Continue Editing</button>
+        </div>
+    </div>
+
+
+    <!-- MAIN.JS -->
+    <script type="module" src="main.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k/GeoTIFFTileSource.js" type="module"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js"></script>
+
+    <!-- JSON Editor -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.5.6/jsoneditor.min.css" rel="stylesheet"
+        type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.5.6/jsoneditor.min.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+
+    <!-- Box Content Picker Script -->
+    <script src="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.js"></script>
+
+
+</body>
+
+</html>
