@@ -1774,6 +1774,7 @@ async function initiateDownload(
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
+  debugger
 }
 
 
@@ -1948,16 +1949,6 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
     img.src = URL.createObjectURL(blob); // Create a blob URL from the blob
   });
 }
-
-// Add an event listener to the "Download All Cores" button
-document
-  .getElementById("downloadAllCoresButton")
-  .addEventListener("click", () => {
-    for (const container of coreContainers) {
-      // Trigger the double-click event on each container
-      container.ondblclick();
-    }
-  });
 
 function updateGridSpacingInVirtualGridForSVS(
   horizontalSpacing,

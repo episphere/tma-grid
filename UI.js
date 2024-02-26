@@ -381,39 +381,6 @@ const updateSliderUIText = (state) => {
   );
 };
 
-async function downloadAllCores(svsImageURL, cores, coreWidth, coreHeight) {
-  const JSZip = window.JSZip || require('jszip');
-  const zip = new JSZip();
-
-  for (const core of cores) {
-    const fullResTileParams = {
-      tileX: core.x - core.currentRadius,
-      tileY: core.y - core.currentRadius,
-      tileWidth: coreWidth,
-      tileHeight: coreHeight,
-      tileSize: coreWidth,
-    };
-
-    const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
-    const blob = await fullSizeImageResp.blob();
-    zip.file(core.fileName, blob);
-  }
-
-  // Generate the zip file
-  zip.generateAsync({type:"blob"})
-    .then(function(content) {
-      // Use FileSaver.js or similar to save the file, or create an <a> element to download
-      const downloadLink = document.createElement('a');
-      downloadLink.href = URL.createObjectURL(content);
-      downloadLink.download = "cores.zip";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-    });
-}
-
-
-
 export {
   getHyperparametersFromUI,
   updateStatusMessage,
@@ -430,5 +397,4 @@ export {
   showPopup,
   closePopup,
   updateImagePreview,
-  downloadAllCores
 };

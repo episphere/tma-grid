@@ -28,7 +28,7 @@ import {
   visualizeSegmentationResults,
 } from "./core_detection.js";
 
-import { getWSIInfo, getPNGFromWSI } from "./wsi.js";
+import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
 
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
 
@@ -778,9 +778,11 @@ function bindEventListeners() {
     .getElementById("downloadAllCoresButton")
     .addEventListener("click", () => {
       // Assuming coreOverlays is an array of your core overlay elements
-      for (const overlay of coreOverlays) {
-        initiateDownload(overlay);
-      }
+      // for (const overlay of coreOverlays) {
+      //   initiateDownload(overlay);
+      // }
+
+      downloadAllCores(window.sortedCoresData);
     });
 
   document.querySelectorAll("input[type='number']").forEach((e) => {
@@ -1172,44 +1174,65 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
 });
 
 async function downloadAllCores(cores) {
-  const svsImageURL = document.getElementById("imageUrlInput").value
-    ? document.getElementById("imageUrlInput").value
-    : document.getElementById("fileInput").files.length > 0
-    ? document.getElementById("fileInput").files[0]
-    : window.boxFileInfo
-    ? URL.createObjectURL(window.boxFile)
-    : "path/to/default/image.jpg";
 
-  const JSZip = window.JSZip || require("jszip");
+  const svsImageURL = document.getElementById("imageUrlInput").value
+  ? document.getElementById("imageUrlInput").value
+  : document.getElementById("fileInput").files.length > 0
+  ? document.getElementById("fileInput").files[0]
+  : window.boxFileInfo
+  ? URL.createObjectURL(window.boxFile)
+  : "path/to/default/image.jpg";
+
+  const JSZip = window.JSZip || require('jszip');
   const zip = new JSZip();
 
-  for (const core of cores) {
+  // Show progress overlay
+  const overlay = document.getElementById('progressOverlay');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  overlay.style.display = 'flex';
+  progressBar.style.width = '0%';
+  progressText.innerText = 'Starting download...';
+
+  await Promise.all(cores.map(async (core, index) => {
     const fullResTileParams = {
       tileX: core.x - core.currentRadius,
       tileY: core.y - core.currentRadius,
       tileWidth: core.currentRadius * 2,
       tileHeight: core.currentRadius * 2,
-      tileSize: core.currentRadius * 2,
+      tileSize: core.currentRadius / 2,
     };
 
-    const fullSizeImageResp = await getRegionFromWSI(
-      svsImageURL,
-      fullResTileParams
-    );
-    const blob = await fullSizeImageResp.blob();
-    zip.file(core.fileName, blob);
-  }
+    try {
+      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+      const blob = await fullSizeImageResp.blob();
+      zip.file(core.fileName, blob);
+
+      // Update progress
+      const progress = ((index + 1) / cores.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressText.innerText = `Downloading... ${progress.toFixed(2)}%`;
+    } catch (error) {
+      console.error("Error fetching or adding an image to the zip:", error);
+    }
+  }));
 
   // Generate the zip file
-  zip.generateAsync({ type: "blob" }).then(function (content) {
-    // Use FileSaver.js or similar to save the file, or create an <a> element to download
-    const downloadLink = document.createElement("a");
-    downloadLink.href = URL.createObjectURL(content);
-    downloadLink.download = "cores.zip";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-  });
+  zip.generateAsync({type:"blob"})
+    .then(function(content) {
+      // Use a temporary link to download the zip file
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(content);
+      downloadLink.download = "cores.zip";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      // Hide progress overlay and reset progress bar
+      overlay.style.display = 'none';
+      progressBar.style.width = '0%';
+      progressText.innerText = 'Initializing...';
+    });
 }
 
 // Main function that runs the application
