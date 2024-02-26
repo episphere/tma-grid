@@ -51,6 +51,17 @@ advancedSettingsCheckbox.addEventListener("change", function () {
 // Handling the '.btn-proceed' buttons to navigate through steps
 document.querySelectorAll(".btn-proceed").forEach((button) => {
   button.addEventListener("click", function () {
+
+    if (!window.loadedImg) {
+
+      // If no image is loaded, show an error message
+      const imageLoadStatus = document.getElementById("imageLoadStatus");
+      imageLoadStatus.classList = "load-status error-message";
+      imageLoadStatus.textContent = "No image loaded";
+      return;
+    }
+
+
     // Move to the next step
     let nextStep = currentStep + 1;
 

@@ -79,6 +79,16 @@
 
             <section id="upload" class="py-5 ">
 
+                <div class="instructions-container space-y-4">
+                    <button class="close-instructions text-right">✕</button>
+                    <h2 class="text-xl font-semibold">Uploading an Image</h2>
+                    <p>Begin by uploading a <span id="file-name">.svs</span> image. You can also work with <span id="file-name">.png</span> or <span id="file-name">.jpg</span> files, but virtual gridding is not 
+                        fully supported with these file formats
+                    </p>
+                    <p>Once the image has been successfully uploaded, click the "Proceed"
+                        button to continue to image segmentation.</p>
+                </div>
+
                 <div class="bg-white p-6 rounded-lg shadow-lg">
 
                     <nav class="flex mb-5 border-b justify-center">
@@ -315,17 +325,16 @@
                     <p>First, ensure that the image is rotated correctly. If not, adjust the image
                         rotation
                         parameter.</p>
-                    <p>To adjust the size of each core, hold the <kbd>Shift</kbd> key and drag the
-                        cursor.</p>
+                        
+                    <p>To adjust the size of each core, select the core and resize it using the anchor points in the corner.</p>
                 </div>
                 <!-- Similar structure for Adding Cores Instructions -->
                 <div class="instructions-container mb-4">
                     <button class="close-instructions text-right">✕</button>
 
                     <h2 class="text-lg font-semibold">Adding Cores</h2>
-                    <p>To add a core, click on the desired location within the image. Your first click
-                        will set the
-                        center of the core, and your second click will set the radius.</p>
+                    <p>To add a core, click on the Add Core button on the top left corner of the page. 
+                        Then, drag the core at the location you would like it to be created on.</p>
                 </div>
 
                 <div class="flex flex-wrap lg:flex-nowrap">

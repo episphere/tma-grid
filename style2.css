@@ -953,6 +953,7 @@ svg {
 
 .image-container.active {
   border: 2px solid var(--primary-color); /* Highlight border for active container */
+  z-index: 10;
   box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Optional: add a shadow for better visibility */
   background-color: #f0f8ff; /* Optional: slight background color change */
   transform: scale(1.05);
