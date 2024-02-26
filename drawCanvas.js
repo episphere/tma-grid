@@ -1695,7 +1695,7 @@ async function createVirtualGrid(
         startingY
       );
 
-      await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 12);
+      await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 64);
     } else {
       updateGridSpacingInVirtualGridForSVS(
         horizontalSpacing,
@@ -1718,31 +1718,6 @@ async function createVirtualGrid(
     );
   }
 }
-
-// async function createImageForCore(svsImageURL, core, coreSize = 64) {
-//   const coreWidth = core.currentRadius * 2;
-//   const coreHeight = core.currentRadius * 2;
-
-//   const tileParams = {
-//     tileX: core.x - core.currentRadius,
-//     tileY: core.y - core.currentRadius,
-//     tileWidth: coreWidth,
-//     tileHeight: coreHeight,
-//     tileSize: 128,
-//   };
-
-//   const imageResp = await getRegionFromWSI(svsImageURL, tileParams, 1);
-//   const blob = await imageResp.blob();
-//   const img = new Image(coreSize, coreSize);
-//   return new Promise((resolve, reject) => {
-//     img.onload = function () {
-//       URL.revokeObjectURL(img.src); // Free memory
-//       resolve(img);
-//     };
-//     img.onerror = reject;
-//     img.src = URL.createObjectURL(blob);
-//   });
-// }
 
 // Move the initiateDownload function outside of createImageForCore
 async function initiateDownload(
@@ -1774,10 +1749,8 @@ async function initiateDownload(
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
-  debugger
+  debugger;
 }
-
-
 
 // Create an array to store all the core containers
 const coreContainers = [];
@@ -1807,8 +1780,6 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     // Get the form element
     const form = document.getElementById("editMetadataForm");
 
-    const virtualGrid = document.getElementById("VirtualGrid");
-
     // Clear existing form contents
     form.innerHTML = "";
     form.className = "space-y-4";
@@ -1816,45 +1787,74 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     // Dynamically create form elements for each metadata property
     for (const key in metadataObj) {
       const value = metadataObj[key];
-
+    
       // Determine input type based on the value type
       let inputType = "text"; // Default input type
       if (typeof value === "number") {
         inputType = "number";
       } else if (typeof value === "boolean") {
         inputType = "checkbox";
-      } // For more specific cases, like radio buttons, additional logic would be needed
-
-      // Create a div wrapper for styling
-      const div = document.createElement("div");
-      div.className = "flex flex-col justify-start";
-
-      // Create a label for the input
-      const label = document.createElement("label");
-      label.setAttribute("for", key);
-      label.textContent = key + ": ";
-      label.className = "mb-2 text-sm font-medium text-gray-900";
-      div.appendChild(label);
-
-      // Create an input element
-      const input = document.createElement("input");
-      input.type = inputType;
-      input.name = key;
-      input.id = key;
-      input.className =
-        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
-
-      if (inputType === "checkbox") {
-        input.checked = value;
-      } else {
-        input.value = value;
       }
-
-      div.appendChild(input);
-
-      form.appendChild(div);
+    
+      if (inputType === "checkbox") {
+        // Create the checkbox container div
+        const checkboxContainer = document.createElement("div");
+        checkboxContainer.className = "custom-checkbox";
+    
+        // Create the hidden checkbox input
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.id = key;
+        input.name = key;
+        input.checked = value;
+    
+        // Create the label element for the checkbox
+        const label = document.createElement("label");
+        label.setAttribute("for", key);
+        label.className = "custom-checkbox-label";
+        label.textContent = `${key}: `;
+    
+        // Create the custom checkmark span
+        const checkmark = document.createElement("span");
+        checkmark.className = "checkmark";
+    
+        // Append the hidden checkbox and checkmark to the checkbox container
+        checkboxContainer.appendChild(input);
+        checkboxContainer.appendChild(checkmark);
+        
+        // Append the checkbox container to the label
+        label.appendChild(checkboxContainer);
+    
+        // Append the label to the form
+        form.appendChild(label);
+      } else {
+        // Create a label for non-checkbox inputs
+        const label = document.createElement("label");
+        label.setAttribute("for", key);
+        label.textContent = key + ": ";
+        label.className = "mb-2 text-sm font-medium text-gray-900";
+    
+        // Create the text or number input
+        const input = document.createElement("input");
+        input.type = inputType;
+        input.name = key;
+        input.id = key;
+        input.value = value;
+        input.className = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+    
+        // Create a wrapper div for non-checkbox inputs
+        const inputDiv = document.createElement("div");
+        inputDiv.className = "flex flex-col mb-4";
+    
+        // Append the label and input to the wrapper div
+        inputDiv.appendChild(label);
+        inputDiv.appendChild(input);
+    
+        // Append the wrapper div to the form
+        form.appendChild(inputDiv);
+      }
     }
-
+    
     // Create a submit button
     const submitButton = document.createElement("input");
     submitButton.type = "submit";
@@ -1900,7 +1900,7 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
     tileY: core.y - core.currentRadius,
     tileWidth: coreWidth,
     tileHeight: coreHeight,
-    tileSize: 128,
+    tileSize: coreSize,
   };
 
   const imageResp = await getRegionFromWSI(svsImageURL, tileParams, 1);
@@ -1922,15 +1922,23 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
 
   // Double-click event for initiating download
   container.ondblclick = () => {
-    const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`; // Construct file name
+    const fileName = `core_${core.row + 1}_${core.col + 1}.png`; // Construct file name
 
     initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileName);
   };
 
   container.onclick = () => {
     // Select the core
-    core.isSelected = true;
     populateAndEditMetadataForm(core.row + 1, core.col + 1);
+
+    // Remove the active class from all cores
+    coreContainers.forEach((container) => {
+      container.classList.remove("active");
+    });
+
+    // Add the active class to the selected core
+    container.classList.add("active");
+
   };
 
   // Append children to the container

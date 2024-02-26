@@ -952,6 +952,15 @@ svg {
   overflow: hidden;
 }
 
+.image-container.active {
+  border: 2px solid var(--primary-color); /* Highlight border for active container */
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Optional: add a shadow for better visibility */
+  background-color: #f0f8ff; /* Optional: slight background color change */
+  transform: scale(1.05);
+  overflow: visible;
+
+}
+
 .image-container:hover {
   transform: scale(1.05);
   z-index: 10;
@@ -970,7 +979,23 @@ svg {
   justify-content: center;
   align-items: center;
   transition: opacity 0.3s;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
+
+/* Adjust font size of image-overlay based on screen size */
+@media (max-width: 1024px) {
+  .image-overlay {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .image-overlay {
+    font-size: 0.45rem;
+  }
+}
+
 
 .image-container:hover .image-overlay {
   display: flex;
@@ -1189,4 +1214,178 @@ svg {
   margin-top: 10px;
   color: #555;
   font-size: 16px;
+}
+
+/* Base styles for the form */
+#editMetadataForm {
+  background-color: #f7f7f7;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for div containers */
+#editMetadataForm div {
+  margin-bottom: 15px;
+}
+
+/* Label styling */
+#editMetadataForm label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-size: 16px;
+}
+
+/* General input styling */
+#editMetadataForm input[type="text"],
+#editMetadataForm input[type="number"],
+#editMetadataForm input[type="checkbox"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Ensures padding doesn't affect overall width */
+}
+
+/* Checkbox customization */
+#editMetadataForm input[type="checkbox"] {
+  width: auto;
+  margin-top: 0;
+}
+
+/* Styling for the submit button */
+#editMetadataForm input[type="submit"] {
+  width: auto;
+  cursor: pointer;
+  border: none;
+  color: #fff;
+  background-color: #007bff;
+  padding: 10px 20px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+#editMetadataForm input[type="submit"]:hover,
+#editMetadataForm input[type="submit"]:focus {
+  background-color: #0056b3;
+}
+
+/* Additional responsiveness and interaction */
+@media (max-width: 768px) {
+  #editMetadataForm {
+    padding: 15px;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #007bff;
+}
+
+/* Custom checkbox styles */
+.custom-checkbox {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Hide the default checkbox */
+.custom-checkbox input[type="checkbox"] {
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+}
+
+/* Create a custom box */
+.custom-checkbox .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  width: 16px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+/* On mouse-over, add a grey background color */
+.custom-checkbox:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the checkbox is checked */
+.custom-checkbox input:checked ~ .checkmark {
+  background-color: #2196F3;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.custom-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.custom-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.custom-checkbox .checkmark:after {
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+/* Base styles for custom checkbox labels */
+.custom-checkbox-label {
+  display: block; /* Ensures that the label takes up the full width */
+  position: relative;
+  margin-bottom: 12px; /* Space between each checkbox */
+  cursor: pointer;
+  font-size: 16px; /* Set the font size for labels */
+  user-select: none; /* Prevents text selection */
+  line-height: 24px; /* Aligns the text vertically */
+}
+
+/* Hidden default checkbox */
+.custom-checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Custom checkmark box */
+.custom-checkbox-label .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Checkmark appearance on checked */
+.custom-checkbox-label input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Checkmark style */
+.custom-checkbox-label .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 11px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
 }

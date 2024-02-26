@@ -311,11 +311,10 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
 }
 
 function saveUpdatedCores(format) {
-  if (!window.sortedCoresData) {
+  if (!window.finalSaveData) {
     alert("No data available to save.");
     return;
   }
-
   
   // Save data as JSON or CSV
   if (format === "json") {
