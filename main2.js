@@ -1200,13 +1200,16 @@ async function downloadAllCores(cores) {
       tileY: core.y - core.currentRadius,
       tileWidth: core.currentRadius * 2,
       tileHeight: core.currentRadius * 2,
-      tileSize: core.currentRadius / 2,
+      tileSize: core.currentRadius * 2,
     };
 
     try {
       const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
       const blob = await fullSizeImageResp.blob();
-      zip.file(core.fileName, blob);
+      // Log the size of each blob
+      console.log(`Blob ${index + 1} size: ${blob.size} bytes`);
+
+      zip.file(`$Core_${core.row}_${core.col}.png`, blob);
 
       // Update progress
       const progress = ((index + 1) / cores.length) * 100;

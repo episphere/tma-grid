@@ -676,18 +676,16 @@
                     </main>
 
                     <!-- Progress Overlay -->
-                    <div id="progressOverlay"
-                        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
-                        <div style="background: #fff; padding: 20px; border-radius: 5px; width: 50%;">
-                            <h2 style="margin-top: 0;">Download Progress</h2>
-                            <div id="progressBarContainer"
-                                style="background: #e0e0e0; border-radius: 5px; overflow: hidden;">
-                                <div id="progressBar"
-                                    style="background: #4caf50; width: 0%; height: 20px; border-radius: 5px;"></div>
+                    <div id="progressOverlay">
+                        <div class="progress-dialog">
+                            <h2 class="progress-title">Download Progress</h2>
+                            <div id="progressBarContainer">
+                                <div id="progressBar"></div>
                             </div>
-                            <p id="progressText" style="text-align: center; margin-top: 10px;">Initializing...</p>
+                            <p id="progressText">Initializing...</p>
                         </div>
                     </div>
+
 
 
                 </div>
