@@ -679,6 +679,7 @@ function drawCore(core, index = -1) {
     clickHandler: overlayClickHandler,
 
     dblClickHandler: (e) => {
+      debugger;
       const overlay = window.viewer.getOverlayById(overlayElement);
       // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
       overlayElement.classList.add("selected");
@@ -818,8 +819,6 @@ const overlayClickHandler = (e) => {
       const coreData = window.sortedCoresData.find(
         (core) => core.row === row && core.col === col
       );
-      // Set the core data in the JSONEditor
-      window.jsonEditor.set(coreData);
     }
   }
 };
