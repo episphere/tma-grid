@@ -598,7 +598,12 @@ let refreshToken = ""; // You need to store and manage this securely
 function exchangeAuthorizationCodeForAccessToken(authorizationCode) {
   const clientId = "1n44fu5yu1l547f2n2fgcw7vhps7kvuw";
   const clientSecret = "2ZYzmHXGyzBcjZ9d1Ttsc1d258LiGGVd";
-  const redirectUri = window.location.href.split(/[?#]/)[0];
+  let redirectUri = window.location.href.split(/[?#]/)[0];
+
+  // Remove any trailing slash from the redirect URI
+
+  redirectUri = redirectUri.replace(/\/$/, "");
+
 
   const url = "https://api.box.com/oauth2/token";
   const params = new URLSearchParams();
