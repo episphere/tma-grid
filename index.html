@@ -602,10 +602,19 @@
                         var virtualSidebarIcon = document.getElementById('virtualGridSidebarIcon');
                         sidebar.classList.toggle('collapsed');
 
-                        virtualSidebarIcon.classList.toggle('hidden');
-                    }
+                        virtualSidebarIcon.classList.tog                                    }
 
-                </script>
+                        </script>
+                
+                <div class="instructions-container space-y-4">
+                    <button class="close-instructions text-right">✕</button>
+                    <h2 class="text-xl font-semibold">Utilizing the virtual grid</h2>
+                    <p>To edit core metadata, select the core in the grid you'd like to edit. 
+                    </p>
+                    <p>To export the full resolution of an individual core, double click that core. To export all the cores
+                        click the <span class="filename">Export grid</span> button </p>
+                </div>
+
 
                 <div class="flex h-full">
 
@@ -703,7 +712,7 @@
                         Back
                     </button>
                     <button id="downloadAllCoresButton"
-                        class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Download
+                        class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Export
                         Grid</button>
                 </div>
             </section>
