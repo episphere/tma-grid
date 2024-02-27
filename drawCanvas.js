@@ -2046,9 +2046,7 @@ function drawVirtualGridFromPNG(
   startingX,
   startingY
 ) {
-
   // filter out cores with isMarker
-
   sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
 
   const imageSrc = window.loadedImg
@@ -2066,8 +2064,9 @@ function drawVirtualGridFromPNG(
   const rows = sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
   const cols = sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
   const defaultRadius = parseInt(document.getElementById("userRadius").value);
-  virtualGridCanvas.width = cols * horizontalSpacing + defaultRadius * 2 + startingX;
-  virtualGridCanvas.height = rows * verticalSpacing + defaultRadius * 2 + startingY;
+  // Adjust canvas size to make space for row and column markers
+  virtualGridCanvas.width = cols * horizontalSpacing + defaultRadius * 2 + startingX + 50; // Added space for row markers
+  virtualGridCanvas.height = rows * verticalSpacing + defaultRadius * 2 + startingY + 50; // Added space for column markers
 
   const vctx = virtualGridCanvas.getContext("2d");
   const img = new Image();
@@ -2077,6 +2076,19 @@ function drawVirtualGridFromPNG(
 
   img.onload = () => {
     vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
+
+    // Draw row markers
+    for (let i = 0; i < rows; i++) {
+      vctx.font = "bold 16px Arial"; 
+
+      vctx.fillText(i + 1, 10, startingY + i * verticalSpacing + 10);
+    }
+
+    // Draw column markers
+    for (let j = 0; j < cols; j++) {
+      vctx.font = "bold 16px Arial"; 
+      vctx.fillText(j + 1, startingX + j * horizontalSpacing, 20);
+    }
 
     sortedCoresData.forEach((core) => {
       const idealX = startingX + core.col * horizontalSpacing;
@@ -2121,15 +2133,6 @@ function drawVirtualGridFromPNG(
       );
 
       vctx.restore();
-
-      // Improved text styling for better visibility
-      vctx.fillStyle = "black"; // White text for better visibility
-      vctx.font = "bold 14px Arial";
-      vctx.fillText(
-        `(${core.row + 1},${core.col + 1})`,
-        idealX - userRadius / 2,
-        idealY + userRadius / 2
-      );
     });
   };
 
@@ -2157,6 +2160,7 @@ function drawVirtualGridFromPNG(
     console.error("Image failed to load.");
   };
 }
+
 
 function updateVirtualGridSpacing(
   horizontalSpacing,
