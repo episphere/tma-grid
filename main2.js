@@ -497,6 +497,11 @@ const handleLoadImageUrlClick = async () => {
 };
 
 async function segmentImage(initializeParams = false) {
+
+  if (window.state === undefined) {
+    await initSegmentation();
+  }
+
   const { threshold, maskAlpha, minArea, maxArea, disTransformMultiplier } =
     getInputParameters();
 
@@ -949,6 +954,8 @@ function bindEventListeners() {
 
 // Initialize and bind events
 const initSegmentation = async () => {
+
+  debugger;
   const state = await loadDependencies();
   window.state = state;
 
@@ -1019,6 +1026,8 @@ const initSegmentation = async () => {
         alert("No image uploaded!");
         return;
       }
+
+      window.state = undefined;
       const getImageInfo = async () => {
         const checkExtension = (path) =>
           path.endsWith(".png") ||
@@ -1261,7 +1270,7 @@ async function downloadAllCores(cores) {
 // Main function that runs the application
 const run = async () => {
   bindEventListeners();
-  // Run the app
+
   initSegmentation();
 };
 
