@@ -916,7 +916,7 @@ function bindEventListeners() {
   makeElementDraggable(document.getElementById("editSidebar"));
 
   // Close the sidebar
-  document.querySelectorAll(".close-button").forEach((button) => {
+  document.querySelectorAll("#closeEditCoreButton").forEach((button) => {
     button.addEventListener("click", function () {
       const sidebar = this.closest(".edit-sidebar");
       sidebar.style.display = "none"; // You can toggle visibility or minimize the sidebar as required
