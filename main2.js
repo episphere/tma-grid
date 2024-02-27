@@ -1222,7 +1222,7 @@ async function downloadAllCores(cores) {
         // Update progress
         const progress = ((index + 1) / cores.length) * 100;
         progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Downloading... ${progress.toFixed(2)}%`;
+        progressText.innerText = `Exporting... ${progress.toFixed(2)}%`;
       } catch (error) {
         console.error("Error fetching or adding an image to the zip:", error);
       }
