@@ -1282,7 +1282,6 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
     // Update UI with the optimal angle
     hyperparameters = updateUIAndHyperparameters(optimalAngle);
 
-    //
   } else {
     hyperparameters = getHyperparametersFromUI();
   }
@@ -2047,7 +2046,11 @@ function drawVirtualGridFromPNG(
   startingX,
   startingY
 ) {
-  // Use the loaded image if available, otherwise use default or file input image
+
+  // filter out cores with isMarker
+
+  sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
+
   const imageSrc = window.loadedImg
     ? window.loadedImg.src
     : document.getElementById("fileInput").files.length > 0
@@ -2060,68 +2063,95 @@ function drawVirtualGridFromPNG(
     return;
   }
 
-  const rows =
-    sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
-  const cols =
-    sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
+  const rows = sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
+  const cols = sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
   const defaultRadius = parseInt(document.getElementById("userRadius").value);
-  virtualGridCanvas.width =
-    cols * horizontalSpacing + defaultRadius * 2 + startingX;
-  virtualGridCanvas.height =
-    rows * verticalSpacing + defaultRadius * 2 + startingY;
+  virtualGridCanvas.width = cols * horizontalSpacing + defaultRadius * 2 + startingX;
+  virtualGridCanvas.height = rows * verticalSpacing + defaultRadius * 2 + startingY;
 
   const vctx = virtualGridCanvas.getContext("2d");
   const img = new Image();
   img.src = imageSrc;
 
+  let selectedCore = null; // Keep track of the selected core
+
   img.onload = () => {
     vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
 
-    sortedCoresData
-      .filter((core) => !core.isMarker)
-      .forEach((core) => {
-        const idealX = startingX + core.col * horizontalSpacing;
-        const idealY = startingY + core.row * verticalSpacing;
-        const userRadius = core.currentRadius * window.scalingFactor;
+    sortedCoresData.forEach((core) => {
+      const idealX = startingX + core.col * horizontalSpacing;
+      const idealY = startingY + core.row * verticalSpacing;
+      const userRadius = core.currentRadius * window.scalingFactor;
 
-        vctx.save();
-        vctx.beginPath();
-        vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
-        vctx.closePath();
+      vctx.save();
+      vctx.beginPath();
+      vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
+      vctx.closePath();
 
-        // Use the isImaginary flag to determine the stroke style
+      // Highlight the selected core
+      if (selectedCore && selectedCore.row === core.row && selectedCore.col === core.col) {
+        vctx.strokeStyle = "#FFD700"; // Gold color for selection
+        vctx.lineWidth = 4; // Thicker border for selected core
+        vctx.shadowBlur = 10; // Glow effect
+        vctx.shadowColor = "#FFD700"; // Glow color matches the border
+      } else {
+        // Default style for non-selected cores
         vctx.strokeStyle = core.isImaginary ? "red" : "green";
-        vctx.lineWidth = 2; // Adjust line width as needed
-        vctx.stroke();
+        vctx.lineWidth = 2;
+        vctx.shadowBlur = 0;
+      }
 
-        vctx.clip();
+      vctx.stroke();
 
-        const sourceX = core.x * window.scalingFactor - userRadius;
-        const sourceY = core.y * window.scalingFactor - userRadius;
+      vctx.clip();
 
-        vctx.drawImage(
-          img,
-          sourceX,
-          sourceY,
-          userRadius * 2,
-          userRadius * 2,
-          idealX - userRadius,
-          idealY - userRadius,
-          userRadius * 2,
-          userRadius * 2
-        );
+      const sourceX = core.x * window.scalingFactor - userRadius;
+      const sourceY = core.y * window.scalingFactor - userRadius;
 
-        vctx.restore();
+      vctx.drawImage(
+        img,
+        sourceX,
+        sourceY,
+        userRadius * 2,
+        userRadius * 2,
+        idealX - userRadius,
+        idealY - userRadius,
+        userRadius * 2,
+        userRadius * 2
+      );
 
-        vctx.fillStyle = "black"; // Text color
-        vctx.font = "12px Arial"; // Text font and size
-        vctx.fillText(
-          `(${core.row + 1},${core.col + 1})`,
-          idealX - userRadius / 2,
-          idealY - userRadius / 2
-        );
-      });
+      vctx.restore();
+
+      // Improved text styling for better visibility
+      vctx.fillStyle = "black"; // White text for better visibility
+      vctx.font = "bold 14px Arial";
+      vctx.fillText(
+        `(${core.row + 1},${core.col + 1})`,
+        idealX - userRadius / 2,
+        idealY + userRadius / 2
+      );
+    });
   };
+
+
+  virtualGridCanvas.addEventListener("click", function(event) {
+    const rect = virtualGridCanvas.getBoundingClientRect();
+    const [x, y] = getMousePosition(event, "virtualGridCanvas");
+
+    sortedCoresData.forEach(core => {
+      const idealX = startingX + core.col * horizontalSpacing;
+      const idealY = startingY + core.row * verticalSpacing;
+      const userRadius = core.currentRadius * window.scalingFactor;
+      const distance = Math.sqrt(Math.pow(x - idealX, 2) + Math.pow(y - idealY, 2));
+
+      if (distance < userRadius) {
+        selectedCore = core; // Update the selected core
+        console.log("Core clicked:", selectedCore);
+        populateAndEditMetadataForm(selectedCore.row + 1, selectedCore.col + 1);
+        img.onload(); // Redraw the canvas to show the selection
+      }
+    });
+  });
 
   img.onerror = () => {
     console.error("Image failed to load.");

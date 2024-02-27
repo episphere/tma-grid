@@ -781,6 +781,12 @@ function bindEventListeners() {
       //   initiateDownload(overlay);
       // }
 
+      // Check image data type
+      if (window.uploadedImageFileType == "simple") {
+        alert("Full resolution downloads are not supported for .png/jpg images.");
+        return;
+      }
+
       downloadAllCores(window.sortedCoresData);
     });
 
