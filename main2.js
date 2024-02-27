@@ -1212,60 +1212,53 @@ async function downloadAllCores(cores) {
   progressBar.style.width = "0%";
   progressText.innerText = "Starting download...";
 
-  await Promise.all(
-    cores.map(async (core, index) => {
-      const fullResTileParams = {
-        tileX: core.x - core.currentRadius,
-        tileY: core.y - core.currentRadius,
-        tileWidth: core.currentRadius * 2,
-        tileHeight: core.currentRadius * 2,
-        tileSize: core.currentRadius * 2,
-      };
+  for (let index = 0; index < cores.length; index++) {
+    const core = cores[index];
+    const fullResTileParams = {
+      tileX: core.x - core.currentRadius,
+      tileY: core.y - core.currentRadius,
+      tileWidth: core.currentRadius * 2,
+      tileHeight: core.currentRadius * 2,
+      tileSize: core.currentRadius * 2,
+    };
 
-      try {
-        const fullSizeImageResp = await getRegionFromWSI(
-          svsImageURL,
-          fullResTileParams
-        );
-        const blob = await fullSizeImageResp.blob();
-        // Log the size of each blob
-        console.log(`Blob ${index + 1} size: ${blob.size} bytes`);
+    try {
+      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+      const blob = await fullSizeImageResp.blob();
+      console.log(`Blob ${index + 1} size: ${blob.size} bytes`);
+      zip.file(`core_${core.row}_${core.col}.png`, blob);
 
-        zip.file(`core_${core.row}_${core.col}.png`, blob);
-
-        // Update progress
-        const progress = ((index + 1) / cores.length) * 100;
-        progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Exporting... ${progress.toFixed(2)}%`;
-      } catch (error) {
-        console.error("Error fetching or adding an image to the zip:", error);
-      }
-    })
-  );
+      // Update progress
+      const progress = ((index + 1) / cores.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressText.innerText = `Exporting... ${progress.toFixed(2)}%`;
+    } catch (error) {
+      console.error("Error fetching or adding an image to the zip:", error);
+    }
+  }
 
   // Generate the zip file
+  zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 }, // Highest compression
+  }).then(function (content) {
+    // Use a temporary link to download the zip file
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(content);
+    downloadLink.download = "cores.zip";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
 
-  zip
-    .generateAsync({
-      type: "blob",
-      compression: "DEFLATE",
-      compressionOptions: { level: 9 }, // Highest compression
-    })
-    .then(function (content) {
-      // Use a temporary link to download the zip file
-      const downloadLink = document.createElement("a");
-      downloadLink.href = URL.createObjectURL(content);
-      downloadLink.download = "cores.zip";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      // Hide progress overlay and reset progress bar
-      overlay.style.display = "none";
-      progressBar.style.width = "0%";
-      progressText.innerText = "Initializing...";
-    });
+    // Hide progress overlay and reset progress bar
+    overlay.style.display = "none";
+    progressBar.style.width = "0%";
+    progressText.innerText = "Initializing...";
+  });
 }
+
+
 
 // Main function that runs the application
 const run = async () => {
