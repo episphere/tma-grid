@@ -955,7 +955,6 @@ function bindEventListeners() {
 // Initialize and bind events
 const initSegmentation = async () => {
 
-  debugger;
   const state = await loadDependencies();
   window.state = state;
 

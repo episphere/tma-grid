@@ -164,12 +164,11 @@
                     <div class="mt-6 width-90-middle">
                         <label class="block text-sm font-semibold text-gray-700">Optional Metadata File:</label>
                         <div class="file-upload-wrapper">
-                            <input type="file" id="metadataFile" class="file-input" accept=".csv,.json,.xlsx, .xls"
-                                onchange="displayFileInfo(this)">
-                            <label class="file-upload-button" for="metadataFile">Choose files to upload</label>
-                            <button class="skip-button" for="metadataFile">Use Template Metadata</label>
+                            <input type="file" id="metadataFile" class="file-input" accept=".csv,.json,.xlsx, .xls" onchange="displayFileInfo(this)">
+                            <label for="metadataFile" class="file-upload-button">Choose files</label>
+                            <button class="skip-button" id="useTemplate" onclick="">Use Template</button>
                         </div>
-
+                        
                         <div id="metadata-file-info" class="hidden width-90-middle"
                             style="width: 100%; margin-top: 20px;">
                             <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
