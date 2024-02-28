@@ -235,6 +235,7 @@ function handleMetadataFileSelect(event) {
       "Invalid file type. Please upload a .csv or .xls/.xlsx file.",
       "error-message"
     );
+
     return;
   }
 
@@ -413,6 +414,8 @@ const handleLoadImageUrlClick = async () => {
             "Invalid image URL.",
             "error-message"
           );
+          // Hide loading spinner
+          document.getElementById("loadingSpinner").style.display = "none";
           throw new Error("Network response was not ok.");
         }
       })
@@ -483,6 +486,8 @@ const handleLoadImageUrlClick = async () => {
           "Invalid image URL.",
           "error-message"
         );
+        // Hide loading spinner
+        document.getElementById("loadingSpinner").style.display = "none";
         console.error(
           "There has been a problem with your fetch operation: ",
           error
@@ -490,6 +495,9 @@ const handleLoadImageUrlClick = async () => {
       });
   } else {
     updateStatusMessage("imageLoadStatus", "Invalid Image.", "error-message");
+    // Hide loading spinner
+    document.getElementById("loadingSpinner").style.display = "none";
+
     console.error("Please enter a valid image URL");
   }
 
