@@ -46,6 +46,8 @@
                     <a href="https://github.com/episphere/TMA-De-arraying/issues"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Issues</a>
                     <a href="#"
+                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Tutorial</a>
+                    <a href="#"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Manuscript</a>
                     <button id="helpButtonMobile" class="actionButton px-4">?</button> <!-- Add this line -->
 
@@ -82,7 +84,9 @@
                 <div class="instructions-container space-y-4">
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Uploading an Image</h2>
-                    <p>Begin by uploading a <span id="file-name">.svs</span> image. You can also work with <span id="file-name">.png</span> or <span id="file-name">.jpg</span> files, but virtual gridding is not 
+                    <p>Begin by uploading a <span id="file-name">.svs</span> image. You can also work with <span
+                            id="file-name">.png</span> or <span id="file-name">.jpg</span> files, but virtual gridding
+                        is not
                         fully supported with these file formats
                     </p>
                     <p>Once the image has been successfully uploaded, click the "Proceed"
@@ -139,15 +143,18 @@
 
                         <div id="url-upload" class="tab-content flex hidden gap-5 lg:gap-10 md:gap-5 sm:gap-5">
 
-                            <input type="text" id="imageUrlInput" class="form-input" style="flex-grow: 1; margin-top: 0; border-radius: 4px; border: 1px solid #ccc; padding: 10px; font-size: 16px;" placeholder="Enter Image URL" 
-                            value="https://episphere.github.io/TMA-De-arraying/HD%20TMA%202%202011%20H&amp;E%20stain.svs-[1499,1169,42287,37957]1x.png">
-                        
-                            <button id="loadImageUrlBtn" type="button" class="standard-button" style="height: 100%; padding: 10px 0px; margin: auto;">Load</button>
-                            
+                            <input type="text" id="imageUrlInput" class="form-input"
+                                style="flex-grow: 1; margin-top: 0; border-radius: 4px; border: 1px solid #ccc; padding: 10px; font-size: 16px;"
+                                placeholder="Enter Image URL"
+                                value="https://episphere.github.io/TMA-De-arraying/HD%20TMA%202%202011%20H&amp;E%20stain.svs-[1499,1169,42287,37957]1x.png">
+
+                            <button id="loadImageUrlBtn" type="button" class="standard-button"
+                                style="height: 100%; padding: 10px 0px; margin: auto;">Load</button>
+
                         </div>
-                        
-                        
-                        
+
+
+
 
                         <div id="box-upload" class="tab-content hidden">
 
@@ -167,11 +174,12 @@
                     <div class="mt-6 width-90-middle">
                         <label class="block text-sm font-semibold text-gray-700">Optional Metadata File:</label>
                         <div class="file-upload-wrapper">
-                            <input type="file" id="metadataFile" class="file-input" accept=".csv,.json,.xlsx, .xls" onchange="displayFileInfo(this)">
+                            <input type="file" id="metadataFile" class="file-input" accept=".csv,.json,.xlsx, .xls"
+                                onchange="displayFileInfo(this)">
                             <label for="metadataFile" class="file-upload-button">Choose files</label>
                             <button class="skip-button" id="useTemplate" onclick="">Use Template</button>
                         </div>
-                        
+
                         <div id="metadata-file-info" class="hidden width-90-middle"
                             style="width: 100%; margin-top: 20px;">
                             <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
@@ -327,15 +335,16 @@
                     <p>First, ensure that the image is rotated correctly. If not, adjust the image
                         rotation
                         parameter.</p>
-                        
-                    <p>To adjust the size of each core, select the core and resize it using the anchor points in the corner.</p>
+
+                    <p>To adjust the size of each core, select the core and resize it using the anchor points in the
+                        corner.</p>
                 </div>
                 <!-- Similar structure for Adding Cores Instructions -->
                 <div class="instructions-container mb-4">
                     <button class="close-instructions text-right">✕</button>
 
                     <h2 class="text-lg font-semibold">Adding Cores</h2>
-                    <p>To add a core, click on the Add Core button on the top left corner of the page. 
+                    <p>To add a core, click on the Add Core button on the top left corner of the page.
                         Then, drag the core at the location you would like it to be created on.</p>
                 </div>
 
@@ -604,56 +613,63 @@
                         var virtualSidebarIcon = document.getElementById('virtualGridSidebarIcon');
                         sidebar.classList.toggle('collapsed');
 
-                        virtualSidebarIcon.classList.tog                                    }
+                        virtualSidebarIcon.classList.tog
+                    }
 
-                        </script>
-                
+                </script>
+
                 <div class="instructions-container space-y-4">
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Utilizing the virtual grid</h2>
-                    <p>To edit a core's metadata, select the core in the grid on the right hand side you'd like to edit to populate the metadata editing form.
-                        Make sure you click the <span class="file-name">Update Metadata</span> button to save your changes.
+                    <p>To edit a core's metadata, select the core in the grid on the right hand side you'd like to edit
+                        to populate the metadata editing form.
+                        Make sure you click the <span class="file-name">Update Metadata</span> button to save your
+                        changes.
                     </p>
-                    <p>To export the full resolution of an individual core, double click that core. To export all the cores
+                    <p>To export the full resolution of an individual core, double click that core. To export all the
+                        cores
                         click the <span class="file-name">Export Grid</span> button </p>
                 </div>
 
 
                 <div class="flex h-full">
                     <aside id="virtual-grid-sidebar"
-                    class="w-full md:w-2/3 lg:w-1/3 bg-gray-50 p-4 rounded-lg shadow-lg mr-2 overflow-y-auto"
-                    style="max-height: 90vh;">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-lg md:text-xl font-semibold">Edit Metadata</h2>
-                        <button class="close-button" style="display:none" onclick="toggleSidebarVirtual()">×</button>
-                    </div>
-                    <form id="editMetadataForm" class="mt-4" novalidate>
-                        Please select a core to begin editing.
-                    </form>
-
-                    <fieldset class="mt-4 hidden">
-                        <div class="grid grid-cols-1 gap-4">
-                            <label for="horizontalSpacing">Horizontal Spacing:</label>
-                            <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200" value="100">
-                            <output for="horizontalSpacing" id="horizontalSpacingValue">50</output>
-                
-                            <label for="verticalSpacing">Vertical Spacing:</label>
-                            <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200" value="100">
-                            <output for="verticalSpacing" id="verticalSpacingValue">50</output>
-                
-                            <label for="startingX">Starting X:</label>
-                            <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
-                            <output for="startingX" id="startingXValue">0</output>
-                
-                            <label for="startingY">Starting Y:</label>
-                            <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
-                            <output for="startingY" id="startingYValue">0</output>
+                        class="w-full md:w-2/3 lg:w-1/3 bg-gray-50 p-4 rounded-lg shadow-lg mr-2 overflow-y-auto"
+                        style="max-height: 90vh;">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg md:text-xl font-semibold">Edit Metadata</h2>
+                            <button class="close-button" style="display:none"
+                                onclick="toggleSidebarVirtual()">×</button>
                         </div>
-                        <button type="button" id="applyVirtualGridSettings"
-                            class="mt-4 w-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 transition duration-150 ease-in-out">Apply</button>
-                    </fieldset>
-                </aside>
-                
+                        <form id="editMetadataForm" class="mt-4" novalidate>
+                            Please select a core to begin editing.
+                        </form>
+
+                        <fieldset class="mt-4 hidden">
+                            <div class="grid grid-cols-1 gap-4">
+                                <label for="horizontalSpacing">Horizontal Spacing:</label>
+                                <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
+                                    value="100">
+                                <output for="horizontalSpacing" id="horizontalSpacingValue">50</output>
+
+                                <label for="verticalSpacing">Vertical Spacing:</label>
+                                <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200"
+                                    value="100">
+                                <output for="verticalSpacing" id="verticalSpacingValue">50</output>
+
+                                <label for="startingX">Starting X:</label>
+                                <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
+                                <output for="startingX" id="startingXValue">0</output>
+
+                                <label for="startingY">Starting Y:</label>
+                                <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
+                                <output for="startingY" id="startingYValue">0</output>
+                            </div>
+                            <button type="button" id="applyVirtualGridSettings"
+                                class="mt-4 w-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 transition duration-150 ease-in-out">Apply</button>
+                        </fieldset>
+                    </aside>
+
 
                     <!-- Virtual Grid Display and Interaction -->
                     <main class="flex-1 w-full mx-auto">
@@ -701,18 +717,18 @@
                         class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">
                         Back
                     </button>
-                    
-                        <div class="flex flex-col sm:flex-row gap-4 mt-4">
-                            <button type="button"
-                                class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
-                                id="saveResultsAsJson">Metadata JSON</button>
-                            <button type="button"
-                                class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
-                                id="saveResultsAsCsv">Metadata CSV</button>
-                                <button id="downloadAllCoresButton"
-                        class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Export
-                        Grid</button>
-                        </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                        <button type="button"
+                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
+                            id="saveResultsAsJson">Metadata JSON</button>
+                        <button type="button"
+                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
+                            id="saveResultsAsCsv">Metadata CSV</button>
+                        <button id="downloadAllCoresButton"
+                            class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Export
+                            Grid</button>
+                    </div>
                 </div>
             </section>
 
