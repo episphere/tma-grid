@@ -2066,7 +2066,7 @@ function drawVirtualGridFromPNG(
   const defaultRadius = parseInt(document.getElementById("userRadius").value);
   // Adjust canvas size to make space for row and column markers
   virtualGridCanvas.width = cols * horizontalSpacing + defaultRadius * 2 + startingX + 50; // Added space for row markers
-  virtualGridCanvas.height = rows * verticalSpacing + defaultRadius * 2 + startingY + 50; // Added space for column markers
+  virtualGridCanvas.height = rows * verticalSpacing + defaultRadius * 2; // Added space for column markers
 
   const vctx = virtualGridCanvas.getContext("2d");
   const img = new Image();
