@@ -625,21 +625,12 @@
                     style="max-height: 90vh;">
                     <div class="flex justify-between items-center">
                         <h2 class="text-lg md:text-xl font-semibold">Edit Metadata</h2>
-                        <button class="close-button md:hidden" onclick="toggleSidebarVirtual()">×</button>
+                        <button class="close-button" style="display:none" onclick="toggleSidebarVirtual()">×</button>
                     </div>
                     <form id="editMetadataForm" class="mt-4" novalidate>
                         Please select a core to begin editing.
                     </form>
-                
-                    <h2 class="mt-5 text-lg md:text-xl lg:text-2xl font-bold dark:text-white">Save Metadata</h2>
-                    <div class="flex flex-col sm:flex-row gap-4 mt-4">
-                        <button type="button"
-                            class="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
-                            id="saveResultsAsJson">Save JSON</button>
-                        <button type="button"
-                            class="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
-                            id="saveResultsAsCsv">Save CSV</button>
-                    </div>
+
                     <fieldset class="mt-4 hidden">
                         <div class="grid grid-cols-1 gap-4">
                             <label for="horizontalSpacing">Horizontal Spacing:</label>
@@ -710,16 +701,22 @@
                         class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">
                         Back
                     </button>
-                    <button id="downloadAllCoresButton"
+                    
+                        <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                            <button type="button"
+                                class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
+                                id="saveResultsAsJson">Metadata JSON</button>
+                            <button type="button"
+                                class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
+                                id="saveResultsAsCsv">Metadata CSV</button>
+                                <button id="downloadAllCoresButton"
                         class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Export
                         Grid</button>
+                        </div>
                 </div>
             </section>
 
         </div>
-
-
-
 
 
         <!-- Carousel controls for the sections -->
