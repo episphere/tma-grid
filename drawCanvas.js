@@ -1982,7 +1982,6 @@ async function drawVirtualGridFromWSI(
 ) {
   // Do not draw the markers
   sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
-
   const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
   virtualGridDiv.innerHTML = ""; // Clear existing content
 
