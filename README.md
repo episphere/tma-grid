@@ -1,2 +1,2 @@
-# [Microarray-Dearraying](https://episphere.github.io/TMA-De-arraying/)
-Live at https://episphere.github.io/TMA-De-arraying !
+# [Microarray-Dearraying](https://episphere.github.io/Griddify/)
+Live at https://episphere.github.io/Griddify !
