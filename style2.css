@@ -114,7 +114,7 @@ nav a {
 }
 
 .btn-proceed:hover {
-  background-color: #33a55d;
+  background-color: #37d06f;
   /* Darker green on hover for contrast */
   box-shadow: 0 6px 8px -2px rgba(71, 220, 171, 0.5);
   /* Enhance shadow on hover for a lifting  */
@@ -174,7 +174,7 @@ footer {
 :root {
   --primary-color: #3c8fe7;
   /* Example primary color */
-  --secondary-color: #60bd9e;
+  --secondary-color: #3fd677;
   /* Example secondary color */
   --accent-color: #7c3aed;
   /* Example accent color */
@@ -1387,4 +1387,28 @@ svg {
   border: solid white;
   border-width: 0 3px 3px 0;
   transform: rotate(45deg);
+}
+
+
+/* Css for span tags that indicate file types */
+.span-file-type {
+  font-weight: bold;
+  color: #787879;
+}
+.span-button{
+  color: #ffffff;
+  cursor: pointer;
+  background-color: var(--primary-color);
+  border-radius: 10%;
+  padding: 4px;
+
+}
+/* Css for span tags that indicate buttons */
+
+.span-button-proceed {
+  color: #ffffff;
+  cursor: pointer;
+  background-color: var(--secondary-color);
+  border-radius: 10%;
+  padding: 4px;
 }

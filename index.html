@@ -61,6 +61,8 @@
                     <a href="https://github.com/episphere/TMA-De-arraying/issues"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Issues</a>
                     <a href="#"
+                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Tutorial</a>
+                    <a href="#"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Manuscript</a>
                     <button id="helpButton" class="actionButton px-4">?</button> <!-- Add this line -->
 
@@ -84,12 +86,15 @@
                 <div class="instructions-container space-y-4">
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Uploading an Image</h2>
-                    <p>Begin by uploading a <span class="file-name">.svs</span> image. You can also work with <span
-                            class="file-name">.png</span> or <span class="file-name">.jpg</span> files, but virtual gridding
-                        is not
-                        fully supported with these file formats
+                    <p>
+                        Start by uploading an <span class="span-file-type">.svs</span> image for optimal results. While
+                        you can use <span class="span-file-type">.png</span> or <span class="span-file-type">.jpg</span>
+                        files, please note that virtual
+                        gridding functionality may be limited with these formats.
+
                     </p>
-                    <p>Once the image has been successfully uploaded, click the "Proceed"
+                    <p>Once the image has been successfully uploaded, click the <span
+                            class="span-button-proceed">Proceed</span>
                         button to continue to image segmentation.</p>
                 </div>
 
@@ -220,21 +225,18 @@
                 <div class="instructions-container space-y-4">
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
-                    <p>Begin by fine-tuning the segmentation parameters to ensure the algorithm
-                        detects
-                        most of the cores. Make any manual adjustments if needed to capture all
-                        cores
-                        accurately.</p>
-                    <p>Once you're satisfied with the segmentation, click the "Proceed"
-                        button. You can then proceed to the Gridding tab to continue.</p>
+                    <p>Adjust segmentation parameters in the left-hand menu to optimize core detection. If necessary,
+                        make manual edits to ensure all cores are accurately captured.</p>
+                    <p>Once you're satisfied with the segmentation, click the <span
+                            class="span-button-proceed">Proceed</span>
+                        button to proceed to the Gridding tab.</p>
                 </div>
 
                 <div class="instructions-container mt-4 space-y-4">
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Interactive Core Editing</h2>
-                    <p>To add a core, simply click on the desired location within the image.</p>
-                    <p> If you wish to remove a core, hold the <kbd>Shift</kbd> key and click on the
-                        core you want to remove.</p>
+                    <p><kbd>Click</kbd> on the image to add a core.</p>
+                    <p><kbd>Shift-click</kbd> a core to remove it.</p>
                 </div>
                 <div class="flex flex-wrap-mx-4">
                     <!-- Sidebar -->
@@ -332,20 +334,31 @@
                     <button class="close-instructions text-right">✕</button>
 
                     <h2 class="text-lg font-semibold">Gridding Instructions</h2>
-                    <p>First, ensure that the image is rotated correctly. If not, adjust the image
-                        rotation
-                        parameter.</p>
 
-                    <p>To adjust the size of each core, select the core and resize it using the anchor points in the
-                        corner.</p>
+                    <p>Open the menu on the left to adjust the gridding settings and key hyperparameters such as
+                        as the image's rotation. Please ensure that the image is rotated correctly. If not, adjust the
+                        image
+                        rotation parameter.</p>
+
+                    <p>Once you're satisfied with the gridding, click the <span
+                            class="span-button-proceed">Proceed</span>
+                        button to proceed to the Virtual Grid section.</p>
                 </div>
-                <!-- Similar structure for Adding Cores Instructions -->
+                <div class="instructions-container mb-4">
+                    <button class="close-instructions text-right">✕</button>
+
+                    <h2 class="text-lg font-semibold">Editing Cores</h2>
+                    <p>You can move the core by dragging it to the desired location.</p>
+                    <p><kbd>Click</kbd> the core, then drag the corner anchor points to resize.</p>
+                    <p><kbd>Double-click</kbd> the core to open the edit menu and change its metadata. </p>
+                </div>
+
                 <div class="instructions-container mb-4">
                     <button class="close-instructions text-right">✕</button>
 
                     <h2 class="text-lg font-semibold">Adding Cores</h2>
-                    <p>To add a core, click on the Add Core button on the top left corner of the page.
-                        Then, drag the core at the location you would like it to be created on.</p>
+                    <p>Click the <span class="span-button">Add Core</span> button in the top left corner, then drag to
+                        set the core's location and size.</p>
                 </div>
 
                 <div class="flex flex-wrap lg:flex-nowrap">
@@ -621,14 +634,15 @@
                 <div class="instructions-container space-y-4">
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Utilizing the virtual grid</h2>
-                    <p>To edit a core's metadata, select the core in the grid on the right hand side you'd like to edit
-                        to populate the metadata editing form.
-                        Make sure you click the <span class="file-name">Update Metadata</span> button to save your
-                        changes.
+                    <p>Select a core in the right-hand grid to edit its metadata. Remember to click <span
+                            class="span-button">Update Metadata</span> to save your changes.
                     </p>
-                    <p>To export the full resolution of an individual core, double click that core. To export all the
-                        cores
-                        click the <span class="file-name">Export Grid</span> button </p>
+                    <p>To export a single core at full resolution, <kbd>Double-click</kbd> it. To export all cores,
+                        click
+                        the <span class="span-button">Export Grid</span> button. Note that core exporting is only
+                        enabled for
+                        <span class="span-file-type">.svs</span> files
+                    </p>
                 </div>
 
 
