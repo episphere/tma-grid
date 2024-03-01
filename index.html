@@ -45,7 +45,7 @@
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">GitHub</a>
                     <a href="https://github.com/episphere/TMA-De-arraying/issues"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Issues</a>
-                    <a href="#"
+                    <a href="https://youtu.be/2Og_ao6KaZA"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Tutorial</a>
                     <a href="#"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Manuscript</a>
@@ -60,7 +60,7 @@
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">GitHub</a>
                     <a href="https://github.com/episphere/TMA-De-arraying/issues"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Issues</a>
-                    <a href="#"
+                    <a href="https://youtu.be/2Og_ao6KaZA"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Tutorial</a>
                     <a href="#"
                         class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Manuscript</a>
@@ -372,7 +372,7 @@
                     </div>
                     <!-- Sidebar -->
                     <aside id="gridding-sidebar"
-                        class="sm:w-full lg:w-1/4 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
+                        class="w-1/3 sm:w-full md:w-1/4 lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
                         <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content">
                             <div class="text-xl font-semibold mb-4 parameters-header">
                                 <h2 class="title">Configure Parameters</h2>
@@ -382,8 +382,8 @@
                             </div>
 
                             <!-- Image Parameters Section -->
-                            <fieldset class="p-4 bg-gray-50 rounded-lg">
-                                <legend class="font-medium text-lg">Image Parameters</legend>
+                            <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
+                                <legend class="font-semibold text-l text-gray-900 mb-4">Image Parameters</legend>
                                 <div class=" flex-col space-y-4 mt-2">
                                     <label for="userRadius" class="block">
                                         Core Radius: <output id="radiusValue" for="userRadius">20</output>
@@ -393,8 +393,8 @@
                                 </div>
                             </fieldset>
                             <!-- Traveling Algorithm Section -->
-                            <fieldset class="p-4 bg-gray-50 rounded-lg mt-4">
-                                <legend class="font-medium text-lg">Traveling Algorithm Parameters</legend>
+                            <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
+                                <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm Parameters</legend>
                                 <div class=" flex-col space-y-4 mt-2">
                                     <label for="originAngle" title="Rotation of the image in degrees">
                                         Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
@@ -404,7 +404,7 @@
                                 </div>
                             </fieldset>
                             <fieldset>
-                                <legend>Display Parameters</legend>
+                                <legend class="font-semibold text-l text-gray-900 mb-4">Display Parameters</legend>
                                 <!-- Check box for whether adjacent cores should be connected by lines -->
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
@@ -431,9 +431,9 @@
                             <!-- Wrap hidden fieldsets in a div -->
                             <div id="advanced-settings-content" class="hidden">
                                 <!-- More Traveling Algorithm Parameters -->
-                                <fieldset>
+                                <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
 
-                                    <legend>Traveling Algorithm Parameters</legend>
+                                    <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm Parameters</legend>
                                     <label for="radiusMultiplier"
                                         title="Multiplier for the radius used in the traveling algorithm">Radius
                                         Multiplier</label>
@@ -468,8 +468,8 @@
                                 </fieldset>
 
                                 <!-- Edge Detection Section -->
-                                <fieldset>
-                                    <legend>Edge Detection Parameters</legend>
+                                <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
+                                    <legend class="font-semibold text-l text-gray-900 mb-4">Edge Detection Parameters</legend>
 
                                     <label for="thresholdMultiplier"
                                         title="Multiplier for the median absolute deviation to filter edges by length">Length
@@ -485,8 +485,8 @@
                                 </fieldset>
 
                                 <!-- Image Rotation Section -->
-                                <fieldset>
-                                    <legend>Image Rotation Parameters</legend>
+                                <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
+                                    <legend class="font-semibold text-l text-gray-900 mb-4">Image Rotation Parameters</legend>
 
                                     <label for="minAngle" title="Minimum angle to test for image rotation">Minimum
                                         Angle</label>

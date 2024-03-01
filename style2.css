@@ -113,8 +113,9 @@ nav a {
   /* Matching shadow color to the button */
 }
 
-.btn-proceed:hover {
-  background-color: #37d06f;
+.btn-proceed:hover, 
+.btn-box-connect:hover {
+  background-color: #43e67f;
   /* Darker green on hover for contrast */
   box-shadow: 0 6px 8px -2px rgba(71, 220, 171, 0.5);
   /* Enhance shadow on hover for a lifting  */
@@ -183,8 +184,7 @@ footer {
 }
 
 /* Apply branding colors to elements */
-.upload-option-tab.active,
-.btn-box-connect:hover {
+.upload-option-tab.active {
   background-color: var(--primary-color);
   color: white;
   /* White text for better contrast */
