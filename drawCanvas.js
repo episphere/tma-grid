@@ -679,8 +679,7 @@ function drawCore(core, index = -1) {
     clickHandler: overlayClickHandler,
 
     dblClickHandler: (e) => {
-      debugger;
-      const overlay = window.viewer.getOverlayById(overlayElement);
+      // const overlay = window.viewer.getOverlayById(overlayElement);
       // selectedIndex = window.viewer.currentOverlays.indexOf(overlay)
       overlayElement.classList.add("selected");
       updateSidebar(core);
@@ -752,7 +751,7 @@ const keyPressHandler = (e) => {
         (core) => core.row === row && core.col === col
       );
       removeCoreFromGrid(core);
-    } else if (overlay.element.classList.contains("temporary")) {
+    } else if (overlay.element.classList.contains("temporary") || overlay.element.classList.contains("marker")) {
       const overlayBounds = window.viewer.viewport.viewportToImageRectangle(
         overlay.getBounds(window.viewer.viewport)
       );
@@ -813,12 +812,12 @@ const overlayClickHandler = (e) => {
       window.viewer.addHandler("zoom", zoomHandlerForResizeHandles);
       window.viewer.addOnceHandler("canvas-click", overlayClickHandler);
 
-      // Get the core data from the sortedCoresData array
-      const row = parseInt(overlay.element.id.split("_")[2]);
-      const col = parseInt(overlay.element.id.split("_")[4]);
-      const coreData = window.sortedCoresData.find(
-        (core) => core.row === row && core.col === col
-      );
+      // // Get the core data from the sortedCoresData array
+      // const row = parseInt(overlay.element.id.split("_")[2]);
+      // const col = parseInt(overlay.element.id.split("_")[4]);
+      // const coreData = window.sortedCoresData.find(
+      //   (core) => core.row === row && core.col === col
+      // );
     }
   }
 };
