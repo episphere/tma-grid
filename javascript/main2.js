@@ -38,7 +38,7 @@ const processedImageCanvasID = "segmentationResultsCanvas";
 
 // Load dependencies and return updated state
 const loadDependencies = async () => ({
-  model: await loadModel("./tfjs_model/model.json"),
+  model: await loadModel("./updated_model/model.json"),
   // openCVLoaded: await loadOpenCV(),
 });
 
