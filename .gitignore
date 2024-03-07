@@ -16,3 +16,4 @@ TMA_WSI_PNGs/
 hpv rnascope cores R1.xlsx
 .vscode/
 test.js
+*.hdf5
