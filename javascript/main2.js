@@ -1255,29 +1255,50 @@ async function downloadAllCores(cores) {
 
   for (let index = 0; index < cores.length; index++) {
     const core = cores[index];
-    const fullResTileParams = {
-      tileX: core.x - core.currentRadius,
-      tileY: core.y - core.currentRadius,
-      tileWidth: core.currentRadius * 2,
-      tileHeight: core.currentRadius * 2,
-      tileSize: core.currentRadius * 2,
-    };
+    const topLeftX = parseInt(core.x - core.currentRadius);
+    const topLeftY = parseInt(core.y - core.currentRadius);
+    const tileWidth = parseInt(core.currentRadius * 2); // Assuming the diameter as the width/height
+    const tileHeight = parseInt(core.currentRadius * 2);
 
-    try {
-      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
-      const blob = await fullSizeImageResp.blob();
-      console.log(`Blob ${index + 1} size: ${blob.size} bytes`);
-      zip.file(`core_${core.row}_${core.col}.png`, blob);
+    if (window.uploadedImageFileType === "ndpi") {
+      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${tileWidth},/0/default.jpg`;
 
-      // Update progress
-      const progress = ((index + 1) / cores.length) * 100;
-      progressBar.style.width = `${progress}%`;
-      progressText.innerText = `Exporting... ${progress.toFixed(2)}%`;
-    } catch (error) {
-      console.error("Error fetching or adding an image to the zip:", error);
+      try {
+        const response = await fetch(apiURL);
+        const blob = await response.blob();
+        zip.file(`core_${index}.jpg`, blob);
+
+        // Update progress
+        const progress = ((index + 1) / cores.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+      } catch (error) {
+        console.error("Error fetching NDPI image:", error);
+      }
+    } else if (window.uploadedImageFileType === "svs") {
+      // Adjust as per your getRegionFromWSI function's implementation
+      const fullResTileParams = {
+        tileX: topLeftX,
+        tileY: topLeftY,
+        tileWidth: tileWidth,
+        tileHeight: tileHeight,
+        tileSize: tileWidth, // or any other logic for tileSize
+      };
+
+      try {
+        const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+        const blob = await fullSizeImageResp.blob();
+        zip.file(`core_${index}.png`, blob);
+
+        // Update progress
+        const progress = ((index + 1) / cores.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+      } catch (error) {
+        console.error("Error fetching SVS image:", error);
+      }
     }
   }
-
   // Generate the zip file
   zip.generateAsync({
     type: "blob",

@@ -1767,21 +1767,36 @@ async function initiateDownload(
   }  else if (window.uploadedImageFileType === "ndpi") {
     // Construct the URL for the imageboxv2 API
     const imageUrl = encodeURIComponent(svsImageURL); // Ensure the URL is properly encoded
-    const topLeftX = core.x - core.currentRadius;
-    const topLeftY = core.y - core.currentRadius;
-    const tileWidth = coreWidth;
-    const tileHeight = coreHeight;
-    const tileSize = coreWidth; // Assuming tileSize is intended to be the same as tileWidth
+    const topLeftX = parseInt(core.x - core.currentRadius);
+    const topLeftY = parseInt(core.y - core.currentRadius);
+    const tileWidth = parseInt(coreWidth);
+    const tileHeight = parseInt(coreHeight);
+    const tileSize = parseInt(coreWidth); // Assuming tileSize is intended to be the same as tileWidth
 
     // Construct the URL for the API call
-    const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${imageUrl}/${topLeftX},${topLeftY},${tileWidth},${tileHeight},${tileSize},/0/default.jpg`;
+    const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${imageUrl}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${tileSize},/0/default.jpg`;
 
     // Initiate the download
-    downloadLink.href = apiURL; // Set the href to the API URL
-    downloadLink.download = fileName; // Set the desired file name for the download
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    fetch(apiURL)
+    .then(response => response.blob()) // Convert the response to a Blob
+    .then(blob => {
+        // Create a URL for the blob
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Create a new download link
+        const downloadLink = document.createElement("a");
+        downloadLink.href = blobUrl;
+        downloadLink.download = fileName; // Set the desired file name for the download
+
+        // Trigger the download
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+
+        // Clean up by revoking the Blob URL and removing the link
+        URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(downloadLink);
+    })
+    .catch(error => console.error('Error downloading the file:', error));
   }
 
 }
