@@ -191,10 +191,21 @@ const handleImageLoad = (file, processCallback) => {
 
     handleSVSFile(file, processCallback);
     window.uploadedImageFileType = "svs";
-  } else {
+  } 
+  else if (file && file.name.endsWith(".ndpi")) {
+    updateImagePreview(
+      originalImageContainer.src,
+      originalImageContainer.width,
+      originalImageContainer.height
+    );
+
+    handleSVSFile(file, processCallback);
+    window.uploadedImageFileType = "ndpi";
+  }
+  else {
     updateStatusMessage(
       "imageLoadStatus",
-      "File loaded is not an image.",
+      "File loaded is not a supported image format. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png.",
       "error-message"
     );
     console.error("File loaded is not an image.");
@@ -373,7 +384,15 @@ const handleLoadImageUrlClick = async () => {
   // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
-  const imageUrl = getInputValue("imageUrlInput");
+
+  // Add a cors proxy to the image URL
+  // const corsProxy = "https://corsproxy.io/?";
+
+  // Add the cors proxy to the image URL input
+
+  // $("#imageUrlInput").val(corsProxy + $("#imageUrlInput").val());
+
+  const imageUrl =  getInputValue("imageUrlInput");
 
   if (imageUrl) {
     let imageResp = undefined;
@@ -401,7 +420,22 @@ const handleLoadImageUrlClick = async () => {
       }
 
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
-      window.uploadedImageFileType = "svs";
+
+      // Check if the image is an SVS or .ndpi file
+      if (imageUrl.endsWith(".ndpi")) {
+        window.uploadedImageFileType = "ndpi";
+      } else if (imageUrl.endsWith(".svs")) {
+        window.uploadedImageFileType = "svs";
+      }else{
+
+        // Prompt user to enter the file type manually
+        const fileType = prompt(
+          "Please enter the file type of the image. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png."
+        );
+        // Parse the file type and set the window.uploadedImageFileType. Ensure that the file type is lowercase for consistency and get rid of any leading/trailing whitespace in the input.
+        // Also get rid of any . in the input
+        window.uploadedImageFileType = fileType.toLowerCase().trim().replace(".", "");
+      }
     }
 
     imageResp

@@ -1694,7 +1694,7 @@ async function createVirtualGrid(
     ? URL.createObjectURL(window.boxFile)
     : "path/to/default/image.jpg";
 
-  if (window.uploadedImageFileType === "svs") {
+  if (window.uploadedImageFileType === "svs" || window.uploadedImageFileType === "ndpi") {
     if (firstRun) {
       // Hide the virtual grid canvas
       const virtualGridCanvas = document.getElementById("virtualGridCanvas");
@@ -1742,6 +1742,8 @@ async function initiateDownload(
 ) {
   const downloadLink = document.createElement("a");
 
+
+  if (window.uploadedImageFileType === "svs") {
   // Use the getRegionFromWSI function to download the full resolution version of the image
   const fullResTileParams = {
     tileX: core.x - core.currentRadius,
@@ -1762,7 +1764,26 @@ async function initiateDownload(
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
-  debugger;
+  }  else if (window.uploadedImageFileType === "ndpi") {
+    // Construct the URL for the imageboxv2 API
+    const imageUrl = encodeURIComponent(svsImageURL); // Ensure the URL is properly encoded
+    const topLeftX = core.x - core.currentRadius;
+    const topLeftY = core.y - core.currentRadius;
+    const tileWidth = coreWidth;
+    const tileHeight = coreHeight;
+    const tileSize = coreWidth; // Assuming tileSize is intended to be the same as tileWidth
+
+    // Construct the URL for the API call
+    const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${imageUrl}/${topLeftX},${topLeftY},${tileWidth},${tileHeight},${tileSize},/0/default.jpg`;
+
+    // Initiate the download
+    downloadLink.href = apiURL; // Set the href to the API URL
+    downloadLink.download = fileName; // Set the desired file name for the download
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  }
+
 }
 
 // Create an array to store all the core containers
@@ -1984,7 +2005,7 @@ function updateGridSpacingInVirtualGridForSVS(
   virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, 1fr)`;
 
   // Adjusting the gap property: first value for vertical spacing between rows, second value for horizontal spacing between columns
-  virtualGridDiv.style.gap = `${verticalSpacing}px ${horizontalSpacing}px`;
+  // virtualGridDiv.style.gap = `${verticalSpacing}px ${horizontalSpacing}px`;
 
   virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
   virtualGridDiv.style.width = "100%";

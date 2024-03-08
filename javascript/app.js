@@ -213,8 +213,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (
       !file.type.startsWith("image/") &&
       file.name.split(".").pop().toLowerCase() !== "svs"
+      && file.name.split(".").pop().toLowerCase() !== "ndpi"
     ) {
-      alert("File is not an image or a .svs file.");
+      alert("File is not an image, .svs, or .ndpi file.");
       return;
     }
 
