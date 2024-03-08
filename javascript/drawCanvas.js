@@ -281,8 +281,7 @@ function connectAdjacentCores(core, updateSurroundings = false) {
 
   if (
     isNaN(parseInt(core.row)) ||
-    isNaN(parseInt(core.col)) ||
-    core.isTemporary
+    isNaN(parseInt(core.col))
   ) {
     return;
   }
@@ -635,9 +634,6 @@ function drawCore(core, index = -1) {
   if (core.isImaginary) {
     overlayElement.classList.add("imaginary");
   }
-  if (core.isTemporary) {
-    overlayElement.classList.add("temporary");
-  }
   if (core.isSelected) {
     overlayElement.classList.add("selected");
   }
@@ -957,7 +953,6 @@ function saveCore(core) {
     updateSidebar(core);
   }
 
-  core.isTemporary = false;
   core.isSelected = false;
 
   const imageRotation = parseFloat(
@@ -978,6 +973,13 @@ function saveCore(core) {
 
 // Picks the row with the closest rotated median Y value to the rotated median Y value of the core
 function determineCoreRow(core, sortedCoresData) {
+
+  // Filter only sortedcores that don't have a NaN row or column and don't have -1 as a row or column
+  
+  sortedCoresData = sortedCoresData.filter(
+    (core) => !isNaN(core.row) && !isNaN(core.col)
+  );
+
   let imageRotation = parseFloat(document.getElementById("originAngle").value);
 
   // Determine rotated median Y value of each row
@@ -1041,7 +1043,7 @@ function removeCoreFromGrid(core) {
     return;
   }
 
-  if (!core.isTemporary && !core.isMarker) {
+  if (!core.isMarker) {
     const modifiedRow = window.sortedCoresData[coreIndex].row;
     // Remove the selected core
     window.sortedCoresData.splice(coreIndex, 1);
@@ -1121,7 +1123,6 @@ const addCoreHandler = (e) => {
       x: -1,
       y: -1,
       currentRadius: -1,
-      isTemporary: true,
       isSelected: false,
     };
 
@@ -1365,7 +1366,7 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
 
   // Calculate rotated values and separate X and Y for each row and column
   coresData.forEach((core) => {
-    if (!core.isTemporary && !core.isMarker) {
+    if (!core.isMarker) {
       const [rotatedX, rotatedY] = rotatePoint(
         [core.x, core.y],
         -imageRotation
