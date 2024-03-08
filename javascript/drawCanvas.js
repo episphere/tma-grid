@@ -1570,6 +1570,20 @@ function alignMisalignedCores(coresData, imageRotation) {
     core.col = parseInt(nearestCol);
   });
 
+  // Filter out "imaginary" cores that are outside the threshold for all columns
+  coresData = coresData.filter(core => {
+    if (core.isMarker || core.isImaginary === false){
+      return true;
+    }
+
+    const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
+    return Object.keys(medianRotatedXValues).some(
+      (col) =>
+        Math.abs(medianRotatedXValues[col] - rotatedX) <
+        1.25 * core.currentRadius
+    );
+  });
+
   return coresData;
 }
 
