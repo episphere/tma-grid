@@ -350,18 +350,18 @@ function resetApplication() {
   // Reset the data structures that hold the core data
   window.preprocessedCores = [];
   window.sortedCoresData = [];
-  window.loadedImg = null;
-  window.preprocessingData = null;
-  window.neuralNetworkResult = null;
+  window.loadedImg = undefined;
+  window.preprocessingData = undefined;
+  window.neuralNetworkResult = undefined;
   window.viewer?.destroy();
-  window.viewer = null;
+  window.viewer = undefined;
   window.imageSource = "";
   window.scalingFactor = 1;
-  window.uploadedImageFileType = null;
-  window.boxFile = null;
-  window.boxFileInfo = null;
-  window.finalSaveData = null;
-
+  window.uploadedImageFileType = undefined;
+  window.boxFile = undefined;
+  window.boxFileInfo = undefined;
+  window.finalSaveData = undefined;
+  window.ndpiScalingFactor = undefined;
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();
 }

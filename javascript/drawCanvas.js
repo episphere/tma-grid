@@ -1606,9 +1606,9 @@ function finalizeSaveData() {
   const finalSaveData = window.sortedCoresData.map((core) => {
     return {
       ...core,
-      x: core.x,
-      y: core.y,
-      currentRadius: core.currentRadius,
+      x: core.x / (window.ndpiScalingFactor ?? 1),
+      y: core.y / (window.ndpiScalingFactor ?? 1),
+      currentRadius: core.currentRadius / (window.ndpiScalingFactor ?? 1),
       row: core.row + 1,
       col: core.col + 1,
     };

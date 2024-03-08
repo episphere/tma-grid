@@ -191,8 +191,7 @@ const handleImageLoad = (file, processCallback) => {
 
     handleSVSFile(file, processCallback);
     window.uploadedImageFileType = "svs";
-  } 
-  else if (file && file.name.endsWith(".ndpi")) {
+  } else if (file && file.name.endsWith(".ndpi")) {
     updateImagePreview(
       originalImageContainer.src,
       originalImageContainer.width,
@@ -201,8 +200,7 @@ const handleImageLoad = (file, processCallback) => {
 
     handleSVSFile(file, processCallback);
     window.uploadedImageFileType = "ndpi";
-  }
-  else {
+  } else {
     updateStatusMessage(
       "imageLoadStatus",
       "File loaded is not a supported image format. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png.",
@@ -384,7 +382,6 @@ const handleLoadImageUrlClick = async () => {
   // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
 
-
   // Add a cors proxy to the image URL
   // const corsProxy = "https://corsproxy.io/?";
 
@@ -392,7 +389,7 @@ const handleLoadImageUrlClick = async () => {
 
   // $("#imageUrlInput").val(corsProxy + $("#imageUrlInput").val());
 
-  const imageUrl =  getInputValue("imageUrlInput");
+  const imageUrl = getInputValue("imageUrlInput");
 
   if (imageUrl) {
     let imageResp = undefined;
@@ -426,15 +423,17 @@ const handleLoadImageUrlClick = async () => {
         window.uploadedImageFileType = "ndpi";
       } else if (imageUrl.endsWith(".svs")) {
         window.uploadedImageFileType = "svs";
-      }else{
-
+      } else {
         // Prompt user to enter the file type manually
         const fileType = prompt(
           "Please enter the file type of the image. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png."
         );
         // Parse the file type and set the window.uploadedImageFileType. Ensure that the file type is lowercase for consistency and get rid of any leading/trailing whitespace in the input.
         // Also get rid of any . in the input
-        window.uploadedImageFileType = fileType.toLowerCase().trim().replace(".", "");
+        window.uploadedImageFileType = fileType
+          .toLowerCase()
+          .trim()
+          .replace(".", "");
       }
     }
 
@@ -539,7 +538,6 @@ const handleLoadImageUrlClick = async () => {
 };
 
 async function segmentImage(initializeParams = false) {
-
   if (window.state === undefined) {
     await initSegmentation();
   }
@@ -650,7 +648,6 @@ function exchangeAuthorizationCodeForAccessToken(authorizationCode) {
   // Remove any trailing slash from the redirect URI
 
   redirectUri = redirectUri.replace(/\/$/, "");
-
 
   const url = "https://api.box.com/oauth2/token";
   const params = new URLSearchParams();
@@ -835,7 +832,9 @@ function bindEventListeners() {
 
       // Check image data type
       if (window.uploadedImageFileType == "simple") {
-        alert("Full resolution downloads are not supported for .png/jpg images.");
+        alert(
+          "Full resolution downloads are not supported for .png/jpg images."
+        );
         return;
       }
 
@@ -996,7 +995,6 @@ function bindEventListeners() {
 
 // Initialize and bind events
 const initSegmentation = async () => {
-
   const state = await loadDependencies();
   window.state = state;
 
@@ -1017,34 +1015,6 @@ const initSegmentation = async () => {
       .getElementById("maskAlphaSlider")
       .addEventListener(event, () => updateSliderUIText(state));
   });
-  // document
-  //   .getElementById("downloadSegmentationResults")
-  //   .addEventListener("click", function () {
-  //     // Assuming `properties` is the variable holding your segmentation results
-  //     if (!window.properties) {
-  //       alert("Algorithm has not run yet!");
-  //       return;
-  //     }
-
-  //     // Create finalSaveData by mapping over sortedCoresData
-  //     const finalSaveData = window.properties.map((core) => {
-  //       return {
-  //         ...core,
-  //         x: core.x / window.scalingFactor,
-  //         y: core.y / window.scalingFactor,
-  //         radius: core.radius / window.scalingFactor,
-  //       };
-  //     });
-
-  //     const propertiesJson = JSON.stringify(finalSaveData, null, 2);
-  //     const blob = new Blob([propertiesJson], { type: "application/json" });
-  //     const url = URL.createObjectURL(blob);
-  //     const a = document.createElement("a");
-  //     a.href = url;
-  //     a.download = "segmentation-properties.json";
-  //     a.click();
-  //     URL.revokeObjectURL(url);
-  //   });
 
   document
     .getElementById("applySegmentation")
@@ -1074,6 +1044,7 @@ const initSegmentation = async () => {
           path.endsWith(".png") ||
           path.endsWith(".jpg") ||
           path.endsWith(".jpeg") ||
+          path.endsWith(".ndpi") ||
           path.endsWith(".svs");
         const imageInfo = {
           url: "",
@@ -1087,9 +1058,17 @@ const initSegmentation = async () => {
             imageInfo.type = localFile.name.split(".").slice(-1)[0];
             imageInfo.isSimpleImage = !localFile.name.endsWith(".svs");
             imageInfo.isOperable = true;
-            imageInfo.url = imageInfo.isSimpleImage
-              ? await loadImage(localFile)
-              : document.getElementById("fileInput").files[0];
+
+            // If the image is an ndpi, pass in the URL used by the originalImage image
+            if (localFile.name.endsWith(".ndpi")) {
+              imageInfo.url = document.getElementById("originalImage").src;
+              window.ndpiScalingFactor = window.scalingFactor;
+              window.scalingFactor = 1;
+            } else {
+              imageInfo.url = imageInfo.isSimpleImage
+                ? await loadImage(localFile)
+                : document.getElementById("fileInput").files[0];
+            }
           }
         } else if (getInputValue("imageUrlInput")) {
           const url = getInputValue("imageUrlInput");
@@ -1116,7 +1095,7 @@ const initSegmentation = async () => {
       let tileSources = {};
 
       const imageInfo = await getImageInfo();
-      if (imageInfo.isSimpleImage) {
+      if (imageInfo.isSimpleImage || (window.uploadedImageFileType === "ndpi" && window.ndpiScalingFactor != undefined)) {
         tileSources = {
           type: "image",
           url: imageInfo.url,
@@ -1261,7 +1240,10 @@ async function downloadAllCores(cores) {
     const tileHeight = parseInt(core.currentRadius * 2);
 
     if (window.uploadedImageFileType === "ndpi") {
-      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(tileWidth, 3192)},/0/default.jpg`;
+      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(
+        tileWidth,
+        3192
+      )},/0/default.jpg`;
 
       try {
         const response = await fetch(apiURL);
@@ -1271,7 +1253,9 @@ async function downloadAllCores(cores) {
         // Update progress
         const progress = ((index + 1) / cores.length) * 100;
         progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+        progressText.innerText = `Downloading... (${index + 1}/${
+          cores.length
+        })`;
       } catch (error) {
         console.error("Error fetching NDPI image:", error);
       }
@@ -1286,41 +1270,46 @@ async function downloadAllCores(cores) {
       };
 
       try {
-        const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+        const fullSizeImageResp = await getRegionFromWSI(
+          svsImageURL,
+          fullResTileParams
+        );
         const blob = await fullSizeImageResp.blob();
         zip.file(`core_${index}.png`, blob);
 
         // Update progress
         const progress = ((index + 1) / cores.length) * 100;
         progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+        progressText.innerText = `Downloading... (${index + 1}/${
+          cores.length
+        })`;
       } catch (error) {
         console.error("Error fetching SVS image:", error);
       }
     }
   }
   // Generate the zip file
-  zip.generateAsync({
-    type: "blob",
-    compression: "DEFLATE",
-    compressionOptions: { level: 6 }, // Highest compression
-  }).then(function (content) {
-    // Use a temporary link to download the zip file
-    const downloadLink = document.createElement("a");
-    downloadLink.href = URL.createObjectURL(content);
-    downloadLink.download = "cores.zip";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+  zip
+    .generateAsync({
+      type: "blob",
+      compression: "DEFLATE",
+      compressionOptions: { level: 6 }, // Highest compression
+    })
+    .then(function (content) {
+      // Use a temporary link to download the zip file
+      const downloadLink = document.createElement("a");
+      downloadLink.href = URL.createObjectURL(content);
+      downloadLink.download = "cores.zip";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
 
-    // Hide progress overlay and reset progress bar
-    overlay.style.display = "none";
-    progressBar.style.width = "0%";
-    progressText.innerText = "Initializing...";
-  });
+      // Hide progress overlay and reset progress bar
+      overlay.style.display = "none";
+      progressBar.style.width = "0%";
+      progressText.innerText = "Initializing...";
+    });
 }
-
-
 
 // Main function that runs the application
 const run = async () => {
