@@ -1708,7 +1708,7 @@ async function createVirtualGrid(
     ? URL.createObjectURL(window.boxFile)
     : "path/to/default/image.jpg";
 
-  if (window.uploadedImageFileType === "svs") {
+  if (window.uploadedImageFileType === "svs" || (window.uploadedImageFileType === "ndpi" && !window.ndpiScalingFactor)) {
     if (firstRun) {
       // Hide the virtual grid canvas
       const virtualGridCanvas = document.getElementById("virtualGridCanvas");

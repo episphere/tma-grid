@@ -831,7 +831,7 @@ function bindEventListeners() {
       // }
 
       // Check image data type
-      if (window.uploadedImageFileType == "simple" || window.uploadedImageFileType == "ndpi") {
+      if (window.uploadedImageFileType == "simple" || (window.ndpiScalingFactor)) {
         alert(
           "Full resolution downloads are not supported for .png/jpg images or locally uploaded .ndpi images."
         );
@@ -1212,6 +1212,8 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
   };
 });
 
+
+
 async function downloadAllCores(cores) {
   const svsImageURL = document.getElementById("imageUrlInput").value
     ? document.getElementById("imageUrlInput").value
@@ -1232,33 +1234,19 @@ async function downloadAllCores(cores) {
   progressBar.style.width = "0%";
   progressText.innerText = "Starting download...";
 
-  for (let index = 0; index < cores.length; index++) {
-    const core = cores[index];
+  // Function to download a single core
+  async function downloadCore(core, index) {
     const topLeftX = parseInt(core.x - core.currentRadius);
     const topLeftY = parseInt(core.y - core.currentRadius);
     const tileWidth = parseInt(core.currentRadius * 2); // Assuming the diameter as the width/height
     const tileHeight = parseInt(core.currentRadius * 2);
 
     if (window.uploadedImageFileType === "ndpi") {
-      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(
-        tileWidth,
-        3192
-      )},/0/default.jpg`;
+      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(tileWidth, 3192)},/0/default.jpg`;
 
-      try {
-        const response = await fetch(apiURL);
-        const blob = await response.blob();
-        zip.file(`core_${index}.jpg`, blob);
-
-        // Update progress
-        const progress = ((index + 1) / cores.length) * 100;
-        progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Downloading... (${index + 1}/${
-          cores.length
-        })`;
-      } catch (error) {
-        console.error("Error fetching NDPI image:", error);
-      }
+      const response = await fetch(apiURL);
+      const blob = await response.blob();
+      zip.file(`core_${index}.jpg`, blob);
     } else if (window.uploadedImageFileType === "svs") {
       // Adjust as per your getRegionFromWSI function's implementation
       const fullResTileParams = {
@@ -1269,46 +1257,61 @@ async function downloadAllCores(cores) {
         tileSize: tileWidth, // or any other logic for tileSize
       };
 
-      try {
-        const fullSizeImageResp = await getRegionFromWSI(
-          svsImageURL,
-          fullResTileParams
-        );
-        const blob = await fullSizeImageResp.blob();
-        zip.file(`core_${index}.png`, blob);
+      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+      const blob = await fullSizeImageResp.blob();
+      zip.file(`core_${index}.png`, blob);
+    }
+  }
 
-        // Update progress
+  // Function to handle concurrent downloads
+  async function handleConcurrentDownloads() {
+    const downloadPromises = [];
+
+    for (let index = 0; index < cores.length; index++) {
+      if (window.uploadedImageFileType === "ndpi") {
+        downloadPromises.push(downloadCore(cores[index], index));
+
+        if (downloadPromises.length === 10 || index === cores.length - 1) {
+          await Promise.all(downloadPromises);
+          downloadPromises.length = 0; // Reset the array for next batch
+
+          // Update progress for NDPI cores
+          const progress = ((index + 1) / cores.length) * 100;
+          progressBar.style.width = `${progress}%`;
+          progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+        }
+      } else {
+        // For SVS, process immediately without batching
+        await downloadCore(cores[index], index);
+        // Update progress for SVS cores
         const progress = ((index + 1) / cores.length) * 100;
         progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Downloading... (${index + 1}/${
-          cores.length
-        })`;
-      } catch (error) {
-        console.error("Error fetching SVS image:", error);
+        progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
       }
     }
   }
-  // Generate the zip file
-  zip
-    .generateAsync({
-      type: "blob",
-      compression: "DEFLATE",
-      compressionOptions: { level: 6 }, // Highest compression
-    })
-    .then(function (content) {
-      // Use a temporary link to download the zip file
-      const downloadLink = document.createElement("a");
-      downloadLink.href = URL.createObjectURL(content);
-      downloadLink.download = "cores.zip";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
 
-      // Hide progress overlay and reset progress bar
-      overlay.style.display = "none";
-      progressBar.style.width = "0%";
-      progressText.innerText = "Initializing...";
-    });
+  await handleConcurrentDownloads();
+
+  // Generate the zip file
+  zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 }, // Highest compression
+  }).then(function (content) {
+    // Use a temporary link to download the zip file
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(content);
+    downloadLink.download = "cores.zip";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    // Hide progress overlay and reset progress bar
+    overlay.style.display = "none";
+    progressBar.style.width = "0%";
+    progressText.innerText = "Download complete!";
+  });
 }
 
 // Main function that runs the application
