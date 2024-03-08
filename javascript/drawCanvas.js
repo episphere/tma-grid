@@ -2002,12 +2002,12 @@ function updateGridSpacingInVirtualGridForSVS(
   virtualGridDiv.style.display = "grid";
 
   // Here we ensure that the gridTemplateColumns property sets the width of the grid items,
-  virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, 1fr)`;
+  virtualGridDiv.style.gridTemplateColumns = `repeat(auto-fill, 0fr)`;
 
   // Adjusting the gap property: first value for vertical spacing between rows, second value for horizontal spacing between columns
   // virtualGridDiv.style.gap = `${verticalSpacing}px ${horizontalSpacing}px`;
 
-  virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
+  // virtualGridDiv.style.padding = `${startingY}px ${startingX}px`;
   virtualGridDiv.style.width = "100%";
 }
 

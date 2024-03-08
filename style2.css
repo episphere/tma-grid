@@ -926,7 +926,7 @@ svg {
 
 #VirtualGridSVSContainer {
   display: grid;
-  gap: 10px;
+  gap: 1px;
   /* Increased gap for better visual separation */
   padding: 10px;
   background-color: #fff;
