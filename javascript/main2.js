@@ -1261,7 +1261,7 @@ async function downloadAllCores(cores) {
     const tileHeight = parseInt(core.currentRadius * 2);
 
     if (window.uploadedImageFileType === "ndpi") {
-      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${tileWidth},/0/default.jpg`;
+      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${min(tileWidth, 3192)},/0/default.jpg`;
 
       try {
         const response = await fetch(apiURL);

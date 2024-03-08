@@ -1774,7 +1774,7 @@ async function initiateDownload(
     const tileSize = parseInt(coreWidth); // Assuming tileSize is intended to be the same as tileWidth
 
     // Construct the URL for the API call
-    const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${imageUrl}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${tileSize},/0/default.jpg`;
+    const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${imageUrl}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${min(tileSize, 3192)},/0/default.jpg`;
 
     // Initiate the download
     fetch(apiURL)
