@@ -1708,7 +1708,7 @@ async function createVirtualGrid(
     ? URL.createObjectURL(window.boxFile)
     : "path/to/default/image.jpg";
 
-  if (window.uploadedImageFileType === "svs" || window.uploadedImageFileType === "ndpi") {
+  if (window.uploadedImageFileType === "svs") {
     if (firstRun) {
       // Hide the virtual grid canvas
       const virtualGridCanvas = document.getElementById("virtualGridCanvas");
@@ -2113,11 +2113,17 @@ function drawVirtualGridFromPNG(
   // filter out cores with isMarker
   sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
 
-  const imageSrc = window.loadedImg
+  let imageSrc = null;
+  if (window.uploadedImageFileType === "ndpi") {
+    imageSrc = document.getElementById("originalImage").src
+  }else{
+    imageSrc = window.loadedImg
     ? window.loadedImg.src
     : document.getElementById("fileInput").files.length > 0
     ? URL.createObjectURL(document.getElementById("fileInput").files[0])
     : "path/to/default/image.jpg";
+  }
+
 
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
   if (!virtualGridCanvas) {

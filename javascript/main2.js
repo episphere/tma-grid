@@ -831,9 +831,9 @@ function bindEventListeners() {
       // }
 
       // Check image data type
-      if (window.uploadedImageFileType == "simple") {
+      if (window.uploadedImageFileType == "simple" || window.uploadedImageFileType == "ndpi") {
         alert(
-          "Full resolution downloads are not supported for .png/jpg images."
+          "Full resolution downloads are not supported for .png/jpg images or locally uploaded .ndpi images."
         );
         return;
       }
