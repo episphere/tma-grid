@@ -1708,7 +1708,7 @@ async function createVirtualGrid(
     ? URL.createObjectURL(window.boxFile)
     : "path/to/default/image.jpg";
 
-  if (window.uploadedImageFileType === "svs" || (window.uploadedImageFileType === "ndpi" && !window.ndpiScalingFactor)) {
+  if (window.uploadedImageFileType === "svs" || (window.uploadedImageFileType === "tiff") || (window.uploadedImageFileType === "ndpi" && !window.ndpiScalingFactor)) {
     if (firstRun) {
       // Hide the virtual grid canvas
       const virtualGridCanvas = document.getElementById("virtualGridCanvas");
@@ -1757,7 +1757,7 @@ async function initiateDownload(
   const downloadLink = document.createElement("a");
 
 
-  if (window.uploadedImageFileType === "svs") {
+  if (window.uploadedImageFileType === "svs" || window.uploadedImageFileType === "tiff") {
   // Use the getRegionFromWSI function to download the full resolution version of the image
   const fullResTileParams = {
     tileX: core.x - core.currentRadius,

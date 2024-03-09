@@ -200,6 +200,16 @@ const handleImageLoad = (file, processCallback) => {
 
     handleSVSFile(file, processCallback);
     window.uploadedImageFileType = "ndpi";
+  } 
+  else if (file && file.name.endsWith(".tiff")) {
+    updateImagePreview(
+      originalImageContainer.src,
+      originalImageContainer.width,
+      originalImageContainer.height
+    );
+
+    handleSVSFile(file, processCallback);
+    window.uploadedImageFileType = "tiff";
   } else {
     updateStatusMessage(
       "imageLoadStatus",
@@ -423,10 +433,13 @@ const handleLoadImageUrlClick = async () => {
         window.uploadedImageFileType = "ndpi";
       } else if (imageUrl.endsWith(".svs")) {
         window.uploadedImageFileType = "svs";
+      } 
+      else if (imageUrl.endsWith(".tiff")) {
+        window.uploadedImageFileType = "tiff";
       } else {
         // Prompt user to enter the file type manually
         const fileType = prompt(
-          "Please enter the file type of the image. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png."
+          "Please enter the file type of the image. Supported formats include .svs, .ndpi, .tiff, .jpg, .jpeg, and .png."
         );
         // Parse the file type and set the window.uploadedImageFileType. Ensure that the file type is lowercase for consistency and get rid of any leading/trailing whitespace in the input.
         // Also get rid of any . in the input
@@ -1045,6 +1058,7 @@ const initSegmentation = async () => {
           path.endsWith(".jpg") ||
           path.endsWith(".jpeg") ||
           path.endsWith(".ndpi") ||
+          path.endsWith(".tiff") ||
           path.endsWith(".svs");
         const imageInfo = {
           url: "",
@@ -1247,7 +1261,7 @@ async function downloadAllCores(cores) {
       const response = await fetch(apiURL);
       const blob = await response.blob();
       zip.file(`core_${index}.jpg`, blob);
-    } else if (window.uploadedImageFileType === "svs") {
+    } else {
       // Adjust as per your getRegionFromWSI function's implementation
       const fullResTileParams = {
         tileX: topLeftX,
