@@ -1307,6 +1307,9 @@ async function downloadAllCores(cores) {
 
   await handleConcurrentDownloads();
 
+  progressText.innerText = `Finalizing export...`;
+
+
   // Generate the zip file
   zip.generateAsync({
     type: "blob",
