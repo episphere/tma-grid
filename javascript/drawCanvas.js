@@ -279,10 +279,7 @@ function connectAdjacentCores(core, updateSurroundings = false) {
     return;
   }
 
-  if (
-    isNaN(parseInt(core.row)) ||
-    isNaN(parseInt(core.col))
-  ) {
+  if (isNaN(parseInt(core.row)) || isNaN(parseInt(core.col))) {
     return;
   }
   // Find adjacent cores based on row and column
@@ -904,6 +901,7 @@ function saveCore(core) {
 
     if (
       oldRow !== parseInt(document.getElementById("editRowInput").value, 10)
+      && oldRow !== -1
     ) {
       updateRowsInGridAfterRemoval(oldRow);
     }
@@ -944,7 +942,7 @@ function saveCore(core) {
     if (!core.isMarker) {
       updateColumnsInRowAfterModification(core.row);
     }
-    if (oldRow !== core.row) {
+    if (oldRow !== core.row && oldRow !== -1) {
       updateColumnsInRowAfterModification(oldRow);
     }
 
@@ -973,9 +971,8 @@ function saveCore(core) {
 
 // Picks the row with the closest rotated median Y value to the rotated median Y value of the core
 function determineCoreRow(core, sortedCoresData) {
-
   // Filter only sortedcores that don't have a NaN row or column and don't have -1 as a row or column
-  
+
   sortedCoresData = sortedCoresData.filter(
     (core) => !isNaN(core.row) && !isNaN(core.col)
   );
@@ -1029,7 +1026,9 @@ function updateRowsInGridAfterRemoval(modifiedRow) {
 }
 
 function updateRowsInGridAfterMovement(oldRow, newRow) {
-  updateRowsInGridAfterRemoval(oldRow);
+  if (oldRow != -1) {
+    updateRowsInGridAfterRemoval(oldRow);
+  }
   updateColumnsInRowAfterModification(newRow);
 }
 
@@ -1571,8 +1570,8 @@ function alignMisalignedCores(coresData, imageRotation) {
   });
 
   // Filter out "imaginary" cores that are outside the threshold for all columns
-  coresData = coresData.filter(core => {
-    if (core.isMarker || core.isImaginary === false){
+  coresData = coresData.filter((core) => {
+    if (core.isMarker || core.isImaginary === false) {
       return true;
     }
 
@@ -1708,7 +1707,11 @@ async function createVirtualGrid(
     ? URL.createObjectURL(window.boxFile)
     : "path/to/default/image.jpg";
 
-  if (window.uploadedImageFileType === "svs" || (window.uploadedImageFileType === "tiff") || (window.uploadedImageFileType === "ndpi" && !window.ndpiScalingFactor)) {
+  if (
+    window.uploadedImageFileType === "svs" ||
+    window.uploadedImageFileType === "tiff" ||
+    (window.uploadedImageFileType === "ndpi" && !window.ndpiScalingFactor)
+  ) {
     if (firstRun) {
       // Hide the virtual grid canvas
       const virtualGridCanvas = document.getElementById("virtualGridCanvas");
@@ -1756,29 +1759,31 @@ async function initiateDownload(
 ) {
   const downloadLink = document.createElement("a");
 
+  if (
+    window.uploadedImageFileType === "svs" ||
+    window.uploadedImageFileType === "tiff"
+  ) {
+    // Use the getRegionFromWSI function to download the full resolution version of the image
+    const fullResTileParams = {
+      tileX: core.x - core.currentRadius,
+      tileY: core.y - core.currentRadius,
+      tileWidth: coreWidth,
+      tileHeight: coreHeight,
+      tileSize: coreWidth,
+    };
 
-  if (window.uploadedImageFileType === "svs" || window.uploadedImageFileType === "tiff") {
-  // Use the getRegionFromWSI function to download the full resolution version of the image
-  const fullResTileParams = {
-    tileX: core.x - core.currentRadius,
-    tileY: core.y - core.currentRadius,
-    tileWidth: coreWidth,
-    tileHeight: coreHeight,
-    tileSize: coreWidth,
-  };
+    const fullSizeImageResp = await getRegionFromWSI(
+      svsImageURL,
+      fullResTileParams
+    );
+    const blob = await fullSizeImageResp.blob();
 
-  const fullSizeImageResp = await getRegionFromWSI(
-    svsImageURL,
-    fullResTileParams
-  );
-  const blob = await fullSizeImageResp.blob();
-
-  downloadLink.href = URL.createObjectURL(blob);
-  downloadLink.download = fileName;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-  }  else if (window.uploadedImageFileType === "ndpi") {
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = fileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  } else if (window.uploadedImageFileType === "ndpi") {
     // Construct the URL for the imageboxv2 API
     const imageUrl = encodeURIComponent(svsImageURL); // Ensure the URL is properly encoded
     const topLeftX = parseInt(core.x - core.currentRadius);
@@ -1788,12 +1793,15 @@ async function initiateDownload(
     const tileSize = parseInt(coreWidth); // Assuming tileSize is intended to be the same as tileWidth
 
     // Construct the URL for the API call
-    const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${imageUrl}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(tileSize, 3192)},/0/default.jpg`;
+    const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${imageUrl}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(
+      tileSize,
+      3192
+    )},/0/default.jpg`;
 
     // Initiate the download
     fetch(apiURL)
-    .then(response => response.blob()) // Convert the response to a Blob
-    .then(blob => {
+      .then((response) => response.blob()) // Convert the response to a Blob
+      .then((blob) => {
         // Create a URL for the blob
         const blobUrl = URL.createObjectURL(blob);
 
@@ -1809,10 +1817,9 @@ async function initiateDownload(
         // Clean up by revoking the Blob URL and removing the link
         URL.revokeObjectURL(blobUrl);
         document.body.removeChild(downloadLink);
-    })
-    .catch(error => console.error('Error downloading the file:', error));
+      })
+      .catch((error) => console.error("Error downloading the file:", error));
   }
-
 }
 
 // Create an array to store all the core containers
@@ -2115,15 +2122,14 @@ function drawVirtualGridFromPNG(
 
   let imageSrc = null;
   if (window.uploadedImageFileType === "ndpi") {
-    imageSrc = document.getElementById("originalImage").src
-  }else{
+    imageSrc = document.getElementById("originalImage").src;
+  } else {
     imageSrc = window.loadedImg
-    ? window.loadedImg.src
-    : document.getElementById("fileInput").files.length > 0
-    ? URL.createObjectURL(document.getElementById("fileInput").files[0])
-    : "path/to/default/image.jpg";
+      ? window.loadedImg.src
+      : document.getElementById("fileInput").files.length > 0
+      ? URL.createObjectURL(document.getElementById("fileInput").files[0])
+      : "path/to/default/image.jpg";
   }
-
 
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
   if (!virtualGridCanvas) {
