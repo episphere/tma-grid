@@ -49,8 +49,8 @@ advancedSettingsCheckbox.addEventListener("change", function () {
 });
 
 function nextSection() {
-
-  if (!window.loadedImg) {
+  if (currentStep == 0 && !window.loadedImg) {
+    alert("Please load an image first.");
 
     // If no image is loaded, show an error message
     const imageLoadStatus = document.getElementById("imageLoadStatus");
@@ -59,6 +59,23 @@ function nextSection() {
     return;
   }
 
+  // Check if there are marker cores and if there are, alert the user to assign indices to them, or they will not show up in the virtual grid
+
+  const markerCores = window.sortedCoresData.filter((core) => core.isMarker);
+
+  if (currentStep == 2) {
+    if (sortedCoresData.length == 0) {
+      alert("Please wait for cores to finish loading.");
+      return;
+    }
+
+    if (markerCores.length > 0) {
+      alert(
+        "Please assign row and column indices to the green marker cores, or they will not show up in the virtual grid."
+      );
+      return;
+    }
+  }
 
   // Move to the next step
   let nextStep = currentStep + 1;
@@ -83,7 +100,6 @@ document.querySelectorAll(".btn-proceed").forEach((button) => {
 });
 
 document.getElementById("useTemplate").addEventListener("click", nextSection);
-
 
 // Handling the '.btn-proceed' buttons to navigate through steps
 document.querySelectorAll(".btn-back").forEach((button) => {
@@ -212,8 +228,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Check if the file is an image or a .svs file
     if (
       !file.type.startsWith("image/") &&
-      file.name.split(".").pop().toLowerCase() !== "svs"
-      && file.name.split(".").pop().toLowerCase() !== "ndpi"
+      file.name.split(".").pop().toLowerCase() !== "svs" &&
+      file.name.split(".").pop().toLowerCase() !== "ndpi"
     ) {
       alert("File is not an image, .svs, or .ndpi file.");
       return;
@@ -239,19 +255,17 @@ document.addEventListener("DOMContentLoaded", function () {
     imagePreview.src = "./icons/Placeholder_view_vector.svg";
   });
 
-  document.getElementById('metadata-remove-file').addEventListener('click', function () {
-    document.getElementById('metadataFile').value = '';
-    document.getElementById('metadata-file-info').classList.add('hidden');
+  document
+    .getElementById("metadata-remove-file")
+    .addEventListener("click", function () {
+      document.getElementById("metadataFile").value = "";
+      document.getElementById("metadata-file-info").classList.add("hidden");
 
-    // Reset the file upload status
-    const metadataLoadStatus = document.getElementById('metadataLoadStatus');
-    metadataLoadStatus.classList = 'load-status neutral-message';
-    metadataLoadStatus.textContent = 'No metadata loaded';
-
-    
-});
-
-
+      // Reset the file upload status
+      const metadataLoadStatus = document.getElementById("metadataLoadStatus");
+      metadataLoadStatus.classList = "load-status neutral-message";
+      metadataLoadStatus.textContent = "No metadata loaded";
+    });
 });
 
 function openInstructions() {

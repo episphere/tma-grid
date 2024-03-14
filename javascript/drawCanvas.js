@@ -1658,6 +1658,15 @@ function finalizeSaveData() {
 }
 
 function obtainHyperparametersAndDrawVirtualGrid() {
+
+
+  // Check if there are marker cores and if there are, alert the user to assign indices to them, or they will not show up in the virtual grid
+  const markerCores = window.sortedCoresData.filter((core) => core.isMarker);
+
+  if (markerCores.length > 0 || sortedCoresData.length === 0) {
+    return;
+  }
+
   finalizeSaveData();
 
   const horizontalSpacing = parseInt(
