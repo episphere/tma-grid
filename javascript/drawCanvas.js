@@ -892,16 +892,31 @@ function saveCore(core) {
     return false;
   }
 
+  // Check if the row or column value is already occupied by another core
+  const newRow =
+    parseInt(document.getElementById("editRowInput").value, 10) - 1;
+  const newCol =
+    parseInt(document.getElementById("editColumnInput").value, 10) - 1;
+
+  if (
+    window.sortedCoresData.some(
+      (core) => core.row === newRow && core.col === newCol
+    ) &&
+    (newRow !== oldRow || newCol !== core.col)
+  ) {
+    alert("The row and column values are already occupied by another core");
+    return false;
+  }
+
   if (document.getElementById("editRowInput").value != -1) {
     // Check if the core is being moved to a different row
 
-    core.row = parseInt(document.getElementById("editRowInput").value, 10) - 1;
-    core.col =
-      parseInt(document.getElementById("editColumnInput").value, 10) - 1;
+    core.row = newRow;
+    core.col = newCol;
 
     if (
-      oldRow !== parseInt(document.getElementById("editRowInput").value, 10)
-      && oldRow !== -1
+      oldRow !== parseInt(document.getElementById("editRowInput").value, 10) &&
+      oldRow !== -1
     ) {
       updateRowsInGridAfterRemoval(oldRow);
     }
@@ -1658,8 +1673,6 @@ function finalizeSaveData() {
 }
 
 function obtainHyperparametersAndDrawVirtualGrid() {
-
-
   // Check if there are marker cores and if there are, alert the user to assign indices to them, or they will not show up in the virtual grid
   const markerCores = window.sortedCoresData.filter((core) => core.isMarker);
 
