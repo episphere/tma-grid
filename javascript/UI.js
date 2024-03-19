@@ -179,10 +179,16 @@ document
       columnInput.disabled = true;
       rowInput.value = -1;
       columnInput.value = -1;
+
+
+
     } else {
       // Otherwise, enable it
       rowInput.disabled = false;
       columnInput.disabled = false;
+      // Uncheck the auto assign checkboxes
+      document.getElementById("editAutoUpdateRowsCheckbox").checked = false;
+      document.getElementById("editAutoUpdateColumnsCheckbox").checked = false;
     }
   });
 
