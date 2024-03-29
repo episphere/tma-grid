@@ -181,7 +181,7 @@ const handleImageLoad = (file, processCallback) => {
         console.error("Image failed to load.");
       });
 
-    window.uploadedImageFileType = "simple";
+    window.uploadedImageFileType = file.type.split("/")[1]
   } else if (file && file.name.endsWith(".svs")) {
     updateImagePreview(
       originalImageContainer.src,
@@ -213,7 +213,7 @@ const handleImageLoad = (file, processCallback) => {
   } else {
     updateStatusMessage(
       "imageLoadStatus",
-      "File loaded is not a supported image format. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png.",
+      "File loaded is not in a supported image format. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png.",
       "error-message"
     );
     console.error("File loaded is not an image.");
@@ -399,16 +399,43 @@ const handleLoadImageUrlClick = async () => {
 
   // $("#imageUrlInput").val(corsProxy + $("#imageUrlInput").val());
 
+  const checkImageType = async (url) => {
+    const ac = new AbortController()
+    const resp = await fetch(url, {
+      'signal': ac.signal
+    })
+    ac.abort()
+    
+    const contentType = resp.headers.get("content-type")
+    switch (contentType) {
+      case 'image/png': 
+      case 'image/jpeg':
+      case 'image/tiff':
+        return contentType.split("/")[1]
+      
+      case 'application/octet-stream':
+        return "svs"
+    }
+  }
+
   const imageUrl = getInputValue("imageUrlInput");
 
   if (imageUrl) {
     let imageResp = undefined;
     let width, height;
-    if (imageUrl.endsWith(".png") || imageUrl.endsWith(".jpg")) {
+    window.uploadedImageFileType = await checkImageType(imageUrl)
+
+    if (window.uploadedImageFileType === "jpeg" || window.uploadedImageFileType === "png") {
       imageResp = fetch(imageUrl);
-      window.uploadedImageFileType = "simple";
     } else {
-      const imageInfo = await getWSIInfo(imageUrl);
+      let imageInfo
+      try {
+        imageInfo = await getWSIInfo(imageUrl);
+      } catch (e) {
+        console.error(e)
+        alert("Image unsupported! Please try with a different URL.")
+        return;
+      }
       console.log("imageInfo", imageInfo);
       width = imageInfo.width;
       height = imageInfo.height;
@@ -427,27 +454,6 @@ const handleLoadImageUrlClick = async () => {
       }
 
       imageResp = getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
-
-      // Check if the image is an SVS or .ndpi file
-      if (imageUrl.endsWith(".ndpi")) {
-        window.uploadedImageFileType = "ndpi";
-      } else if (imageUrl.endsWith(".svs")) {
-        window.uploadedImageFileType = "svs";
-      } 
-      else if (imageUrl.endsWith(".tiff")) {
-        window.uploadedImageFileType = "tiff";
-      } else {
-        // Prompt user to enter the file type manually
-        const fileType = prompt(
-          "Please enter the file type of the image. Supported formats include .svs, .ndpi, .tiff, .jpg, .jpeg, and .png."
-        );
-        // Parse the file type and set the window.uploadedImageFileType. Ensure that the file type is lowercase for consistency and get rid of any leading/trailing whitespace in the input.
-        // Also get rid of any . in the input
-        window.uploadedImageFileType = fileType
-          .toLowerCase()
-          .trim()
-          .replace(".", "");
-      }
     }
 
     imageResp
@@ -636,16 +642,25 @@ document.getElementById("boxLoginBtn").addEventListener("click", function () {
 });
 
 // Handle authentication response and initialize Box Picker
-window.onload = function () {
-  // Correctly process the URL search parameters to get the authorization code
-  const queryParams = new URLSearchParams(window.location.search);
-  const authorizationCode = queryParams.get("code");
+window.onload = async () => {
 
-  if (authorizationCode) {
-    // Since you cannot directly initialize the Box Picker with an authorization code,
-    // you need to exchange the code for an access token.
-    // This should be done on the server side for security reasons.
-    exchangeAuthorizationCodeForAccessToken(authorizationCode);
+  if (localStorage.accessToken && localStorage.refreshToken) {
+      await ensureValidAccessToken() 
+      accessToken = localStorage.accessToken
+      refreshToken = localStorage.refreshToken
+      accessTokenExpiry = localStorage.accessTokenExpiry
+      initializeBoxPicker(localStorage.accessToken)
+  } else {
+    // Correctly process the URL search parameters to get the authorization code
+    const queryParams = new URLSearchParams(window.location.search);
+    const authorizationCode = queryParams.get("code");
+  
+    if (authorizationCode) {
+      // Since you cannot directly initialize the Box Picker with an authorization code,
+      // you need to exchange the code for an access token.
+      // This should be done on the server side for security reasons.
+      exchangeAuthorizationCodeForAccessToken(authorizationCode);
+    }
   }
 };
 
@@ -682,10 +697,17 @@ function exchangeAuthorizationCodeForAccessToken(authorizationCode) {
     .then((data) => {
       if (data.access_token && data.refresh_token) {
         accessToken = data.access_token;
+        localStorage.accessToken = data.access_token;
         refreshToken = data.refresh_token;
+        localStorage.refreshToken = data.refresh_token;
         accessTokenExpiry = Date.now() + data.expires_in * 1000;
-        console.log("Access Token:", accessToken);
+        localStorage.accessTokenExpiry = Date.now() + data.expires_in * 1000;
+        
+        let replaceURLPath = window.location.host.includes("localhost") ? "/" : "/Griddify"
+        window.history.replaceState({}, "", `${replaceURLPath}`)
+        
         initializeBoxPicker(accessToken); // Assuming this is your custom function
+
       } else {
         console.error("Could not obtain access token:", data);
       }
@@ -720,8 +742,11 @@ async function refreshAccessToken() {
     const data = await response.json();
     if (data.access_token) {
       accessToken = data.access_token;
+      localStorage.accessToken = data.access_token;
       refreshToken = data.refresh_token; // Update the refresh token if a new one is returned
+      localStorage.refreshToken = data.refresh_token;
       accessTokenExpiry = Date.now() + data.expires_in * 1000;
+      localStorage.accessTokenExpiry = Date.now() + data.expires_in * 1000;
     } else {
       console.error("Could not refresh access token:", data);
     }
@@ -731,7 +756,7 @@ async function refreshAccessToken() {
 }
 
 async function ensureValidAccessToken() {
-  if (Date.now() >= accessTokenExpiry) {
+  if (Date.now() >= localStorage.accessTokenExpiry) {
     await refreshAccessToken();
   }
 }
@@ -844,7 +869,7 @@ function bindEventListeners() {
       // }
 
       // Check image data type
-      if (window.uploadedImageFileType == "simple" || (window.ndpiScalingFactor)) {
+      if (window.uploadedImageFileType === "jpeg" || window.uploadedImageFileType === "png" || (window.ndpiScalingFactor)) {
         alert(
           "Full resolution downloads are not supported for .png/jpg images or locally uploaded .ndpi images."
         );
@@ -913,7 +938,7 @@ function bindEventListeners() {
         10
       );
 
-      if (window.uploadedImageFileType == "simple") {
+      if (window.uploadedImageFileType === "jpeg" || window.uploadedImageFileType === "png") {
         // Update the virtual grid with the new spacing values
         updateVirtualGridSpacing(
           horizontalSpacing,

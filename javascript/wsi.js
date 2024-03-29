@@ -4,14 +4,11 @@ let imagebox3Instance;
 const numWorkers = Math.max(window.navigator.hardwareConcurrency/2, 1)
 
 const createImagebox3Instance = async (imageSource) => {
-   console.log(imageSource, imagebox3Instance?.getImageSource())
   if (!imagebox3Instance?.getImageSource()) {
-    console.log("[ImgBox3] Creating new instance")
     imagebox3Instance = new Imagebox3(imageSource, numWorkers)
     await imagebox3Instance.init()
   }
   else if (imagebox3Instance?.getImageSource() !== imageSource) {
-    console.log("[ImgBox3] Changing image source")
     imagebox3Instance.changeImageSource(imageSource)
   }
 }
@@ -46,7 +43,6 @@ export const getPNGFromWSI = async (imageURL, maxDimension) => {
 
 export const getRegionFromWSI = async (imageURL, tileParams) => {
   await createImagebox3Instance(imageURL)
-  console.log(tileParams)
   const { tileX, tileY, tileWidth, tileHeight, tileSize } = tileParams
   const imageTile = await imagebox3Instance.getTile( tileX, tileY, tileWidth, tileHeight, tileSize )
   return imageTile
