@@ -262,7 +262,6 @@ function handleMetadataFileSelect(event) {
     processCSV(file);
   } else {
     processExcel(file);
-    ƒ;
   }
 }
 
