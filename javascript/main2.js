@@ -726,7 +726,7 @@ async function refreshAccessToken() {
   const url = "https://api.box.com/oauth2/token";
   const params = new URLSearchParams();
   params.append("grant_type", "refresh_token");
-  params.append("refresh_token", localStorage.refreshToken);
+  params.append("refresh_token", refreshToken || localStorage.refreshToken);
   params.append("client_id", clientId);
   params.append("client_secret", clientSecret);
 
