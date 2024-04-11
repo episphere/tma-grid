@@ -672,7 +672,27 @@ function drawCore(core, index = -1) {
       }
     },
 
-    clickHandler: overlayClickHandler,
+    clickHandler: (e) => {
+      if (e.originalEvent.shiftKey && index !== -1) {
+        window.sortedCoresData[index].isImaginary = !window.sortedCoresData[index].isImaginary;
+        if (window.sortedCoresData[index].isImaginary) {
+          overlayElement.classList.add("imaginary");
+        } else {
+          overlayElement.classList.remove("imaginary");
+        }
+        const overlayRect = window.viewer.viewport.imageToViewportRectangle(
+          new OpenSeadragon.Rect(
+            core.x - core.currentRadius,
+            core.y - core.currentRadius,
+            core.currentRadius * 2,
+            core.currentRadius * 2
+          )
+        );
+        window.viewer.updateOverlay(overlayElement, overlayRect);
+      } else {
+        overlayClickHandler(e);
+      }
+    },
 
     dblClickHandler: (e) => {
       // const overlay = window.viewer.getOverlayById(overlayElement);
@@ -811,12 +831,6 @@ const overlayClickHandler = (e) => {
       window.viewer.addHandler("zoom", zoomHandlerForResizeHandles);
       window.viewer.addOnceHandler("canvas-click", overlayClickHandler);
 
-      // // Get the core data from the sortedCoresData array
-      // const row = parseInt(overlay.element.id.split("_")[2]);
-      // const col = parseInt(overlay.element.id.split("_")[4]);
-      // const coreData = window.sortedCoresData.find(
-      //   (core) => core.row === row && core.col === col
-      // );
     }
   }
 };
@@ -2300,7 +2314,6 @@ function updateVirtualGridSpacing(
   startingY
 ) {
 
-  debugger
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
   const vctx = virtualGridCanvas.getContext("2d");
 
