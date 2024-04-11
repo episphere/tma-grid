@@ -884,11 +884,11 @@ function bindEventListeners() {
       downloadAllCores(window.sortedCoresData);
     });
 
-  document.querySelectorAll("input[type='number']").forEach((e) => {
-    e.onwheel = (e) => {
-      e.preventDefault();
-    };
-  });
+  // document.querySelectorAll("input[type='number']").forEach((e) => {
+  //   e.onwheel = (e) => {
+  //     e.preventDefault();
+  //   };
+  // });
 
   // Event listener for the Apply Hyperparameters button
   document
@@ -1204,6 +1204,7 @@ const initSegmentation = async () => {
       autoAssignRowColCheckbox.type = "checkbox";
       autoAssignRowColCheckbox.id = "editAutoUpdateRowsCheckbox";
       autoAssignRowColCheckbox.className = "osdViewerCheckbox";
+      autoAssignRowColCheckbox.checked = true;
 
       const autoAssignRowColLabel = document.createElement("label");
       autoAssignRowColLabel.htmlFor = "editAutoUpdateRowsCheckbox";
