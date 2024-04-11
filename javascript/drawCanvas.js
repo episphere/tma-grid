@@ -1960,6 +1960,20 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     form.onsubmit = function (event) {
       event.preventDefault(); // Prevent traditional form submission
 
+
+      // Ensure that the row/column values inputted are not a value that already exists in window.finalSaveData
+      const rowValue = Number(form.elements.namedItem(rowKeyName).value);
+      const colValue = Number(form.elements.namedItem(colKeyName).value);
+
+      if (
+        window.finalSaveData.some(
+          (core) => core[rowKeyName] === rowValue && core[colKeyName] === colValue
+        )
+      ) {
+        alert("A core with the same row and column values already exists.");
+        return;
+      }
+
       // Update the metadata object with new form values
       for (const key in metadataObj) {
         if (metadataObj.hasOwnProperty(key)) {
