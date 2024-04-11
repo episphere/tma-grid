@@ -181,7 +181,7 @@ const handleImageLoad = (file, processCallback) => {
         console.error("Image failed to load.");
       });
 
-    window.uploadedImageFileType = file.type.split("/")[1]
+    window.uploadedImageFileType = file.type.split("/")[1];
   } else if (file && file.name.endsWith(".svs")) {
     updateImagePreview(
       originalImageContainer.src,
@@ -200,8 +200,7 @@ const handleImageLoad = (file, processCallback) => {
 
     handleSVSFile(file, processCallback);
     window.uploadedImageFileType = "ndpi";
-  } 
-  else if (file && file.name.endsWith(".tiff")) {
+  } else if (file && file.name.endsWith(".tiff")) {
     updateImagePreview(
       originalImageContainer.src,
       originalImageContainer.width,
@@ -399,40 +398,43 @@ const handleLoadImageUrlClick = async () => {
   // $("#imageUrlInput").val(corsProxy + $("#imageUrlInput").val());
 
   const checkImageType = async (url) => {
-    const ac = new AbortController()
+    const ac = new AbortController();
     const resp = await fetch(url, {
-      'signal': ac.signal
-    })
-    ac.abort()
-    
-    const contentType = resp.headers.get("content-type")
+      signal: ac.signal,
+    });
+    ac.abort();
+
+    const contentType = resp.headers.get("content-type");
     switch (contentType) {
-      case 'image/png': 
-      case 'image/jpeg':
-      case 'image/tiff':
-        return contentType.split("/")[1]
-      
-      case 'application/octet-stream':
-        return "svs"
+      case "image/png":
+      case "image/jpeg":
+      case "image/tiff":
+        return contentType.split("/")[1];
+
+      case "application/octet-stream":
+        return "svs";
     }
-  }
+  };
 
   const imageUrl = getInputValue("imageUrlInput");
 
   if (imageUrl) {
     let imageResp = undefined;
     let width, height;
-    window.uploadedImageFileType = await checkImageType(imageUrl)
+    window.uploadedImageFileType = await checkImageType(imageUrl);
 
-    if (window.uploadedImageFileType === "jpeg" || window.uploadedImageFileType === "png") {
+    if (
+      window.uploadedImageFileType === "jpeg" ||
+      window.uploadedImageFileType === "png"
+    ) {
       imageResp = fetch(imageUrl);
     } else {
-      let imageInfo
+      let imageInfo;
       try {
         imageInfo = await getWSIInfo(imageUrl);
       } catch (e) {
-        console.error(e)
-        alert("Image unsupported! Please try with a different URL.")
+        console.error(e);
+        alert("Image unsupported! Please try with a different URL.");
         return;
       }
       console.log("imageInfo", imageInfo);
@@ -642,18 +644,17 @@ document.getElementById("boxLoginBtn").addEventListener("click", function () {
 
 // Handle authentication response and initialize Box Picker
 window.onload = async () => {
-
   if (localStorage.accessToken && localStorage.refreshToken) {
-      await ensureValidAccessToken() 
-      accessToken = localStorage.accessToken
-      refreshToken = localStorage.refreshToken
-      accessTokenExpiry = localStorage.accessTokenExpiry
-      initializeBoxPicker(localStorage.accessToken)
+    await ensureValidAccessToken();
+    accessToken = localStorage.accessToken;
+    refreshToken = localStorage.refreshToken;
+    accessTokenExpiry = localStorage.accessTokenExpiry;
+    initializeBoxPicker(localStorage.accessToken);
   } else {
     // Correctly process the URL search parameters to get the authorization code
     const queryParams = new URLSearchParams(window.location.search);
     const authorizationCode = queryParams.get("code");
-  
+
     if (authorizationCode) {
       // Since you cannot directly initialize the Box Picker with an authorization code,
       // you need to exchange the code for an access token.
@@ -701,12 +702,13 @@ function exchangeAuthorizationCodeForAccessToken(authorizationCode) {
         localStorage.refreshToken = data.refresh_token;
         accessTokenExpiry = Date.now() + data.expires_in * 1000;
         localStorage.accessTokenExpiry = Date.now() + data.expires_in * 1000;
-        
-        let replaceURLPath = window.location.host.includes("localhost") ? "/" : "/Griddify"
-        window.history.replaceState({}, "", `${replaceURLPath}`)
-        
-        initializeBoxPicker(accessToken); // Assuming this is your custom function
 
+        let replaceURLPath = window.location.host.includes("localhost")
+          ? "/"
+          : "/Griddify";
+        window.history.replaceState({}, "", `${replaceURLPath}`);
+
+        initializeBoxPicker(accessToken); // Assuming this is your custom function
       } else {
         console.error("Could not obtain access token:", data);
       }
@@ -868,7 +870,11 @@ function bindEventListeners() {
       // }
 
       // Check image data type
-      if (window.uploadedImageFileType === "jpeg" || window.uploadedImageFileType === "png" || (window.ndpiScalingFactor)) {
+      if (
+        window.uploadedImageFileType === "jpeg" ||
+        window.uploadedImageFileType === "png" ||
+        window.ndpiScalingFactor
+      ) {
         alert(
           "Full resolution downloads are not supported for .png/jpg images or locally uploaded .ndpi images."
         );
@@ -937,7 +943,10 @@ function bindEventListeners() {
         10
       );
 
-      if (window.uploadedImageFileType === "jpeg" || window.uploadedImageFileType === "png") {
+      if (
+        window.uploadedImageFileType === "jpeg" ||
+        window.uploadedImageFileType === "png"
+      ) {
         // Update the virtual grid with the new spacing values
         updateVirtualGridSpacing(
           horizontalSpacing,
@@ -1133,7 +1142,11 @@ const initSegmentation = async () => {
       let tileSources = {};
 
       const imageInfo = await getImageInfo();
-      if (imageInfo.isSimpleImage || (window.uploadedImageFileType === "ndpi" && window.ndpiScalingFactor != undefined)) {
+      if (
+        imageInfo.isSimpleImage ||
+        (window.uploadedImageFileType === "ndpi" &&
+          window.ndpiScalingFactor != undefined)
+      ) {
         tileSources = {
           type: "image",
           url: imageInfo.url,
@@ -1175,14 +1188,71 @@ const initSegmentation = async () => {
         timeout: 60 * 1000,
       });
       // viewer.open(tileSources)
-
       const addCoreDiv = document.createElement("div");
       addCoreDiv.className = "osdViewerControlsParent";
+
       const addCoreBtn = document.createElement("button");
       addCoreBtn.className = "osdViewerControl";
       addCoreBtn.id = "osdViewerAddCoreBtn";
-      addCoreBtn.innerText = "+ Add Core";
+      addCoreBtn.innerHTML = "+ Add Core";
       addCoreDiv.appendChild(addCoreBtn);
+
+      const autoAssignRowColDiv = document.createElement("div");
+      autoAssignRowColDiv.className = "osdViewerControl";
+
+      const autoAssignRowColCheckbox = document.createElement("input");
+      autoAssignRowColCheckbox.type = "checkbox";
+      autoAssignRowColCheckbox.id = "editAutoUpdateRowsCheckbox";
+      autoAssignRowColCheckbox.className = "osdViewerCheckbox";
+
+      const autoAssignRowColLabel = document.createElement("label");
+      autoAssignRowColLabel.htmlFor = "editAutoUpdateRowsCheckbox";
+      autoAssignRowColLabel.className = "osdViewerCheckboxLabel";
+      autoAssignRowColLabel.innerText = "Auto Row";
+
+      autoAssignRowColCheckbox.addEventListener("change", toggleRowInput);
+      
+      autoAssignRowColCheckbox.addEventListener("change", toggleColumnInput);
+
+
+      autoAssignRowColDiv.appendChild(autoAssignRowColCheckbox);
+      autoAssignRowColDiv.appendChild(autoAssignRowColLabel);
+
+      addCoreDiv.appendChild(autoAssignRowColDiv);
+
+      // Function to toggle the disabled state based on the checkbox
+      function toggleColumnInput() {
+        var editAutoUpdateColumnsCheckbox = document.getElementById(
+          "editAutoUpdateColumnsCheckbox"
+        );
+
+        editAutoUpdateColumnsCheckbox.checked =
+          !editAutoUpdateColumnsCheckbox.checked;
+        var columnInput = document.getElementById("editColumnInput");
+
+        // If the checkbox is checked, disable the column input
+        if (editAutoUpdateColumnsCheckbox.checked) {
+          columnInput.disabled = true;
+        } else {
+          // Otherwise, enable it
+          columnInput.disabled = false;
+        }
+      }
+
+      function toggleRowInput() {
+        var editAutoUpdateRowsCheckbox = document.getElementById(
+          "editAutoUpdateRowsCheckbox"
+        );
+        var rowInput = document.getElementById("editRowInput");
+
+        // If the checkbox is checked, disable the column input
+        if (editAutoUpdateRowsCheckbox.checked) {
+          rowInput.disabled = true;
+        } else {
+          // Otherwise, enable it
+          rowInput.disabled = false;
+        }
+      }
 
       window.viewer.addControl(
         addCoreDiv,
@@ -1191,6 +1261,7 @@ const initSegmentation = async () => {
         },
         window.viewer.controls.topRight
       );
+      addCoreDiv.style.display = "flex";
 
       window.viewer.addOnceHandler("open", () => {
         window.viewer.world
@@ -1250,8 +1321,6 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
   };
 });
 
-
-
 async function downloadAllCores(cores) {
   const svsImageURL = document.getElementById("imageUrlInput").value
     ? document.getElementById("imageUrlInput").value
@@ -1280,7 +1349,10 @@ async function downloadAllCores(cores) {
     const tileHeight = parseInt(core.currentRadius * 2);
 
     if (window.uploadedImageFileType === "ndpi") {
-      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(tileWidth, 3192)},/0/default.jpg`;
+      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(
+        tileWidth,
+        3192
+      )},/0/default.jpg`;
 
       const response = await fetch(apiURL);
       const blob = await response.blob();
@@ -1295,7 +1367,10 @@ async function downloadAllCores(cores) {
         tileSize: tileWidth, // or any other logic for tileSize
       };
 
-      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+      const fullSizeImageResp = await getRegionFromWSI(
+        svsImageURL,
+        fullResTileParams
+      );
       const blob = await fullSizeImageResp.blob();
       zip.file(`core_${index}.png`, blob);
     }
@@ -1316,7 +1391,9 @@ async function downloadAllCores(cores) {
           // Update progress for NDPI cores
           const progress = ((index + 1) / cores.length) * 100;
           progressBar.style.width = `${progress}%`;
-          progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+          progressText.innerText = `Downloading... (${index + 1}/${
+            cores.length
+          })`;
         }
       } else {
         // For SVS, process immediately without batching
@@ -1324,7 +1401,9 @@ async function downloadAllCores(cores) {
         // Update progress for SVS cores
         const progress = ((index + 1) / cores.length) * 100;
         progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+        progressText.innerText = `Downloading... (${index + 1}/${
+          cores.length
+        })`;
       }
     }
   }
@@ -1333,26 +1412,27 @@ async function downloadAllCores(cores) {
 
   progressText.innerText = `Finalizing export...`;
 
-
   // Generate the zip file
-  zip.generateAsync({
-    type: "blob",
-    compression: "DEFLATE",
-    compressionOptions: { level: 6 }, // Highest compression
-  }).then(function (content) {
-    // Use a temporary link to download the zip file
-    const downloadLink = document.createElement("a");
-    downloadLink.href = URL.createObjectURL(content);
-    downloadLink.download = "cores.zip";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+  zip
+    .generateAsync({
+      type: "blob",
+      compression: "DEFLATE",
+      compressionOptions: { level: 6 }, // Highest compression
+    })
+    .then(function (content) {
+      // Use a temporary link to download the zip file
+      const downloadLink = document.createElement("a");
+      downloadLink.href = URL.createObjectURL(content);
+      downloadLink.download = "cores.zip";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
 
-    // Hide progress overlay and reset progress bar
-    overlay.style.display = "none";
-    progressBar.style.width = "0%";
-    progressText.innerText = "Download complete!";
-  });
+      // Hide progress overlay and reset progress bar
+      overlay.style.display = "none";
+      progressBar.style.width = "0%";
+      progressText.innerText = "Download complete!";
+    });
 }
 
 // Main function that runs the application
