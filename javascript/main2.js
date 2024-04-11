@@ -1209,7 +1209,7 @@ const initSegmentation = async () => {
       const autoAssignRowColLabel = document.createElement("label");
       autoAssignRowColLabel.htmlFor = "editAutoUpdateRowsCheckbox";
       autoAssignRowColLabel.className = "osdViewerCheckboxLabel";
-      autoAssignRowColLabel.innerText = "Auto Row";
+      autoAssignRowColLabel.innerText = "Auto Row/Col";
 
       autoAssignRowColCheckbox.addEventListener("change", toggleRowInput);
       

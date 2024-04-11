@@ -947,6 +947,7 @@ function saveCore(core) {
     if (
       oldRow !== parseInt(document.getElementById("editRowInput").value, 10) &&
       oldRow !== -1
+      && document.getElementById("editAutoUpdateRowsCheckbox").checked
     ) {
       updateRowsInGridAfterRemoval(oldRow);
     }
