@@ -803,13 +803,12 @@ function initializeBoxPicker(accessToken, folderId = "0") {
     chooseButtonLabel: "Select Image",
     cancelButtonLabel: "Cancel",
     container: "#boxFilesContainer",
-    extensions: ["png", "jpg", "jpeg", "svs"],
+    extensions: ["png", "jpg", "jpeg", "svs", "ndpi", "tiff"],
     maxSelectable: 1,
   };
 
   filePicker.addListener("choose", async (files) => {
     if (files.length > 0 && files[0].is_download_available) {
-      resetApplication();
       const file = files[0];
 
       try {
