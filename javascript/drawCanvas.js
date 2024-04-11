@@ -740,12 +740,11 @@ function drawCore(core, index = -1) {
 
         debugger;
 
-
         // If oldRow is now empty, remove it from the grid
 
         if (
-          window.sortedCoresData.filter((core) => core.row === oldRow).length ===
-          0
+          window.sortedCoresData.filter((core) => core.row === oldRow)
+            .length === 0
         ) {
           updateRowsInGridAfterRemoval(oldRow);
         }
@@ -756,9 +755,6 @@ function drawCore(core, index = -1) {
           // Only update if the core isn't a marker
           updateRowsInGridAfterMovement(oldRow, newRow);
         }
-
-
-
 
         const imageRotation = document.getElementById("originAngle").value;
         flagMisalignedCores(window.sortedCoresData, imageRotation, false);
@@ -946,8 +942,8 @@ function saveCore(core) {
 
     if (
       oldRow !== parseInt(document.getElementById("editRowInput").value, 10) &&
-      oldRow !== -1
-      && document.getElementById("editAutoUpdateRowsCheckbox").checked
+      oldRow !== -1 &&
+      document.getElementById("editAutoUpdateRowsCheckbox").checked
     ) {
       updateRowsInGridAfterRemoval(oldRow);
     }
@@ -1024,13 +1020,11 @@ function determineCoreRow(core, sortedCoresData) {
     (core) => !isNaN(core.row) && !isNaN(core.col)
   );
 
-
   // Filter out rows in sortedCoresData that only have one core
   sortedCoresData = sortedCoresData.filter((core) => {
     const coresInRow = sortedCoresData.filter((c) => c.row === core.row);
     return coresInRow.length > 1;
   });
-
 
   let imageRotation = parseFloat(document.getElementById("originAngle").value);
 
@@ -1993,7 +1987,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     submitButton.type = "submit";
     submitButton.value = "Update Metadata";
     submitButton.className =
-      "mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
+      "mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 w-full";
     form.appendChild(submitButton);
 
     // Create a button to add custom properties
@@ -2001,33 +1995,60 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     addPropertyButton.type = "button";
     addPropertyButton.textContent = "Add Field";
     addPropertyButton.className =
-      "mt-4 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50";
+      "mt-2 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 w-full";
     form.insertBefore(addPropertyButton, submitButton);
 
-    // Handle adding custom properties
-    addPropertyButton.onclick = function () {
-      const customPropertyDiv = document.createElement("div");
-      customPropertyDiv.className = "flex flex-col mb-4";
+// Handle adding custom properties
+addPropertyButton.onclick = function () {
+  const customPropertyDiv = document.createElement("div");
+  customPropertyDiv.className = "flex flex-col mb-4";
 
-      const customPropertyKeyInput = document.createElement("input");
-      customPropertyKeyInput.type = "text";
-      customPropertyKeyInput.name = "customPropertyKey";
-      customPropertyKeyInput.placeholder = "Enter custom field name";
-      customPropertyKeyInput.className =
-        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mb-2";
+  const customPropertyLabel = document.createElement("span");
+  customPropertyLabel.contentEditable = true;
+  customPropertyLabel.dataset.placeholder = "Enter custom field name";
+  customPropertyLabel.className =
+    "mb-2 text-sm font-medium text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
+  customPropertyLabel.style.borderBottom = "1px dashed #ccc";
+  customPropertyLabel.style.paddingBottom = "2px";
+  customPropertyLabel.style.display = "inline-block";
+  customPropertyLabel.style.minWidth = "100px";
 
-      const customPropertyValueInput = document.createElement("input");
-      customPropertyValueInput.type = "text";
-      customPropertyValueInput.name = "customPropertyValue";
-      customPropertyValueInput.placeholder = "Enter custom field value";
-      customPropertyValueInput.className =
-        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+  // Add placeholder text
+  customPropertyLabel.innerHTML = "Enter custom field name";
 
-      customPropertyDiv.appendChild(customPropertyKeyInput);
-      customPropertyDiv.appendChild(customPropertyValueInput);
+  // Remove placeholder text when the label is focused
+  customPropertyLabel.addEventListener("focus", function () {
+    if (this.innerHTML === "Enter custom field name") {
+      this.innerHTML = "";
+      this.classList.remove("text-gray-400");
+      this.classList.add("text-gray-900");
+    }
+  });
 
-      form.insertBefore(customPropertyDiv, addPropertyButton);
-    };
+  // Add placeholder text when the label is empty and loses focus
+  customPropertyLabel.addEventListener("blur", function () {
+    if (this.innerHTML.trim() === "") {
+      this.innerHTML = "Enter custom field name";
+      this.classList.remove("text-gray-900");
+      this.classList.add("text-gray-400");
+    }
+  });
+
+  const customPropertyValueInput = document.createElement("input");
+  customPropertyValueInput.type = "text";
+  customPropertyValueInput.name = "customPropertyValue";
+  customPropertyValueInput.placeholder = "Enter custom field value";
+  customPropertyValueInput.className =
+    "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+
+  customPropertyDiv.appendChild(customPropertyLabel);
+  customPropertyDiv.appendChild(customPropertyValueInput);
+
+  form.insertBefore(customPropertyDiv, addPropertyButton);
+
+  // Set focus on the custom property label
+  customPropertyLabel.focus();
+};
 
     // Handle form submission
     form.onsubmit = function (event) {
@@ -2061,15 +2082,15 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       }
 
       // Add custom properties to all cores in window.finalSaveData
-    const customPropertyKeyInputs = form.querySelectorAll(
-      'input[name="customPropertyKey"]'
+    const customPropertyLabels = form.querySelectorAll(
+      'span[contenteditable="true"]'
     );
     const customPropertyValueInputs = form.querySelectorAll(
       'input[name="customPropertyValue"]'
     );
 
-    for (let i = 0; i < customPropertyKeyInputs.length; i++) {
-      const key = customPropertyKeyInputs[i].value.trim();
+    for (let i = 0; i < customPropertyLabels.length; i++) {
+      const key = customPropertyLabels[i].textContent.trim();
       const value = customPropertyValueInputs[i].value.trim();
 
       if (key !== "") {
@@ -2086,6 +2107,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         }
       }
     }
+
 
       // If the row and column values have been updated, update the virtual grid
 
