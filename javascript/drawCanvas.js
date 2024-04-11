@@ -1695,7 +1695,7 @@ function obtainHyperparametersAndDrawVirtualGrid() {
   const startingY = parseInt(document.getElementById("startingY").value, 10);
 
   createVirtualGrid(
-    window.sortedCoresData,
+    window.finalSaveData,
     horizontalSpacing,
     verticalSpacing,
     startingX,
@@ -1734,7 +1734,7 @@ async function createVirtualGrid(
     window.uploadedImageFileType === "tiff" ||
     (window.uploadedImageFileType === "ndpi" && !window.ndpiScalingFactor)
   ) {
-    if (firstRun) {
+    // if (firstRun) {
       // Hide the virtual grid canvas
       const virtualGridCanvas = document.getElementById("virtualGridCanvas");
       virtualGridCanvas.style.display = "none";
@@ -1748,14 +1748,14 @@ async function createVirtualGrid(
       );
 
       await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 64);
-    } else {
-      updateGridSpacingInVirtualGridForSVS(
-        horizontalSpacing,
-        verticalSpacing,
-        startingX,
-        startingY
-      );
-    }
+    // } else {
+    //   updateGridSpacingInVirtualGridForSVS(
+    //     horizontalSpacing,
+    //     verticalSpacing,
+    //     startingX,
+    //     startingY
+    //   );
+    // }
   } else {
     // Hide the virtual grid container
     const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
@@ -1973,6 +1973,17 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         }
       }
 
+      // If the row and column values have been updated, update the virtual grid
+
+      if (
+        metadataObj[rowKeyName] !== rowValue ||
+        metadataObj[colKeyName] !== colValue
+      ) {
+
+        updateVirtualGridSpacing();
+      }
+
+
       // Log the updated object for verification
       console.log("Metadata updated successfully:", metadataObj);
       // Implement any follow-up action here
@@ -2011,18 +2022,18 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
   // Create overlay div for displaying row and column
   const overlay = document.createElement("div");
   overlay.classList.add("image-overlay");
-  overlay.innerHTML = `(${core.row + 1}, ${core.col + 1})`;
+  overlay.innerHTML = `(${core.row}, ${core.col})`;
 
   // Double-click event for initiating download
   container.ondblclick = () => {
-    const fileName = `core_${core.row + 1}_${core.col + 1}.png`; // Construct file name
+    const fileName = `core_${core.row}_${core.col}.png`; // Construct file name
 
     initiateDownload(svsImageURL, core, coreWidth, coreHeight, fileName);
   };
 
   container.onclick = () => {
     // Select the core
-    populateAndEditMetadataForm(core.row + 1, core.col + 1);
+    populateAndEditMetadataForm(core.row, core.col);
 
     // Remove the active class from all cores
     coreContainers.forEach((container) => {
@@ -2080,8 +2091,8 @@ async function drawVirtualGridFromWSI(
   virtualGridDiv.innerHTML = ""; // Clear existing content
 
   // Calculate grid dimensions
-  const maxRow = Math.max(...sortedCoresData.map((core) => core.row)) + 1;
-  const maxCol = Math.max(...sortedCoresData.map((core) => core.col)) + 1;
+  const maxRow = Math.max(...sortedCoresData.map((core) => core.row));
+  const maxCol = Math.max(...sortedCoresData.map((core) => core.col));
 
   // Create and append column headers
   for (let col = 0; col < maxCol; col++) {
@@ -2113,8 +2124,8 @@ async function drawVirtualGridFromWSI(
     const promise = createImageForCore(svsImageURL, core, coreSize).then(
       (img) => {
         // Position the image in the grid based on the core's row and col properties
-        img.style.gridColumn = core.col + 2; // CSS grid lines are 1-based
-        img.style.gridRow = core.row + 2;
+        img.style.gridColumn = core.col + 1; // CSS grid lines are 1-based
+        img.style.gridRow = core.row + 1;
         return img;
       }
     );
@@ -2273,6 +2284,8 @@ function updateVirtualGridSpacing(
   startingX,
   startingY
 ) {
+
+  debugger
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
   const vctx = virtualGridCanvas.getContext("2d");
 
@@ -2281,7 +2294,7 @@ function updateVirtualGridSpacing(
 
   // Redraw the grid with new spacings
   createVirtualGrid(
-    window.sortedCoresData,
+    window.finalSaveData,
     horizontalSpacing * 1.25,
     verticalSpacing * 1.25,
     startingX,
