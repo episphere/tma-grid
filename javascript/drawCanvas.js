@@ -1973,7 +1973,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     // Create a button to add custom properties
     const addPropertyButton = document.createElement("button");
     addPropertyButton.type = "button";
-    addPropertyButton.textContent = "Add Custom Property";
+    addPropertyButton.textContent = "Add Field";
     addPropertyButton.className =
       "mt-4 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50";
     form.insertBefore(addPropertyButton, submitButton);
@@ -1986,14 +1986,14 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       const customPropertyKeyInput = document.createElement("input");
       customPropertyKeyInput.type = "text";
       customPropertyKeyInput.name = "customPropertyKey";
-      customPropertyKeyInput.placeholder = "Enter custom property key";
+      customPropertyKeyInput.placeholder = "Enter custom field name";
       customPropertyKeyInput.className =
         "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mb-2";
 
       const customPropertyValueInput = document.createElement("input");
       customPropertyValueInput.type = "text";
       customPropertyValueInput.name = "customPropertyValue";
-      customPropertyValueInput.placeholder = "Enter custom property value";
+      customPropertyValueInput.placeholder = "Enter custom field value";
       customPropertyValueInput.className =
         "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
 
