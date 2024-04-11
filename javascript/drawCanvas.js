@@ -1962,18 +1962,19 @@ function populateAndEditMetadataForm(rowValue, colValue) {
 
 
       // Ensure that the row/column values inputted are not a value that already exists in window.finalSaveData
-      const rowValue = Number(form.elements.namedItem(rowKeyName).value);
-      const colValue = Number(form.elements.namedItem(colKeyName).value);
+      const newRowValue = Number(form.elements.namedItem(rowKeyName).value);
+      const newColValue = Number(form.elements.namedItem(colKeyName).value);
 
       if (
+        (newRowValue !== rowValue ||
+          newColValue !== colValue) &&
         window.finalSaveData.some(
-          (core) => core[rowKeyName] === rowValue && core[colKeyName] === colValue
+          (core) => core[rowKeyName] === newRowValue && core[colKeyName] === newColValue
         )
       ) {
         alert("A core with the same row and column values already exists.");
         return;
       }
-
       // Update the metadata object with new form values
       for (const key in metadataObj) {
         if (metadataObj.hasOwnProperty(key)) {
@@ -1990,8 +1991,8 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       // If the row and column values have been updated, update the virtual grid
 
       if (
-        metadataObj[rowKeyName] !== rowValue ||
-        metadataObj[colKeyName] !== colValue
+        newRowValue !== rowValue ||
+        newColValue !== colValue
       ) {
 
         updateVirtualGridSpacing();
