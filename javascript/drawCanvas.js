@@ -738,14 +738,27 @@ function drawCore(core, index = -1) {
         );
         const oldRow = window.sortedCoresData[index].row;
 
+        debugger;
+
+
+        // If oldRow is now empty, remove it from the grid
+
+        if (
+          window.sortedCoresData.filter((core) => core.row === oldRow).length ===
+          0
+        ) {
+          updateRowsInGridAfterRemoval(oldRow);
+        }
+
         // Only if the editAutoUpdateRowsCheckbox is checked for the core
         if (document.getElementById("editAutoUpdateRowsCheckbox").checked) {
           window.sortedCoresData[index].row = newRow;
+          // Only update if the core isn't a marker
+          updateRowsInGridAfterMovement(oldRow, newRow);
         }
 
 
-        // Only update if the core isn't a marker
-        updateRowsInGridAfterMovement(oldRow, newRow);
+
 
         const imageRotation = document.getElementById("originAngle").value;
         flagMisalignedCores(window.sortedCoresData, imageRotation, false);
@@ -968,9 +981,6 @@ function saveCore(core) {
     !document.getElementById("editIsMarkerInput").checked
   ) {
     core.row = determineCoreRow(core, window.sortedCoresData);
-  }
-
-  if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
     if (!core.isMarker) {
       updateColumnsInRowAfterModification(core.row);
     }
@@ -982,6 +992,10 @@ function saveCore(core) {
 
     updateSidebar(core);
   }
+
+  // if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
+
+  // }
 
   core.isSelected = false;
 
@@ -1008,6 +1022,14 @@ function determineCoreRow(core, sortedCoresData) {
   sortedCoresData = sortedCoresData.filter(
     (core) => !isNaN(core.row) && !isNaN(core.col)
   );
+
+
+  // Filter out rows in sortedCoresData that only have one core
+  sortedCoresData = sortedCoresData.filter((core) => {
+    const coresInRow = sortedCoresData.filter((c) => c.row === core.row);
+    return coresInRow.length > 1;
+  });
+
 
   let imageRotation = parseFloat(document.getElementById("originAngle").value);
 
