@@ -674,7 +674,8 @@ function drawCore(core, index = -1) {
 
     clickHandler: (e) => {
       if (e.originalEvent.shiftKey && index !== -1) {
-        window.sortedCoresData[index].isImaginary = !window.sortedCoresData[index].isImaginary;
+        window.sortedCoresData[index].isImaginary =
+          !window.sortedCoresData[index].isImaginary;
         if (window.sortedCoresData[index].isImaginary) {
           overlayElement.classList.add("imaginary");
         } else {
@@ -830,7 +831,6 @@ const overlayClickHandler = (e) => {
       document.addEventListener("keydown", keyPressHandler);
       window.viewer.addHandler("zoom", zoomHandlerForResizeHandles);
       window.viewer.addOnceHandler("canvas-click", overlayClickHandler);
-
     }
   }
 };
@@ -1749,19 +1749,19 @@ async function createVirtualGrid(
     (window.uploadedImageFileType === "ndpi" && !window.ndpiScalingFactor)
   ) {
     // if (firstRun) {
-      // Hide the virtual grid canvas
-      const virtualGridCanvas = document.getElementById("virtualGridCanvas");
-      virtualGridCanvas.style.display = "none";
+    // Hide the virtual grid canvas
+    const virtualGridCanvas = document.getElementById("virtualGridCanvas");
+    virtualGridCanvas.style.display = "none";
 
-      // Update the grid spacing and starting position
-      updateGridSpacingInVirtualGridForSVS(
-        horizontalSpacing,
-        verticalSpacing,
-        startingX,
-        startingY
-      );
+    // Update the grid spacing and starting position
+    updateGridSpacingInVirtualGridForSVS(
+      horizontalSpacing,
+      verticalSpacing,
+      startingX,
+      startingY
+    );
 
-      await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 64);
+    await drawVirtualGridFromWSI(imageSrc, sortedCoresData, 64);
     // } else {
     //   updateGridSpacingInVirtualGridForSVS(
     //     horizontalSpacing,
@@ -1970,20 +1970,52 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       "mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
     form.appendChild(submitButton);
 
+    // Create a button to add custom properties
+    const addPropertyButton = document.createElement("button");
+    addPropertyButton.type = "button";
+    addPropertyButton.textContent = "Add Custom Property";
+    addPropertyButton.className =
+      "mt-4 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50";
+    form.insertBefore(addPropertyButton, submitButton);
+
+    // Handle adding custom properties
+    addPropertyButton.onclick = function () {
+      const customPropertyDiv = document.createElement("div");
+      customPropertyDiv.className = "flex flex-col mb-4";
+
+      const customPropertyKeyInput = document.createElement("input");
+      customPropertyKeyInput.type = "text";
+      customPropertyKeyInput.name = "customPropertyKey";
+      customPropertyKeyInput.placeholder = "Enter custom property key";
+      customPropertyKeyInput.className =
+        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mb-2";
+
+      const customPropertyValueInput = document.createElement("input");
+      customPropertyValueInput.type = "text";
+      customPropertyValueInput.name = "customPropertyValue";
+      customPropertyValueInput.placeholder = "Enter custom property value";
+      customPropertyValueInput.className =
+        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+
+      customPropertyDiv.appendChild(customPropertyKeyInput);
+      customPropertyDiv.appendChild(customPropertyValueInput);
+
+      form.insertBefore(customPropertyDiv, addPropertyButton);
+    };
+
     // Handle form submission
     form.onsubmit = function (event) {
       event.preventDefault(); // Prevent traditional form submission
-
 
       // Ensure that the row/column values inputted are not a value that already exists in window.finalSaveData
       const newRowValue = Number(form.elements.namedItem(rowKeyName).value);
       const newColValue = Number(form.elements.namedItem(colKeyName).value);
 
       if (
-        (newRowValue !== rowValue ||
-          newColValue !== colValue) &&
+        (newRowValue !== rowValue || newColValue !== colValue) &&
         window.finalSaveData.some(
-          (core) => core[rowKeyName] === newRowValue && core[colKeyName] === newColValue
+          (core) =>
+            core[rowKeyName] === newRowValue && core[colKeyName] === newColValue
         )
       ) {
         alert("A core with the same row and column values already exists.");
@@ -2002,16 +2034,38 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         }
       }
 
+      // Add custom properties to all cores in window.finalSaveData
+    const customPropertyKeyInputs = form.querySelectorAll(
+      'input[name="customPropertyKey"]'
+    );
+    const customPropertyValueInputs = form.querySelectorAll(
+      'input[name="customPropertyValue"]'
+    );
+
+    for (let i = 0; i < customPropertyKeyInputs.length; i++) {
+      const key = customPropertyKeyInputs[i].value.trim();
+      const value = customPropertyValueInputs[i].value.trim();
+
+      if (key !== "") {
+        // Add the custom property to all cores if it doesn't exist
+        window.finalSaveData.forEach((core) => {
+          if (!core.hasOwnProperty(key)) {
+            core[key] = "";
+          }
+        });
+
+        // Set the custom property value for the selected core
+        if (value !== "") {
+          metadataObj[key] = value;
+        }
+      }
+    }
+
       // If the row and column values have been updated, update the virtual grid
 
-      if (
-        newRowValue !== rowValue ||
-        newColValue !== colValue
-      ) {
-
+      if (newRowValue !== rowValue || newColValue !== colValue) {
         updateVirtualGridSpacing();
       }
-
 
       // Log the updated object for verification
       console.log("Metadata updated successfully:", metadataObj);
@@ -2313,7 +2367,6 @@ function updateVirtualGridSpacing(
   startingX,
   startingY
 ) {
-
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
   const vctx = virtualGridCanvas.getContext("2d");
 
