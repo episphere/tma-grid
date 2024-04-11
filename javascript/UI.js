@@ -116,8 +116,8 @@ function positionSidebarNextToCore(event) {
 
   // Position the sidebar at the cursor's location within the container
   // You may want to adjust offsetX and offsetY if you don't want the sidebar to appear directly under the cursor
-  const offsetX = 10; // Horizontal offset from the cursor
-  const offsetY = 0; // Vertical offset from the cursor
+  const offsetX = 55; // Horizontal offset from the cursor
+  const offsetY = 75; // Vertical offset from the cursor
 
   // Apply the positions with the offsets
   sidebar.style.left = cursorXWithinContainer + offsetX + "px";
@@ -324,6 +324,7 @@ function resetApplication() {
   // Clear the canvases
   // const coreCanvas = document.getElementById("coreCanvas");
   // const coreCanvas = document.getElementById("coreCanvas");
+
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
 
   // Clear the image element with the id processedImage

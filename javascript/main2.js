@@ -809,6 +809,7 @@ function initializeBoxPicker(accessToken, folderId = "0") {
 
   filePicker.addListener("choose", async (files) => {
     if (files.length > 0 && files[0].is_download_available) {
+      resetApplication();
       const file = files[0];
 
       try {
