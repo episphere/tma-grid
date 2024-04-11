@@ -9,7 +9,7 @@ const createImagebox3Instance = async (imageSource) => {
     await imagebox3Instance.init()
   }
   else if (imagebox3Instance?.getImageSource() !== imageSource) {
-    imagebox3Instance.changeImageSource(imageSource)
+    await imagebox3Instance.changeImageSource(imageSource)
   }
 }
 
