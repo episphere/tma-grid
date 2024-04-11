@@ -2301,10 +2301,10 @@ function drawVirtualGridFromPNG(
         selectedCore.row === core.row &&
         selectedCore.col === core.col
       ) {
-        vctx.strokeStyle = "#FFD700"; // Gold color for selection
+        vctx.strokeStyle = "#50F947"; // Gold color for selection
         vctx.lineWidth = 4; // Thicker border for selected core
         vctx.shadowBlur = 10; // Glow effect
-        vctx.shadowColor = "#FFD700"; // Glow color matches the border
+        vctx.shadowColor = "#50F947"; // Glow color matches the border
       } else {
         // Default style for non-selected cores
         vctx.strokeStyle = core.isImaginary ? "red" : "green";
