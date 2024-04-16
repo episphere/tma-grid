@@ -31,20 +31,21 @@ const advancedSettingsCheckbox = document.getElementById("advanced-settings");
 const advancedSettingsContent = document.querySelector(
   "#advanced-settings-content"
 );
-const toggleBackground = document.querySelector("#toggle-bg");
-const toggleDot = document.querySelector(".dot");
+
+// const toggleBackground = document.querySelector("#toggle-bg");
+// const toggleDot = document.querySelector(".dot");
 
 advancedSettingsCheckbox.addEventListener("change", function () {
   if (this.checked) {
     advancedSettingsContent.classList.remove("hidden");
-    // If the checkbox is checked, change the background color and move the dot to indicate it's on
-    toggleBackground.style.backgroundColor = "#4ade80"; // Change to your desired color for "on" state
-    toggleDot.style.transform = "translateX(90%)"; // Adjust this value based on the size of your toggle
+    // // If the checkbox is checked, change the background color and move the dot to indicate it's on
+    // toggleBackground.style.backgroundColor = "#4ade80"; // Change to your desired color for "on" state
+    // toggleDot.style.transform = "translateX(90%)"; // Adjust this value based on the size of your toggle
   } else {
     advancedSettingsContent.classList.add("hidden");
-    // If the checkbox is not checked, revert to the original state
-    toggleBackground.style.backgroundColor = "rgb(229 231 235)"; // Original color
-    toggleDot.style.transform = "translateX(1px)"; // Back to the original position
+    // // If the checkbox is not checked, revert to the original state
+    // toggleBackground.style.backgroundColor = "rgb(229 231 235)"; // Original color
+    // toggleDot.style.transform = "translateX(1px)"; // Back to the original position
   }
 });
 
