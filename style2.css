@@ -1455,3 +1455,9 @@ svg {
   border-radius: 10%;
   padding: 4px;
 }
+
+#advanced-settings-content label, 
+#advanced-settings-content input {
+    display: block; 
+    width: 100%;
+}
