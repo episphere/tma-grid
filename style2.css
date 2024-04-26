@@ -1446,6 +1446,14 @@ svg {
   padding: 4px;
 
 }
+.span-button-green{
+  color: #ffffff;
+  cursor: pointer;
+  background-color: var(--secondary-color);
+  border-radius: 10%;
+  padding: 4px;
+
+}
 /* Css for span tags that indicate buttons */
 
 .span-button-proceed {
