@@ -18,3 +18,4 @@ hpv rnascope cores R1.xlsx
 test.js
 *.hdf5
 __pycache__/
+.DS_Store
