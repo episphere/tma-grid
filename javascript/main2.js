@@ -1319,6 +1319,8 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
     e.stopPropagation();
     const dt = e.dataTransfer;
     const files = dt.files;
+    document.getElementById("imageUrlInput").value = null;
+    document.getElementById("fileInput").files = files;
     handleImageLoad(files[0], () => segmentImage(true));
   };
 });
