@@ -1314,6 +1314,7 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
   };
 
   document.getElementById("drop-area").ondrop = (e) => {
+    resetApplication();
     e.preventDefault();
     e.stopPropagation();
     const dt = e.dataTransfer;
