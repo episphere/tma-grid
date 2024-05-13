@@ -1331,9 +1331,6 @@ async function downloadAllCores(cores) {
     ? URL.createObjectURL(window.boxFile)
     : "path/to/default/image.jpg";
 
-  const JSZip = window.JSZip || require("jszip");
-  const zip = new JSZip();
-
   // Show progress overlay
   const overlay = document.getElementById("progressOverlay");
   const progressBar = document.getElementById("progressBar");
@@ -1342,98 +1339,62 @@ async function downloadAllCores(cores) {
   progressBar.style.width = "0%";
   progressText.innerText = "Starting download...";
 
+  // Allow user to choose the download folder
+  let downloadFolder;
+  try {
+    downloadFolder = await window.showDirectoryPicker();
+  } catch (error) {
+    console.error("User cancelled folder selection:", error);
+    overlay.style.display = "none";
+    return;
+  }
+
   // Function to download a single core
   async function downloadCore(core, index) {
     const topLeftX = parseInt(core.x - core.currentRadius);
     const topLeftY = parseInt(core.y - core.currentRadius);
-    const tileWidth = parseInt(core.currentRadius * 2); // Assuming the diameter as the width/height
+    const tileWidth = parseInt(core.currentRadius * 2);
     const tileHeight = parseInt(core.currentRadius * 2);
 
     if (window.uploadedImageFileType === "ndpi") {
-      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(
-        tileWidth,
-        3192
-      )},/0/default.jpg`;
-
+      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(tileWidth, 3192)},/0/default.jpg`;
       const response = await fetch(apiURL);
       const blob = await response.blob();
-      zip.file(`core_${index}.jpg`, blob);
+      const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`;
+      const fileHandle = await downloadFolder.getFileHandle(fileName, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
     } else {
-      // Adjust as per your getRegionFromWSI function's implementation
       const fullResTileParams = {
         tileX: topLeftX,
         tileY: topLeftY,
         tileWidth: tileWidth,
         tileHeight: tileHeight,
-        tileSize: tileWidth, // or any other logic for tileSize
+        tileSize: tileWidth,
       };
-
-      const fullSizeImageResp = await getRegionFromWSI(
-        svsImageURL,
-        fullResTileParams
-      );
+      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
       const blob = await fullSizeImageResp.blob();
-      zip.file(`core_${index}.png`, blob);
+      const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`;
+      const fileHandle = await downloadFolder.getFileHandle(fileName, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
     }
   }
 
-  // Function to handle concurrent downloads
-  async function handleConcurrentDownloads() {
-    const downloadPromises = [];
-
-    for (let index = 0; index < cores.length; index++) {
-      if (window.uploadedImageFileType === "ndpi") {
-        downloadPromises.push(downloadCore(cores[index], index));
-
-        if (downloadPromises.length === 10 || index === cores.length - 1) {
-          await Promise.all(downloadPromises);
-          downloadPromises.length = 0; // Reset the array for next batch
-
-          // Update progress for NDPI cores
-          const progress = ((index + 1) / cores.length) * 100;
-          progressBar.style.width = `${progress}%`;
-          progressText.innerText = `Downloading... (${index + 1}/${
-            cores.length
-          })`;
-        }
-      } else {
-        // For SVS, process immediately without batching
-        await downloadCore(cores[index], index);
-        // Update progress for SVS cores
-        const progress = ((index + 1) / cores.length) * 100;
-        progressBar.style.width = `${progress}%`;
-        progressText.innerText = `Downloading... (${index + 1}/${
-          cores.length
-        })`;
-      }
-    }
+  // Download cores sequentially
+  for (let index = 0; index < cores.length; index++) {
+    await downloadCore(cores[index], index);
+    const progress = ((index + 1) / cores.length) * 100;
+    progressBar.style.width = `${progress}%`;
+    progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
   }
 
-  await handleConcurrentDownloads();
-
-  progressText.innerText = `Finalizing export...`;
-
-  // Generate the zip file
-  zip
-    .generateAsync({
-      type: "blob",
-      compression: "DEFLATE",
-      compressionOptions: { level: 6 }, // Highest compression
-    })
-    .then(function (content) {
-      // Use a temporary link to download the zip file
-      const downloadLink = document.createElement("a");
-      downloadLink.href = URL.createObjectURL(content);
-      downloadLink.download = "cores.zip";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      // Hide progress overlay and reset progress bar
-      overlay.style.display = "none";
-      progressBar.style.width = "0%";
-      progressText.innerText = "Download complete!";
-    });
+  // Hide progress overlay and reset progress bar
+  overlay.style.display = "none";
+  progressBar.style.width = "0%";
+  progressText.innerText = "Download complete!";
 }
 
 // Main function that runs the application

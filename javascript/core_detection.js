@@ -398,7 +398,7 @@ function segmentationAlgorithm(
 
   // Prepare markers and apply watershed
   const markers = prepareMarkers(filledOpening, sureFg);
-  const segmented = applyWatershed(data, markers); // This function is hypothetical and needs implementation based on the above markers preparation
+  const segmented = applyWatershed(data, markers); 
 
   // Now, you might need to process 'segmented' to extract centroids and areas
   // For example, using connectedComponentsWithStats on the result of watershed to find centroids and areas
