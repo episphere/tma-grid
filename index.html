@@ -327,7 +327,6 @@
                     <div class="spinner"></div>
                 </div>
 
-
                 <div class="instructions-container mb-4">
 
                     <button class="close-instructions text-right">✕</button>
@@ -352,6 +351,8 @@
                     <p>You can move the core by dragging it to the desired location.</p>
                     <p><kbd>Click</kbd> the core, then drag the corner anchor points to resize.</p>
                     <p><kbd>Double-click</kbd> the core to open the edit menu and change its metadata. </p>
+                    <p><kbd>Shift-click</kbd> the core to toggle its status as real/imaginary. </p>
+
                 </div>
 
                 <div class="instructions-container mb-4">
@@ -603,6 +604,29 @@
                     <button id="create-virtual-grid"
                         class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Proceed</button>
                 </div>
+
+                <section>
+                    <h2 class="text-lg font-semibold">Core Color Legend</h2>
+                    <div class="flex flex-col space-y-2">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
+                            <span>Green cores are marker cores.</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
+                            <span>Blue cores are normal cores.</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
+                            <span>Red cores indicate misaligned cores.</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
+                            <span>Yellow cores are imaginary cores.</span>
+                        </div>
+                    </div>
+                </section>
+
             </section>
 
 
