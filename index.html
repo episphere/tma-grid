@@ -87,7 +87,9 @@
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Uploading an Image</h2>
                     <p>
-                        Start by uploading an <span class="span-file-type">.svs</span>, <span class="span-file-type">.tiff</span>, or <span class="span-file-type">.ndpi</span> image for optimal results. While
+                        Start by uploading an <span class="span-file-type">.svs</span>, <span
+                            class="span-file-type">.tiff</span>, or <span class="span-file-type">.ndpi</span> image for
+                        optimal results. While
                         you can use <span class="span-file-type">.png</span> or <span class="span-file-type">.jpg</span>
                         files, please note that virtual
                         gridding functionality may be limited with these formats.
@@ -131,7 +133,8 @@
                                     <p>Drag and drop files here</p>
                                     <p>or</p>
                                     <label class="browse-button" for="fileInput">Browse Files</label>
-                                    <input type="file" id="fileInput" accept="image/*,.svs, .ndpi, .tiff" style="display: none;">
+                                    <input type="file" id="fileInput" accept="image/*,.svs, .ndpi, .tiff"
+                                        style="display: none;">
                                 </form>
 
                             </div>
@@ -256,7 +259,8 @@
                                 <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.3"
                                     class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 
-                                <label for="thresholdSlider" class="text-sm font-medium text-gray-700 block">Sensitivity:
+                                <label for="thresholdSlider"
+                                    class="text-sm font-medium text-gray-700 block">Sensitivity:
                                     <span id="thresholdValue">0.5</Wspan></label>
                                 <input type="range" id="thresholdSlider" min="0.01" max="0.99" step="0.0025" value="0.5"
                                     class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
@@ -321,43 +325,37 @@
             </script>
 
 
-
             <section id="gridding" class="hidden">
+
+
                 <div id="rawDataLoadingSpinner" style="display: none;">
                     <div class="spinner"></div>
                 </div>
 
                 <div class="instructions-container mb-4">
-
                     <button class="close-instructions text-right">✕</button>
-
                     <h2 class="text-lg font-semibold">Gridding Instructions</h2>
-
                     <p>Open the menu on the left to adjust the gridding settings and key hyperparameters such as
                         as the image's rotation. Please ensure that the image is rotated correctly. If not, adjust the
-                        image
-                        rotation parameter.</p>
+                        image rotation parameter.</p>
                     <p>Once you're satisfied with the gridding, click the <span
                             class="span-button-proceed">Proceed</span>
                         button to proceed to the Virtual Grid section.</p>
-
-                    <p><strong>Ensure that you assign your green marker cores row and column values, or else they will not be available for download in the Virtual Grid Tab!</strong></p>
-
+                    <p><strong>Ensure that you assign your green marker cores row and column values, or else they will
+                            not be available for download in the Virtual Grid Tab!</strong></p>
                 </div>
+
                 <div class="instructions-container mb-4">
                     <button class="close-instructions text-right">✕</button>
-
                     <h2 class="text-lg font-semibold">Editing Cores</h2>
                     <p>You can move the core by dragging it to the desired location.</p>
                     <p><kbd>Click</kbd> the core, then drag the corner anchor points to resize.</p>
                     <p><kbd>Double-click</kbd> the core to open the edit menu and change its metadata. </p>
                     <p><kbd>Shift-click</kbd> the core to toggle its status as real/imaginary. </p>
-
                 </div>
 
                 <div class="instructions-container mb-4">
                     <button class="close-instructions text-right">✕</button>
-
                     <h2 class="text-lg font-semibold">Adding Cores</h2>
                     <p>Click the <span class="span-button">Add Core</span> button in the top left corner, then drag to
                         set the core's location and size.</p>
@@ -386,7 +384,7 @@
                             <!-- Image Parameters Section -->
                             <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
                                 <legend class="font-semibold text-l text-gray-900 mb-4">Image Parameters</legend>
-                                <div class=" flex-col space-y-4 mt-2">
+                                <div class="flex-col space-y-4 mt-2">
                                     <label for="userRadius" class="block">
                                         Core Radius: <output id="radiusValue" for="userRadius">20</output>
                                     </label>
@@ -396,8 +394,9 @@
                             </fieldset>
                             <!-- Traveling Algorithm Section -->
                             <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm Parameters</legend>
-                                <div class=" flex-col space-y-4 mt-2">
+                                <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm Parameters
+                                </legend>
+                                <div class="flex-col space-y-4 mt-2">
                                     <label for="originAngle" title="Rotation of the image in degrees">
                                         Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
                                     </label>
@@ -412,19 +411,16 @@
                                     <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
                                     <label for="connectCoresCheckbox">Connect Cores</label>
                                 </div>
-
-
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="flagMisalignmentCheckbox" name="flagMisalignmentCheckbox"
                                         checked>
                                     <label for="flagMisalignmentCheckbox">Flag Misaligned Cores</label>
                                 </div>
-
                             </fieldset>
 
                             <!-- Advanced Settings Toggle -->
                             <div class="mt-4">
-                                <label for="advanced-settings" class=" items-center cursor-pointer">
+                                <label for="advanced-settings" class="items-center cursor-pointer">
                                     <input type="checkbox" id="advanced-settings" class="toggle-checkbox">
                                     <span class="text-gray-700">Advanced Settings</span>
                                 </label>
@@ -434,8 +430,8 @@
                             <div id="advanced-settings-content" class="hidden">
                                 <!-- More Traveling Algorithm Parameters -->
                                 <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-
-                                    <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm Parameters</legend>
+                                    <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm
+                                        Parameters</legend>
                                     <label for="radiusMultiplier"
                                         title="Multiplier for the radius used in the traveling algorithm">Radius
                                         Multiplier</label>
@@ -454,8 +450,7 @@
 
                                     <label for="multiplier"
                                         title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
-                                        for
-                                        Grid Width</label>
+                                        for Grid Width</label>
                                     <input type="number" id="multiplier" name="multiplier" step="0.1" value="1.5">
 
                                     <label for="imageWidth"
@@ -466,17 +461,16 @@
                                     <label for="searchAngle" title="Angle to search in the traveling algorithm">Search
                                         Angle</label>
                                     <input type="number" id="searchAngle" name="searchAngle" step="1" value="5">
-
                                 </fieldset>
 
                                 <!-- Edge Detection Section -->
                                 <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                    <legend class="font-semibold text-l text-gray-900 mb-4">Edge Detection Parameters</legend>
+                                    <legend class="font-semibold text-l text-gray-900 mb-4">Edge Detection Parameters
+                                    </legend>
 
                                     <label for="thresholdMultiplier"
                                         title="Multiplier for the median absolute deviation to filter edges by length">Length
-                                        Threshold
-                                        Multiplier</label>
+                                        Threshold Multiplier</label>
                                     <input type="number" id="thresholdMultiplier" name="thresholdMultiplier" step="0.1"
                                         value="1.2">
 
@@ -488,7 +482,8 @@
 
                                 <!-- Image Rotation Section -->
                                 <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                    <legend class="font-semibold text-l text-gray-900 mb-4">Image Rotation Parameters</legend>
+                                    <legend class="font-semibold text-l text-gray-900 mb-4">Image Rotation Parameters
+                                    </legend>
 
                                     <label for="minAngle" title="Minimum angle to test for image rotation">Minimum
                                         Angle</label>
@@ -500,8 +495,7 @@
 
                                     <label for="angleStepSize"
                                         title="Incremental step size for testing angles during image rotation">Angle
-                                        Step
-                                        Size</label>
+                                        Step Size</label>
                                     <input type="number" id="angleStepSize" name="angleStepSize" step="1" value="5">
 
                                     <label for="angleThreshold"
@@ -509,26 +503,18 @@
                                         Threshold</label>
                                     <input type="number" id="angleThreshold" name="angleThreshold" step="1" value="20">
                                 </fieldset>
-
                             </div>
                             <button type="button" id="apply-hyperparameters"
                                 class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Apply</button>
-
                         </form>
-
                     </aside>
 
                     <!-- Main Content -->
                     <main class="mx-auto w-full">
                         <!-- Main content goes here -->
-
                         <div class="flex" id="main-container">
-
-
                             <!-- Image Viewer or other main content -->
-                            <div id="osdViewer" style="margin:auto">
-
-                            </div>
+                            <div id="osdViewer" style="margin:auto"></div>
                         </div>
                         <div class="edit-sidebar" id="editSidebar">
                             <div class="sidebar-header draggable-area">
@@ -538,28 +524,17 @@
                                 </div>
                             </div>
                             <form id="editCoreForm" class="main-content">
-
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
                                     <label for="editIsMarkerInput">Is a Marker</label>
                                 </div>
-
-                                <!-- <div class="checkbox-group">
-                                    <input type="checkbox" id="editAutoUpdateRowsCheckbox"
-                                        name="editAutoUpdateRowsCheckbox" checked>
-                                    <label for="editAutoUpdateRowsCheckbox">Auto Assign Row and Column</label>
-                                </div> -->
-
-
                                 <label for="editRowInput">Row:</label>
                                 <input type="number" id="editRowInput" name="editRowInput" disabled>
-
 
                                 <label for="editColumnInput">Column:</label>
                                 <input type="number" id="editColumnInput" name="editColumnInput" disabled>
 
-
-                                <div class="checkbox-group" style = "display: none;">
+                                <div class="checkbox-group" style="display: none;">
                                     <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
                                         name="editAutoUpdateColumnsCheckbox" checked>
                                     <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
@@ -580,23 +555,41 @@
                                 <div class="radio-group">
                                     <input type="radio" id="editRealInput" name="coreType" value="real">
                                     <label for="editRealInput" class="radio-button">Normal</label>
-
                                     <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
                                     <label for="editImaginaryInput" class="radio-button">Missing</label>
                                 </div>
 
-
                                 <div class="button-group">
                                     <button type="button" id="saveCoreEdits">Save</button>
-
                                     <button type="button" id="removeCoreButton">Remove</button>
-
                                 </div>
-
                             </form>
                         </div>
                     </main>
                 </div>
+
+
+                <section style="padding-top: 10px;">
+                    <h2 class="text-lg font-semibold">Core Color Legend</h2>
+                    <div class="flex flex-wrap justify-around">
+                        <div class="flex items-center m-2">
+                            <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
+                            <span>Green cores are marker cores.</span>
+                        </div>
+                        <div class="flex items-center m-2">
+                            <div class="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
+                            <span>Blue cores are normal cores.</span>
+                        </div>
+                        <div class="flex items-center m-2">
+                            <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
+                            <span>Red cores indicate misaligned cores.</span>
+                        </div>
+                        <div class="flex items-center m-2">
+                            <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
+                            <span>Yellow cores are imaginary cores.</span>
+                        </div>
+                    </div>
+                </section>
 
                 <div class="flex justify-between items-center mt-8">
                     <button
@@ -604,28 +597,6 @@
                     <button id="create-virtual-grid"
                         class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Proceed</button>
                 </div>
-
-                <section>
-                    <h2 class="text-lg font-semibold">Core Color Legend</h2>
-                    <div class="flex flex-col space-y-2">
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-                            <span>Green cores are marker cores.</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-                            <span>Blue cores are normal cores.</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-                            <span>Red cores indicate misaligned cores.</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
-                            <span>Yellow cores are imaginary cores.</span>
-                        </div>
-                    </div>
-                </section>
 
             </section>
 
@@ -662,9 +633,9 @@
                     <p>Select a core in the right-hand grid to edit its metadata. Remember to click <span
                             class="span-button">Update Metadata</span> to save your changes.
                     </p>
-                    <p>Click the <span
-                        class="span-button-green">Add Field</span> button to add a column to your associated metadata file.
-                </p>
+                    <p>Click the <span class="span-button-green">Add Field</span> button to add a column to your
+                        associated metadata file.
+                    </p>
 
                     <p>To export a single core at full resolution, <kbd>Double-click</kbd> it. To export all cores,
                         click
