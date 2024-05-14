@@ -1,0 +1,43 @@
+// UNet Model
+digraph {
+	Input [label="Input Layer
+512x512x3" color=lightblue shape=box style=filled]
+	Conv1 [label="Conv Block
+16 filters" color=lightgreen shape=box style=filled]
+	Pool1 [label="Max Pooling
+256x256x16" color=lightyellow shape=box style=filled]
+	Drop1 [label=Dropout color=lightcoral shape=box style=filled]
+	Conv2 [label="Conv Block
+32 filters" color=lightgreen shape=box style=filled]
+	Pool2 [label="Max Pooling
+128x128x32" color=lightyellow shape=box style=filled]
+	Drop2 [label=Dropout color=lightcoral shape=box style=filled]
+	Bottleneck [label="Bottleneck
+64 filters" color=lightblue shape=box style=filled]
+	Up1 [label="UpSampling
+256x256x32" color=lightyellow shape=box style=filled]
+	Concat1 [label=Concatenate color=lightgrey shape=box style=filled]
+	Conv3 [label="Conv Block
+32 filters" color=lightgreen shape=box style=filled]
+	Up2 [label="UpSampling
+512x512x16" color=lightyellow shape=box style=filled]
+	Concat2 [label=Concatenate color=lightgrey shape=box style=filled]
+	Conv4 [label="Conv Block
+16 filters" color=lightgreen shape=box style=filled]
+	Output [label="Output Layer
+512x512x1" color=lightblue shape=box style=filled]
+	Input -> Conv1
+	Conv1 -> Pool1
+	Pool1 -> Drop1
+	Drop1 -> Conv2
+	Conv2 -> Pool2
+	Pool2 -> Drop2
+	Drop2 -> Bottleneck
+	Bottleneck -> Up1
+	Up1 -> Concat1
+	Concat1 -> Conv3
+	Conv3 -> Up2
+	Up2 -> Concat2
+	Concat2 -> Conv4
+	Conv4 -> Output
+}
