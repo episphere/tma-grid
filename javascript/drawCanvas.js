@@ -918,27 +918,26 @@ function saveCore(core) {
     return false;
   }
 
-  // Check if the row or column value is already occupied by another core
+  // Get the new row and column values
   const newRow =
     parseInt(document.getElementById("editRowInput").value, 10) - 1;
   const newCol =
     parseInt(document.getElementById("editColumnInput").value, 10) - 1;
 
-  if (
-    window.sortedCoresData.some(
-      (core) => core.row === newRow && core.col === newCol
-    ) &&
-    (newRow !== oldRow || newCol !== core.col)
-  ) {
-    alert("The row and column values are already occupied by another core");
-    return false;
-  }
-
+  // Check if the core is being moved to a different row
   if (document.getElementById("editRowInput").value != -1) {
-    // Check if the core is being moved to a different row
-
+    // Handle reassigning and shifting cores if the target cell is occupied
     core.row = newRow;
     core.col = newCol;
+
+    if (
+      window.sortedCoresData.some(
+        (existingCore) =>
+          existingCore.row === newRow && existingCore.col === newCol
+      )
+    ) {
+      updateColumnsInRowAfterModification(newRow);
+    }
 
     if (
       oldRow !== parseInt(document.getElementById("editRowInput").value, 10) &&
@@ -952,6 +951,7 @@ function saveCore(core) {
     core.col = parseInt(document.getElementById("editColumnInput").value, 10);
   }
 
+  // Update core properties
   core.x =
     parseFloat(document.getElementById("editXInput").value) /
     window.scalingFactor;
@@ -969,6 +969,7 @@ function saveCore(core) {
   // Update the isMarker property based on which radio button is checked
   core.isMarker = document.getElementById("editIsMarkerInput").checked;
 
+  // Find the core index within the sorted cores data
   const coreIndex = window.sortedCoresData.findIndex(
     (prevCore) => prevCore.x === core.x && prevCore.y === core.y
   );
@@ -986,16 +987,11 @@ function saveCore(core) {
     }
 
     window.sortedCoresData[coreIndex] = core;
-
     updateSidebar(core);
   }
 
-  // if (document.getElementById("editAutoUpdateColumnsCheckbox").checked) {
-
-  // }
-
+  // Finalize core update
   core.isSelected = false;
-
   const imageRotation = parseFloat(
     document.getElementById("originAngle").value
   );
@@ -1006,8 +1002,7 @@ function saveCore(core) {
     imageRotation,
     false
   );
-
-  drawCores(); // Redraw the cores with the updated data
+  drawCores(); // Redraw the cores
 
   return true;
 }
@@ -1121,26 +1116,22 @@ function removeCoreFromGrid(core) {
 function updateColumnsInRowAfterModification(row) {
   let imageRotation = parseFloat(document.getElementById("originAngle").value);
 
-  // Create an array to hold the original cores with their rotated coordinates for sorting
+  // Get cores in the specified row and their rotated coordinates
   const coresWithRotatedCoordinates = window.sortedCoresData
     .filter((core) => core.row === row)
-    .map((core) => {
-      return {
-        originalCore: core,
-        rotatedCoordinates: rotatePoint([core.x, core.y], -imageRotation),
-      };
-    });
+    .map((core) => ({
+      originalCore: core,
+      rotatedCoordinates: rotatePoint([core.x, core.y], -imageRotation),
+    }));
 
-  // Sort the array based on the x-value of the rotated coordinates
+  // Sort based on the x-value of the rotated coordinates
   coresWithRotatedCoordinates.sort(
     (a, b) => a.rotatedCoordinates[0] - b.rotatedCoordinates[0]
   );
 
-  // Assign column values based on the sorted array, updating only the column in the original data
   let currentColumn = 0;
   coresWithRotatedCoordinates.forEach((item) => {
-    item.originalCore.col = currentColumn;
-    currentColumn++;
+    item.originalCore.col = currentColumn++;
   });
 
   drawCores(); // Redraw the cores
@@ -1998,57 +1989,57 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       "mt-2 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 w-full";
     form.insertBefore(addPropertyButton, submitButton);
 
-// Handle adding custom properties
-addPropertyButton.onclick = function () {
-  const customPropertyDiv = document.createElement("div");
-  customPropertyDiv.className = "flex flex-col mb-4";
+    // Handle adding custom properties
+    addPropertyButton.onclick = function () {
+      const customPropertyDiv = document.createElement("div");
+      customPropertyDiv.className = "flex flex-col mb-4";
 
-  const customPropertyLabel = document.createElement("span");
-  customPropertyLabel.contentEditable = true;
-  customPropertyLabel.dataset.placeholder = "Enter custom field name";
-  customPropertyLabel.className =
-    "mb-2 text-sm font-medium text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
-  customPropertyLabel.style.borderBottom = "1px dashed #ccc";
-  customPropertyLabel.style.paddingBottom = "2px";
-  customPropertyLabel.style.display = "inline-block";
-  customPropertyLabel.style.minWidth = "100px";
+      const customPropertyLabel = document.createElement("span");
+      customPropertyLabel.contentEditable = true;
+      customPropertyLabel.dataset.placeholder = "Enter custom field name";
+      customPropertyLabel.className =
+        "mb-2 text-sm font-medium text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
+      customPropertyLabel.style.borderBottom = "1px dashed #ccc";
+      customPropertyLabel.style.paddingBottom = "2px";
+      customPropertyLabel.style.display = "inline-block";
+      customPropertyLabel.style.minWidth = "100px";
 
-  // Add placeholder text
-  customPropertyLabel.innerHTML = "Enter custom field name";
+      // Add placeholder text
+      customPropertyLabel.innerHTML = "Enter custom field name";
 
-  // Remove placeholder text when the label is focused
-  customPropertyLabel.addEventListener("focus", function () {
-    if (this.innerHTML === "Enter custom field name") {
-      this.innerHTML = "";
-      this.classList.remove("text-gray-400");
-      this.classList.add("text-gray-900");
-    }
-  });
+      // Remove placeholder text when the label is focused
+      customPropertyLabel.addEventListener("focus", function () {
+        if (this.innerHTML === "Enter custom field name") {
+          this.innerHTML = "";
+          this.classList.remove("text-gray-400");
+          this.classList.add("text-gray-900");
+        }
+      });
 
-  // Add placeholder text when the label is empty and loses focus
-  customPropertyLabel.addEventListener("blur", function () {
-    if (this.innerHTML.trim() === "") {
-      this.innerHTML = "Enter custom field name";
-      this.classList.remove("text-gray-900");
-      this.classList.add("text-gray-400");
-    }
-  });
+      // Add placeholder text when the label is empty and loses focus
+      customPropertyLabel.addEventListener("blur", function () {
+        if (this.innerHTML.trim() === "") {
+          this.innerHTML = "Enter custom field name";
+          this.classList.remove("text-gray-900");
+          this.classList.add("text-gray-400");
+        }
+      });
 
-  const customPropertyValueInput = document.createElement("input");
-  customPropertyValueInput.type = "text";
-  customPropertyValueInput.name = "customPropertyValue";
-  customPropertyValueInput.placeholder = "Enter custom field value";
-  customPropertyValueInput.className =
-    "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+      const customPropertyValueInput = document.createElement("input");
+      customPropertyValueInput.type = "text";
+      customPropertyValueInput.name = "customPropertyValue";
+      customPropertyValueInput.placeholder = "Enter custom field value";
+      customPropertyValueInput.className =
+        "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
 
-  customPropertyDiv.appendChild(customPropertyLabel);
-  customPropertyDiv.appendChild(customPropertyValueInput);
+      customPropertyDiv.appendChild(customPropertyLabel);
+      customPropertyDiv.appendChild(customPropertyValueInput);
 
-  form.insertBefore(customPropertyDiv, addPropertyButton);
+      form.insertBefore(customPropertyDiv, addPropertyButton);
 
-  // Set focus on the custom property label
-  customPropertyLabel.focus();
-};
+      // Set focus on the custom property label
+      customPropertyLabel.focus();
+    };
 
     // Handle form submission
     form.onsubmit = function (event) {
@@ -2082,32 +2073,31 @@ addPropertyButton.onclick = function () {
       }
 
       // Add custom properties to all cores in window.finalSaveData
-    const customPropertyLabels = form.querySelectorAll(
-      'span[contenteditable="true"]'
-    );
-    const customPropertyValueInputs = form.querySelectorAll(
-      'input[name="customPropertyValue"]'
-    );
+      const customPropertyLabels = form.querySelectorAll(
+        'span[contenteditable="true"]'
+      );
+      const customPropertyValueInputs = form.querySelectorAll(
+        'input[name="customPropertyValue"]'
+      );
 
-    for (let i = 0; i < customPropertyLabels.length; i++) {
-      const key = customPropertyLabels[i].textContent.trim();
-      const value = customPropertyValueInputs[i].value.trim();
+      for (let i = 0; i < customPropertyLabels.length; i++) {
+        const key = customPropertyLabels[i].textContent.trim();
+        const value = customPropertyValueInputs[i].value.trim();
 
-      if (key !== "") {
-        // Add the custom property to all cores if it doesn't exist
-        window.finalSaveData.forEach((core) => {
-          if (!core.hasOwnProperty(key)) {
-            core[key] = "";
+        if (key !== "") {
+          // Add the custom property to all cores if it doesn't exist
+          window.finalSaveData.forEach((core) => {
+            if (!core.hasOwnProperty(key)) {
+              core[key] = "";
+            }
+          });
+
+          // Set the custom property value for the selected core
+          if (value !== "") {
+            metadataObj[key] = value;
           }
-        });
-
-        // Set the custom property value for the selected core
-        if (value !== "") {
-          metadataObj[key] = value;
         }
       }
-    }
-
 
       // If the row and column values have been updated, update the virtual grid
 
