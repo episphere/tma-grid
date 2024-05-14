@@ -705,7 +705,7 @@ function exchangeAuthorizationCodeForAccessToken(authorizationCode) {
 
         let replaceURLPath = window.location.host.includes("localhost")
           ? "/"
-          : "/Griddify";
+          : "/tma-grid";
         window.history.replaceState({}, "", `${replaceURLPath}`);
 
         initializeBoxPicker(accessToken); // Assuming this is your custom function
