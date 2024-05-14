@@ -917,24 +917,25 @@ function saveCore(core) {
   }
 
   // Get the new row and column values
-  const newRow =
-    parseInt(document.getElementById("editRowInput").value, 10) - 1;
-  const newCol =
-    parseInt(document.getElementById("editColumnInput").value, 10) - 1;
+  const newRow = parseInt(document.getElementById("editRowInput").value, 10) - 1;
+  const newCol = parseInt(document.getElementById("editColumnInput").value, 10) - 1;
 
   // Check if the core is being moved to a different row
-  if (document.getElementById("editRowInput").value != -1) {
-    // Handle reassigning and shifting cores if the target cell is occupied
-    core.row = newRow;
-    core.col = newCol;
+  if (document.getElementById("editRowInput").value !== -1) {
+    // Locate the conflicting core, if any
+    const conflictingCoreIndex = window.sortedCoresData.findIndex(
+      (existingCore) => existingCore.row === newRow && existingCore.col === newCol
+    );
 
-    if (
-      window.sortedCoresData.filter(
-        (existingCore) =>
-          existingCore.row === newRow && existingCore.col === newCol
-      ).length > 1 
-    ) {
-      updateColumnsInRowAfterModification(newRow);
+    if (conflictingCoreIndex !== -1) {
+      const conflictingCore = window.sortedCoresData[conflictingCoreIndex];
+
+      // Swap row and col values with the conflicting core
+      [core.row, conflictingCore.row] = [conflictingCore.row, core.row];
+      [core.col, conflictingCore.col] = [conflictingCore.col, core.col];
+    } else {
+      core.row = newRow;
+      core.col = newCol;
     }
 
     if (
@@ -950,15 +951,9 @@ function saveCore(core) {
   }
 
   // Update core properties
-  core.x =
-    parseFloat(document.getElementById("editXInput").value) /
-    window.scalingFactor;
-  core.y =
-    parseFloat(document.getElementById("editYInput").value) /
-    window.scalingFactor;
-  core.currentRadius =
-    parseFloat(document.getElementById("editRadiusInput").value) /
-    window.scalingFactor;
+  core.x = parseFloat(document.getElementById("editXInput").value) / window.scalingFactor;
+  core.y = parseFloat(document.getElementById("editYInput").value) / window.scalingFactor;
+  core.currentRadius = parseFloat(document.getElementById("editRadiusInput").value) / window.scalingFactor;
   core.annotations = document.getElementById("editAnnotationsInput").value;
 
   // Update the isImaginary property based on which radio button is checked
@@ -990,16 +985,10 @@ function saveCore(core) {
 
   // Finalize core update
   core.isSelected = false;
-  const imageRotation = parseFloat(
-    document.getElementById("originAngle").value
-  );
+  const imageRotation = parseFloat(document.getElementById("originAngle").value);
 
   // Reflag for misaligned cores
-  window.sortedCoresData = flagMisalignedCores(
-    window.sortedCoresData,
-    imageRotation,
-    false
-  );
+  window.sortedCoresData = flagMisalignedCores(window.sortedCoresData, imageRotation, false);
   drawCores(); // Redraw the cores
 
   return true;
