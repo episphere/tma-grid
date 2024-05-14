@@ -929,10 +929,10 @@ function saveCore(core) {
     core.col = newCol;
 
     if (
-      window.sortedCoresData.some(
+      window.sortedCoresData.filter(
         (existingCore) =>
           existingCore.row === newRow && existingCore.col === newCol
-      )
+      ).length > 1 
     ) {
       updateColumnsInRowAfterModification(newRow);
     }
