@@ -1023,7 +1023,7 @@ function determineCoreRow(core, sortedCoresData) {
   // Filter out rows in sortedCoresData that only have one core
   sortedCoresData = sortedCoresData.filter((core) => {
     const coresInRow = sortedCoresData.filter((c) => c.row === core.row);
-    return coresInRow.length > 1;
+    return coresInRow.length > 0;
   });
 
   let imageRotation = parseFloat(document.getElementById("originAngle").value);
