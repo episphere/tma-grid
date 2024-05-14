@@ -738,8 +738,6 @@ function drawCore(core, index = -1) {
         );
         const oldRow = window.sortedCoresData[index].row;
 
-        debugger;
-
         // If oldRow is now empty, remove it from the grid
 
         if (
