@@ -2279,7 +2279,7 @@ function drawVirtualGridFromPNG(
   }
 
   const rows =
-    sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) + 1;
+    sortedCoresData.reduce((acc, core) => Math.max(acc, core.row), 0) +1;
   const cols =
     sortedCoresData.reduce((acc, core) => Math.max(acc, core.col), 0) + 1;
   const defaultRadius = parseInt(document.getElementById("userRadius").value);
@@ -2298,16 +2298,16 @@ function drawVirtualGridFromPNG(
     vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
 
     // Draw row markers
-    for (let i = 0; i < rows; i++) {
+    for (let i = 1; i < rows; i++) {
       vctx.font = "bold 16px Arial";
 
-      vctx.fillText(i + 1, 10, startingY + i * verticalSpacing + 10);
+      vctx.fillText(i, 10, startingY + i * verticalSpacing + 10);
     }
 
     // Draw column markers
-    for (let j = 0; j < cols; j++) {
+    for (let j = 1; j < cols; j++) {
       vctx.font = "bold 16px Arial";
-      vctx.fillText(j + 1, startingX + j * horizontalSpacing, 20);
+      vctx.fillText(j, startingX + j * horizontalSpacing, 20);
     }
 
     sortedCoresData.forEach((core) => {
@@ -2375,7 +2375,7 @@ function drawVirtualGridFromPNG(
       if (distance < userRadius) {
         selectedCore = core; // Update the selected core
         console.log("Core clicked:", selectedCore);
-        populateAndEditMetadataForm(selectedCore.row + 1, selectedCore.col + 1);
+        populateAndEditMetadataForm(selectedCore.row, selectedCore.col);
         img.onload(); // Redraw the canvas to show the selection
       }
     });

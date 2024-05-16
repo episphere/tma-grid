@@ -1,0 +1,93 @@
+// UNet Model
+digraph {
+	splines=true
+	ResultTable [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
+        <TR><TD COLSPAN="6"><B>A. Cross-Validation Results</B></TD></TR>
+        <TR>
+        <TD><B>Loss</B></TD>
+        <TD><B>AUC</B></TD>
+        <TD><B>Accuracy</B></TD>
+        <TD><B>Precision</B></TD>
+        <TD><B>Recall</B></TD>
+        </TR>
+        <TR>
+        <TD>0.137</TD>
+        <TD>0.980</TD>
+        <TD>0.947</TD>
+        <TD>0.894</TD>
+        <TD>0.815</TD>
+        </TR>
+        </TABLE>
+    > shape=plaintext]
+	subgraph cluster_1 {
+		node [color=white style=filled width=1.5]
+		color=lightgrey label="B. UNet Model" rankdir=LR style=filled
+		Input [label="Input Layer
+512x512x3" color=lightblue shape=box width=1.5]
+		Conv1 [label="SepConv2D
+16 filters
+BatchNorm + ReLU" color=lightgreen shape=box width=1.5]
+		Pool1 [label="Max Pooling
+256x256x16" color=lightyellow shape=box width=1.5]
+		Drop1 [label=Dropout color=lightcoral shape=box width=1.5]
+		Conv2 [label="SepConv2D
+32 filters
+BatchNorm + ReLU" color=lightgreen shape=box width=1.5]
+		Pool2 [label="Max Pooling
+128x128x32" color=lightyellow shape=box width=1.5]
+		Drop2 [label=Dropout color=lightcoral shape=box width=1.5]
+		Bottleneck [label="SepConv2D
+64 filters
+BatchNorm + ReLU" color=lightblue shape=box width=1.5]
+		Up1 [label="UpSampling
+256x256x32" color=lightyellow shape=box width=1.5]
+		Concat1 [label=Concatenate color=lightgrey shape=box width=1.5]
+		Conv3 [label="SepConv2D
+32 filters
+BatchNorm + ReLU" color=lightgreen shape=box width=1.5]
+		Up2 [label="UpSampling
+512x512x16" color=lightyellow shape=box width=1.5]
+		Concat2 [label=Concatenate color=lightgrey shape=box width=1.5]
+		Conv4 [label="SepConv2D
+16 filters
+BatchNorm + ReLU" color=lightgreen shape=box width=1.5]
+		Output [label="Output Layer
+512x512x1
+Sigmoid" color=lightblue shape=box width=1.5]
+		rankdir=LR
+		nodesep=1 ranksep=1
+		Input -> Conv1
+		Conv1 -> Pool1
+		Pool1 -> Drop1
+		Drop1 -> Conv2
+		Conv2 -> Pool2
+		Pool2 -> Drop2
+		Drop2 -> Bottleneck
+		Bottleneck -> Up1
+		Up1 -> Concat1
+		Concat1 -> Conv3
+		Conv3 -> Up2
+		Up2 -> Concat2
+		Concat2 -> Conv4
+		Conv4 -> Output
+		Conv1 -> Pool1 [style=invis]
+		Pool1 -> Drop1 [style=invis]
+		Drop1 -> Conv2 [style=invis]
+		Conv2 -> Pool2 [style=invis]
+		Pool2 -> Drop2 [style=invis]
+		Drop2 -> Bottleneck [style=invis]
+		Bottleneck -> Up1 [style=invis]
+		Up1 -> Concat1 [style=invis]
+		Concat1 -> Conv3 [style=invis]
+		Conv3 -> Up2 [style=invis]
+		Up2 -> Concat2 [style=invis]
+		Concat2 -> Conv4 [style=invis]
+		Conv4 -> Output [style=invis]
+	}
+	{
+		rankdir=LR
+		style=invis weight=10
+		ResultTable -> Input [style=invis]
+	}
+}

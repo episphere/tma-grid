@@ -1,0 +1,11 @@
+digraph B {
+	rankdir=TB
+	Results [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+  <TR><TD>Metric</TD><TD>Value</TD></TR>
+  <TR><TD>Loss</TD><TD>0.13656103610992432</TD></TR>
+  <TR><TD>AUC</TD><TD>0.9797412157058716</TD></TR>
+  <TR><TD>Accuracy</TD><TD>0.9470574259757996</TD></TR>
+  <TR><TD>Precision</TD><TD>0.8938097357749939</TD></TR>
+  <TR><TD>Recall</TD><TD>0.8151392340660095</TD></TR>
+</TABLE>>]
+}
