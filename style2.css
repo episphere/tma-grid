@@ -892,7 +892,7 @@ main.expanded {
 .core-overlay-for-gridding {
   box-sizing: border-box;
   border-style: solid;
-  border-width: 1px;
+  border-width: 2px;
   border-radius: 50%;
   border-color: #0056b3;
   cursor: grab;
@@ -905,6 +905,8 @@ main.expanded {
 
 .core-overlay-for-gridding.imaginary {
   border-color: #FFA500;
+  border-width: 1px;
+
 }
 
 .core-overlay-for-gridding.temporary {
