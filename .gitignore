@@ -19,3 +19,9 @@ test.js
 *.hdf5
 __pycache__/
 .DS_Store
+TMA_WSI_Labels
+Failed_Models
+style.css
+svs_converter.html
+converter.css
+index_old.html

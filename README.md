@@ -1,2 +1,2 @@
-# [Griddify](https://episphere.github.io/Griddify/)
-Live at https://episphere.github.io/Griddify !
+# [TMA-Grid](https://episphere.github.io/tma-grid/)
+Live at https://episphere.github.io/tma-grid !
