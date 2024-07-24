@@ -38,7 +38,7 @@ const processedImageCanvasID = "segmentationResultsCanvas";
 
 // Load dependencies and return updated state
 const loadDependencies = async () => ({
-  model: await loadModel("./model/model.json"),
+  model: await loadModel("../PBCS_models/model/model.json"),
   // openCVLoaded: await loadOpenCV(),
 });
 
