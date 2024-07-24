@@ -131,6 +131,20 @@ const handleSVSFile = async (file, processCallback) => {
 
     window.loadedImg = originalImageContainer;
     document.getElementById("loadingSpinner").style.display = "none";
+
+     // Get the name of the file 
+     const fileName = document.getElementById("file-name").innerHTML.split(".")[0];
+     // Create a download link
+     const downloadLink = document.createElement('a');
+     downloadLink.href = originalImageContainer.src;
+     downloadLink.download = 'CK56_' + fileName + '.png'; // You can change the filename here
+     downloadLink.textContent = 'Download Image';
+     downloadLink.style.display = 'block';
+     downloadLink.style.marginTop = '10px';
+   
+     // Append the download link to the document body or a specific container
+     document.body.appendChild(downloadLink);
+
   };
 };
 

@@ -411,8 +411,8 @@ function segmentationAlgorithm(
   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
 
   centroidsFinal.forEach((centroid) => {
-    centroid.radius = medianRadius;
-    centroid.area = medianRadius * medianRadius * Math.PI;
+    centroid.radius = medianRadius - 1;
+    centroid.area = centroid.radius * centroid.radius * Math.PI;
   });
 
   // Cleanup

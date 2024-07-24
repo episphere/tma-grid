@@ -55,6 +55,48 @@ function handleCanvasClick(event) {
   }
 }
 
+// Function to update or create the properties download link
+function updatePropertiesDownloadLink() {
+  const fileName = document.getElementById("file-name").innerHTML.split(".")[0];
+
+  
+  let propertiesDownloadLink = document.getElementById('propertiesDownloadLink');
+  
+  if (!propertiesDownloadLink) {
+    // Create a new download link if it doesn't exist
+    propertiesDownloadLink = document.createElement('a');
+    propertiesDownloadLink.id = 'propertiesDownloadLink';
+    propertiesDownloadLink.style.display = 'block';
+    propertiesDownloadLink.style.marginTop = '10px';
+    document.body.appendChild(propertiesDownloadLink);
+  }
+
+  // Update the link's properties
+  const blob = new Blob([JSON.stringify(window.properties, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  
+  propertiesDownloadLink.href = url;
+  propertiesDownloadLink.download = 'CK56_' + fileName + '.json';
+  propertiesDownloadLink.textContent = 'Download window.properties';
+
+  // Clean up the old object URL if it exists
+  if (propertiesDownloadLink.dataset.oldUrl) {
+    URL.revokeObjectURL(propertiesDownloadLink.dataset.oldUrl);
+  }
+  
+  // Store the new URL for future cleanup
+  propertiesDownloadLink.dataset.oldUrl = url;
+
+  // Set up cleanup for when the link is clicked
+  propertiesDownloadLink.onclick = () => {
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      propertiesDownloadLink.dataset.oldUrl = '';
+    }, 100);
+  };
+}
+
+
 // Function to add a core
 function addCore(x, y) {
   // Get the radius of the first core in properties
@@ -66,6 +108,7 @@ function addCore(x, y) {
   window.preprocessedCores = preprocessCores(window.properties);
   recordAction({ type: "add", core: newCore });
   redrawCanvas();
+  updatePropertiesDownloadLink();
 }
 
 // Function to remove the nearest core
@@ -78,6 +121,7 @@ function removeCore(x, y) {
     recordAction({ type: "remove", core: removedCore });
     redrawCanvas();
   }
+  updatePropertiesDownloadLink();
 }
 
 // Function to record actions for undo/redo
