@@ -38,7 +38,7 @@ const processedImageCanvasID = "segmentationResultsCanvas";
 
 // Load dependencies and return updated state
 const loadDependencies = async () => ({
-  model: await loadModel("../PBCS_models/model/model.json"),
+  model: await loadModel("https://episphere.github.io/tma-grid/PBCS_models/model/model.json"),
   // openCVLoaded: await loadOpenCV(),
 });
 
