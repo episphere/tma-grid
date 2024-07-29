@@ -1397,33 +1397,24 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   drawCoresOnCanvasForTravelingAlgorithm();
 }
 
-function removeImaginaryCoresFilledRowsAndColumns(coresData) {
+function removeImaginaryCoresFilledColumns(coresData) {
   // Calculate imaginary core counts
-  let rowImaginaryCounts = {};
   let colImaginaryCounts = {};
-  let rowCount = {};
   let colCount = {};
 
   // Initialize counts
   coresData.forEach((core) => {
-    rowCount[core.row] = (rowCount[core.row] || 0) + 1;
     colCount[core.col] = (colCount[core.col] || 0) + 1;
     if (core.isImaginary) {
-      rowImaginaryCounts[core.row] = (rowImaginaryCounts[core.row] || 0) + 1;
       colImaginaryCounts[core.col] = (colImaginaryCounts[core.col] || 0) + 1;
     }
   });
 
   // Filter cores
   coresData = coresData.filter((core) => {
-    let rowImaginaryRatio =
-      (rowImaginaryCounts[core.row] || 0) / rowCount[core.row];
     let colImaginaryRatio =
       (colImaginaryCounts[core.col] || 0) / colCount[core.col];
-    return !(
-      core.isImaginary &&
-      (rowImaginaryRatio >= 0.75 || colImaginaryRatio >= 0.8)
-    );
+    return !(core.isImaginary && colImaginaryRatio >= 0.8);
   });
 
   return coresData;
@@ -1662,7 +1653,7 @@ function filterAndReassignCores(coresData, imageRotation) {
 
   filteredCores = alignMisalignedCores(filteredCores, imageRotation);
 
-  filteredCores = removeImaginaryCoresFilledRowsAndColumns(filteredCores);
+  filteredCores = removeImaginaryCoresFilledColumns(filteredCores);
 
   filteredCores = reassignCoreIndices(filteredCores);
 
