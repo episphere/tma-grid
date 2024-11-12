@@ -15,7 +15,7 @@ const createImagebox3Instance = async (imageSource) => {
 
 export const getWSIInfo = async (imageURL) => {
   await createImagebox3Instance(imageURL)
-  return (await imagebox3Instance.getInfo()).json()
+  return await imagebox3Instance.getInfo()
 }
 
 export const getPNGFromWSI = async (imageURL, maxDimension) => {
