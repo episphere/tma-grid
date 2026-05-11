@@ -37,6 +37,10 @@ const SAMPLE_IMAGE_URL =
   "https://storage.googleapis.com/imagebox_test/TMAs/HE_Hamamatsu.tiff";
 const SIMPLE_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
 const WSI_IMAGE_EXTENSIONS = [".svs", ".ndpi", ".tif", ".tiff"];
+const EXPORT_EMPTY_FOLDER_MESSAGE =
+  "Export Grid requires an empty folder. Choose or create an empty folder before continuing.";
+const EXPORT_NON_EMPTY_FOLDER_MESSAGE =
+  "The selected folder is not empty. Export Grid can only export to an empty folder.";
 const SEGMENTATION_PRESETS = {
   default: {
     threshold: 0.5,
@@ -398,6 +402,27 @@ function updateUploadSummary(fileType = window.uploadedImageFileType) {
   capabilityEl.textContent = simpleImageTypes.includes(fileType)
     ? "Metadata export available; full-resolution core export unavailable"
     : "Metadata and grid export available when source tiles are readable";
+}
+
+function showExportGridWarning(message = EXPORT_EMPTY_FOLDER_MESSAGE) {
+  const warning = document.getElementById("exportGridWarning");
+
+  if (!warning) {
+    return;
+  }
+
+  warning.textContent = message;
+  warning.classList.remove("hidden");
+}
+
+async function directoryHasEntries(directoryHandle) {
+  for await (const entry of directoryHandle.values()) {
+    if (entry) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function getRemovedArtifactCount(stats = {}) {
@@ -1686,7 +1711,24 @@ function bindEventListeners() {
         return;
       }
 
-      downloadAllCores(window.sortedCoresData.filter((core) => !core.isMarker));
+      const exportableCores = (window.sortedCoresData || []).filter(
+        (core) => !core.isMarker
+      );
+      if (exportableCores.length === 0) {
+        downloadAllCores(exportableCores);
+        return;
+      }
+
+      showExportGridWarning();
+      if (
+        !window.confirm(
+          `${EXPORT_EMPTY_FOLDER_MESSAGE}\n\nSelect an empty folder now?`
+        )
+      ) {
+        return;
+      }
+
+      downloadAllCores(exportableCores);
     });
 
   // document.querySelectorAll("input[type='number']").forEach((e) => {
@@ -2149,13 +2191,10 @@ async function downloadAllCores(cores) {
         ? URL.createObjectURL(window.boxFile)
         : "path/to/default/image.jpg";
 
-  // Show progress overlay
+  // Prepare progress overlay
   const overlay = document.getElementById("progressOverlay");
   const progressBar = document.getElementById("progressBar");
   const progressText = document.getElementById("progressText");
-  overlay.style.display = "flex";
-  progressBar.style.width = "0%";
-  progressText.innerText = "Starting download...";
 
   // Allow user to choose the download folder
   let downloadFolder;
@@ -2163,9 +2202,25 @@ async function downloadAllCores(cores) {
     downloadFolder = await window.showDirectoryPicker();
   } catch (error) {
     console.error("User cancelled folder selection:", error);
-    overlay.style.display = "none";
     return;
   }
+
+  let selectedFolderHasEntries = false;
+  try {
+    selectedFolderHasEntries = await directoryHasEntries(downloadFolder);
+  } catch (error) {
+    console.warn("Could not verify whether the export folder is empty:", error);
+  }
+
+  if (selectedFolderHasEntries) {
+    showExportGridWarning(EXPORT_NON_EMPTY_FOLDER_MESSAGE);
+    alert(EXPORT_NON_EMPTY_FOLDER_MESSAGE);
+    return;
+  }
+
+  overlay.style.display = "flex";
+  progressBar.style.width = "0%";
+  progressText.innerText = "Starting download...";
 
   // Function to download a single core
   async function downloadCore(core, index) {

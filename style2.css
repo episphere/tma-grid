@@ -1182,6 +1182,19 @@ svg {
   color: white;
 }
 
+.export-grid-warning {
+  width: min(100%, 640px);
+  margin: 1rem 0 0 auto;
+  padding: 0.85rem 1rem;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: left;
+}
+
 .standard-button{
     background-color: var(--primary-color);
     border: none;
