@@ -1680,6 +1680,12 @@ nav a,
   box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.22);
 }
 
+.core-overlay-for-gridding.needs-review {
+  border-style: dashed;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
 input[type="number"],
 input[type="text"],
 textarea,

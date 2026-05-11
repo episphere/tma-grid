@@ -26,6 +26,57 @@ window.actionHistory = [];
 let currentActionIndex = -1;
 
 let MIN_CORE_WIDTH_PROPORTION = 0.01;
+let temporaryOverlayCounter = 0;
+
+function getCoreOverlayId(index) {
+  if (Number.isInteger(index) && index >= 0) {
+    return `core_overlay_${index}`;
+  }
+
+  temporaryOverlayCounter += 1;
+  return `core_overlay_temp_${temporaryOverlayCounter}`;
+}
+
+function setCoreOverlayMetadata(overlayElement, core, index) {
+  overlayElement.dataset.coreIndex = Number.isInteger(index) ? `${index}` : "-1";
+  overlayElement.dataset.row = Number.isFinite(core.row) ? `${core.row}` : "";
+  overlayElement.dataset.col = Number.isFinite(core.col) ? `${core.col}` : "";
+}
+
+function getCoreFromOverlayElement(overlayElement) {
+  if (!overlayElement) {
+    return { core: null, index: -1 };
+  }
+
+  const coreIndex = parseInt(overlayElement.dataset.coreIndex, 10);
+  if (
+    Number.isInteger(coreIndex) &&
+    coreIndex >= 0 &&
+    window.sortedCoresData?.[coreIndex]
+  ) {
+    return {
+      core: window.sortedCoresData[coreIndex],
+      index: coreIndex,
+    };
+  }
+
+  const row = parseInt(overlayElement.dataset.row, 10);
+  const col = parseInt(overlayElement.dataset.col, 10);
+  if (Number.isInteger(row) && Number.isInteger(col)) {
+    const fallbackIndex = window.sortedCoresData?.findIndex(
+      (core) => core.row === row && core.col === col
+    );
+
+    if (fallbackIndex >= 0) {
+      return {
+        core: window.sortedCoresData[fallbackIndex],
+        index: fallbackIndex,
+      };
+    }
+  }
+
+  return { core: null, index: -1 };
+}
 
 function getMousePosition(event, canvasID = "coreCanvas") {
   const canvas = document.getElementById(canvasID);
@@ -592,26 +643,23 @@ const drawResizeHandles = (overlay, show = true) => {
           );
 
           if (!overlay.element.classList.contains("temporary")) {
-            const row = parseInt(overlay.element.id.split("_")[2]);
-            const col = parseInt(overlay.element.id.split("_")[4]);
-            const coreIndex = window.sortedCoresData.findIndex(
-              (core) => core.row === row && core.col === col
+            const { core, index: coreIndex } = getCoreFromOverlayElement(
+              overlay.element
             );
-            if (coreIndex !== -1) {
+            if (core && coreIndex !== -1) {
               const overlayBoundsInImageCoords =
                 window.viewer.viewport.viewportToImageRectangle(
                   overlay.getBounds(window.viewer.viewport)
                 );
-              window.sortedCoresData[coreIndex]["x"] =
+              core.x =
                 overlayBoundsInImageCoords.x +
                 overlayBoundsInImageCoords.width / 2;
-              window.sortedCoresData[coreIndex]["y"] =
+              core.y =
                 overlayBoundsInImageCoords.y +
                 overlayBoundsInImageCoords.height / 2;
-              window.sortedCoresData[coreIndex]["currentRadius"] =
-                overlayBoundsInImageCoords.width / 2;
-              connectAdjacentCores(window.sortedCoresData[coreIndex], true);
-              updateSidebar(window.sortedCoresData[coreIndex]);
+              core.currentRadius = overlayBoundsInImageCoords.width / 2;
+              connectAdjacentCores(core, true);
+              updateSidebar(core);
             }
           }
         },
@@ -654,15 +702,16 @@ function drawCore(core, index = -1) {
 
   const overlayElement = document.createElement("div");
   overlayElement.className = "core-overlay-for-gridding";
+  overlayElement.id = getCoreOverlayId(index);
+  setCoreOverlayMetadata(overlayElement, core, index);
+  if (window.viewer.getOverlayById(overlayElement.id)) {
+    window.viewer.removeOverlay(overlayElement.id);
+  }
 
   const overlayTitleDiv = document.createElement("div");
   overlayTitleDiv.className = "core-overlay-title-div";
 
   if (core.row >= 0 && core.col >= 0) {
-    overlayElement.id = `core_row_${core.row}_col_${core.col}`;
-    if (window.viewer.getOverlayById(overlayElement.id)) {
-      window.viewer.removeOverlay(overlayElement.id);
-    }
     overlayTitleDiv.innerText = `${core.row + 1},${core.col + 1}`;
   }
   overlayTitleDiv.style.top = `-${Math.floor(
@@ -685,6 +734,10 @@ function drawCore(core, index = -1) {
 
   if (core.autoAssignedMarker) {
     overlayElement.classList.add("auto-assigned-marker");
+  }
+
+  if (core.needsReview) {
+    overlayElement.classList.add("needs-review");
   }
 
   if (document.getElementById("flagMisalignmentCheckbox").checked) {
@@ -819,16 +872,13 @@ const keyPressHandler = (e) => {
     const overlay = window.viewer.currentOverlays.find((overlay) =>
       overlay.element.classList.contains("selected")
     );
-    const row = parseInt(overlay.element.id.split("_")[2]);
-    const col = parseInt(overlay.element.id.split("_")[4]);
-    if (!isNaN(row) && !isNaN(col)) {
-      const core = window.sortedCoresData.find(
-        (core) => core.row === row && core.col === col
-      );
+    const { core } = getCoreFromOverlayElement(overlay?.element);
+
+    if (core) {
       removeCoreFromGrid(core);
     } else if (
-      overlay.element.classList.contains("temporary") ||
-      overlay.element.classList.contains("marker")
+      overlay?.element.classList.contains("temporary") ||
+      overlay?.element.classList.contains("marker")
     ) {
       const overlayBounds = window.viewer.viewport.viewportToImageRectangle(
         overlay.getBounds(window.viewer.viewport)
@@ -898,21 +948,16 @@ function updateSidebar(core) {
   // const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
   const sidebarPrefix = "edit";
 
-  if (!core.isMarker) {
-    document.getElementById(sidebarPrefix + "RowInput").value = core
+  document.getElementById(sidebarPrefix + "RowInput").value = core
+    ? core.row >= 0
       ? core.row + 1
-      : "";
-    document.getElementById(sidebarPrefix + "ColumnInput").value = core
+      : core.row
+    : "";
+  document.getElementById(sidebarPrefix + "ColumnInput").value = core
+    ? core.col >= 0
       ? core.col + 1
-      : "";
-  } else {
-    document.getElementById(sidebarPrefix + "RowInput").value = core
-      ? core.row
-      : "";
-    document.getElementById(sidebarPrefix + "ColumnInput").value = core
-      ? core.col
-      : "";
-  }
+      : core.col
+    : "";
 
   document.getElementById(sidebarPrefix + "XInput").value = core
     ? core.x * window.scalingFactor
@@ -955,6 +1000,7 @@ function updateSidebar(core) {
 
 function saveCore(core) {
   const oldRow = core?.row;
+  const wasMarker = core?.isMarker || core?.offGridMarker;
   if (
     !oldRow &&
     !document.getElementById("editRowInput").value &&
@@ -965,17 +1011,35 @@ function saveCore(core) {
   }
 
   // Get the new row and column values
-  const newRow = parseInt(document.getElementById("editRowInput").value, 10) - 1;
-  const newCol = parseInt(document.getElementById("editColumnInput").value, 10) - 1;
+  const rowInputValue = document.getElementById("editRowInput").value;
+  const colInputValue = document.getElementById("editColumnInput").value;
+  const parsedRow = parseInt(rowInputValue, 10);
+  const parsedCol = parseInt(colInputValue, 10);
+  const newRow = parsedRow >= 0 ? parsedRow - 1 : parsedRow;
+  const newCol = parsedCol >= 0 ? parsedCol - 1 : parsedCol;
+  const newIsMarker = document.getElementById("editIsMarkerInput").checked;
+
+  if (!Number.isFinite(newRow) || !Number.isFinite(newCol)) {
+    alert("Please enter valid row and column values");
+    return false;
+  }
 
   // Check if the core is being moved to a different row
-  if (document.getElementById("editRowInput").value !== -1) {
+  if (newRow >= 0 && newCol >= 0) {
     // Locate the conflicting core, if any
     const conflictingCoreIndex = window.sortedCoresData.findIndex(
-      (existingCore) => existingCore.row === newRow && existingCore.col === newCol
+      (existingCore) =>
+        existingCore !== core &&
+        existingCore.row === newRow &&
+        existingCore.col === newCol
     );
 
-    if (conflictingCoreIndex !== -1) {
+    if (conflictingCoreIndex !== -1 && !newIsMarker && wasMarker) {
+      alert("That row and column already contain a core.");
+      return false;
+    }
+
+    if (conflictingCoreIndex !== -1 && !newIsMarker) {
       const conflictingCore = window.sortedCoresData[conflictingCoreIndex];
 
       // Swap row and col values with the conflicting core
@@ -987,15 +1051,15 @@ function saveCore(core) {
     }
 
     if (
-      oldRow !== parseInt(document.getElementById("editRowInput").value, 10) &&
+      oldRow !== newRow &&
       oldRow !== -1 &&
       document.getElementById("editAutoUpdateRowsCheckbox").checked
     ) {
       updateRowsInGridAfterRemoval(oldRow);
     }
   } else {
-    core.row = parseInt(document.getElementById("editRowInput").value, 10);
-    core.col = parseInt(document.getElementById("editColumnInput").value, 10);
+    core.row = newRow;
+    core.col = newCol;
   }
 
   // Update core properties
@@ -1008,12 +1072,24 @@ function saveCore(core) {
   core.isImaginary = document.getElementById("editImaginaryInput").checked;
 
   // Update the isMarker property based on which radio button is checked
-  core.isMarker = document.getElementById("editIsMarkerInput").checked;
+  core.isMarker = newIsMarker;
+  if (core.isMarker) {
+    core.autoAssignedMarker = false;
+    clearOffGridMarkerStatus(core);
+    core.needsReview =
+      core.row >= 0 &&
+      core.col >= 0 &&
+      window.sortedCoresData.some(
+        (existingCore) =>
+          existingCore !== core &&
+          !existingCore.isMarker &&
+          existingCore.row === core.row &&
+          existingCore.col === core.col
+      );
+  }
 
   // Find the core index within the sorted cores data
-  const coreIndex = window.sortedCoresData.findIndex(
-    (prevCore) => prevCore.x === core.x && prevCore.y === core.y
-  );
+  const coreIndex = window.sortedCoresData.indexOf(core);
 
   if (
     document.getElementById("editAutoUpdateRowsCheckbox").checked &&
@@ -1027,7 +1103,9 @@ function saveCore(core) {
       updateColumnsInRowAfterModification(oldRow);
     }
 
-    window.sortedCoresData[coreIndex] = core;
+    if (coreIndex !== -1) {
+      window.sortedCoresData[coreIndex] = core;
+    }
     updateSidebar(core);
   }
 
@@ -1112,9 +1190,13 @@ function updateRowsInGridAfterMovement(oldRow, newRow) {
 }
 
 function removeCoreFromGrid(core) {
-  let coreIndex = window.sortedCoresData.findIndex(
-    (coreToRemove) => coreToRemove.x === core.x && coreToRemove.y === core.y
-  );
+  let coreIndex = window.sortedCoresData.indexOf(core);
+
+  if (coreIndex === -1) {
+    coreIndex = window.sortedCoresData.findIndex(
+      (coreToRemove) => coreToRemove.x === core.x && coreToRemove.y === core.y
+    );
+  }
 
   if (coreIndex === -1) {
     console.log("Core not found in sortedCoresData");
@@ -1541,6 +1623,303 @@ function getIndexRange(entries) {
   };
 }
 
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getCellKey(row, col) {
+  return `${row}_${col}`;
+}
+
+function cloneMatrix(matrix) {
+  return matrix.map((row) => [...row]);
+}
+
+function solveLinearSystem3x3(matrix, values) {
+  const m = cloneMatrix(matrix);
+  const b = [...values];
+
+  for (let pivot = 0; pivot < 3; pivot++) {
+    let maxRow = pivot;
+    for (let row = pivot + 1; row < 3; row++) {
+      if (Math.abs(m[row][pivot]) > Math.abs(m[maxRow][pivot])) {
+        maxRow = row;
+      }
+    }
+
+    if (Math.abs(m[maxRow][pivot]) < 1e-9) {
+      return null;
+    }
+
+    if (maxRow !== pivot) {
+      [m[pivot], m[maxRow]] = [m[maxRow], m[pivot]];
+      [b[pivot], b[maxRow]] = [b[maxRow], b[pivot]];
+    }
+
+    const pivotValue = m[pivot][pivot];
+    for (let col = pivot; col < 3; col++) {
+      m[pivot][col] /= pivotValue;
+    }
+    b[pivot] /= pivotValue;
+
+    for (let row = 0; row < 3; row++) {
+      if (row === pivot) {
+        continue;
+      }
+
+      const factor = m[row][pivot];
+      for (let col = pivot; col < 3; col++) {
+        m[row][col] -= factor * m[pivot][col];
+      }
+      b[row] -= factor * b[pivot];
+    }
+  }
+
+  return b;
+}
+
+function fitAffineLatticeModel(samples) {
+  const normalMatrix = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ];
+  const normalX = [0, 0, 0];
+  const normalY = [0, 0, 0];
+
+  samples.forEach((sample) => {
+    const features = [1, sample.row, sample.col];
+    const weight = sample.weight || 1;
+
+    for (let i = 0; i < 3; i++) {
+      normalX[i] += weight * features[i] * sample.x;
+      normalY[i] += weight * features[i] * sample.y;
+
+      for (let j = 0; j < 3; j++) {
+        normalMatrix[i][j] += weight * features[i] * features[j];
+      }
+    }
+  });
+
+  const xCoefficients = solveLinearSystem3x3(normalMatrix, normalX);
+  const yCoefficients = solveLinearSystem3x3(normalMatrix, normalY);
+
+  if (!xCoefficients || !yCoefficients) {
+    return null;
+  }
+
+  const rowVector = {
+    x: xCoefficients[1],
+    y: yCoefficients[1],
+  };
+  const colVector = {
+    x: xCoefficients[2],
+    y: yCoefficients[2],
+  };
+  const determinant = rowVector.x * colVector.y - colVector.x * rowVector.y;
+
+  if (Math.abs(determinant) < 1e-6) {
+    return null;
+  }
+
+  return {
+    origin: {
+      x: xCoefficients[0],
+      y: yCoefficients[0],
+    },
+    rowVector,
+    colVector,
+    determinant,
+    rowSpacing: Math.hypot(rowVector.x, rowVector.y),
+    colSpacing: Math.hypot(colVector.x, colVector.y),
+  };
+}
+
+function predictPointFromLattice(model, row, col) {
+  return {
+    x: model.origin.x + row * model.rowVector.x + col * model.colVector.x,
+    y: model.origin.y + row * model.rowVector.y + col * model.colVector.y,
+  };
+}
+
+function getLatticeResidual(model, sample) {
+  const predicted = predictPointFromLattice(model, sample.row, sample.col);
+  return Math.hypot(sample.x - predicted.x, sample.y - predicted.y);
+}
+
+function projectPointToLattice(model, point) {
+  const dx = point.x - model.origin.x;
+  const dy = point.y - model.origin.y;
+  const rowFloat = (dx * model.colVector.y - model.colVector.x * dy) / model.determinant;
+  const colFloat = (model.rowVector.x * dy - dx * model.rowVector.y) / model.determinant;
+
+  return {
+    rowFloat,
+    colFloat,
+    row: Math.round(rowFloat),
+    col: Math.round(colFloat),
+  };
+}
+
+function getLatticeSamples(coresData) {
+  return coresData
+    .filter(
+      (core) =>
+        !core.isMarker &&
+        !core.autoAssignedMarker &&
+        !core.isImaginary &&
+        Number.isFinite(core.row) &&
+        Number.isFinite(core.col) &&
+        Number.isFinite(core.x) &&
+        Number.isFinite(core.y) &&
+        core.row >= 0 &&
+        core.col >= 0
+    )
+    .map((core) => ({
+      core,
+      row: core.row,
+      col: core.col,
+      x: core.x,
+      y: core.y,
+      weight: 1,
+    }));
+}
+
+function buildRobustAffineLatticeModel(coresData, params = {}) {
+  const samples = getLatticeSamples(coresData);
+  const uniqueRows = new Set(samples.map((sample) => sample.row));
+  const uniqueCols = new Set(samples.map((sample) => sample.col));
+
+  if (samples.length < 6 || uniqueRows.size < 2 || uniqueCols.size < 2) {
+    return null;
+  }
+
+  let activeSamples = samples;
+  let model = null;
+  let residualThreshold = null;
+
+  for (let iteration = 0; iteration < 4; iteration++) {
+    const nextModel = fitAffineLatticeModel(activeSamples);
+    if (!nextModel) {
+      break;
+    }
+
+    const residuals = samples.map((sample) =>
+      getLatticeResidual(nextModel, sample)
+    );
+    const medianResidual = calculateMedianNumber(residuals) || 0;
+    const mad =
+      calculateMedianNumber(
+        residuals.map((residual) => Math.abs(residual - medianResidual))
+      ) || 0;
+    const medianRadius =
+      calculateMedianNumber(
+        samples
+          .map((sample) => sample.core.currentRadius)
+          .filter((radius) => Number.isFinite(radius) && radius > 0)
+      ) || 1;
+    const spacingFloor =
+      Math.min(nextModel.rowSpacing, nextModel.colSpacing) ||
+      params.gridWidth ||
+      medianRadius * 3;
+
+    residualThreshold = Math.max(
+      medianRadius * 1.8,
+      spacingFloor * 0.28,
+      medianResidual + 3 * mad
+    );
+
+    const nextActiveSamples = samples.filter(
+      (sample) => getLatticeResidual(nextModel, sample) <= residualThreshold
+    );
+
+    model = nextModel;
+    activeSamples = nextActiveSamples.length >= 6 ? nextActiveSamples : activeSamples;
+  }
+
+  if (!model) {
+    return null;
+  }
+
+  const finalSamples = activeSamples.length >= 6 ? activeSamples : samples;
+  const rowIndexes = finalSamples.map((sample) => sample.row);
+  const colIndexes = finalSamples.map((sample) => sample.col);
+  const medianRadius =
+    calculateMedianNumber(
+      finalSamples
+        .map((sample) => sample.core.currentRadius)
+        .filter((radius) => Number.isFinite(radius) && radius > 0)
+    ) || 1;
+  const spacingFloor =
+    Math.min(model.rowSpacing, model.colSpacing) ||
+    params.gridWidth ||
+    medianRadius * 3;
+
+  return {
+    ...model,
+    medianRadius,
+    assignmentThreshold: Math.max(
+      medianRadius * 1.6,
+      spacingFloor * 0.24,
+      residualThreshold || 0
+    ),
+    rowRange: {
+      min: Math.min(...rowIndexes),
+      max: Math.max(...rowIndexes),
+    },
+    colRange: {
+      min: Math.min(...colIndexes),
+      max: Math.max(...colIndexes),
+    },
+    maxExtraRows: Math.max(2, Math.ceil(uniqueRows.size * 0.2)),
+    maxExtraColumns: Math.max(4, Math.ceil(uniqueCols.size * 0.35)),
+  };
+}
+
+function isWithinLatticeBounds(row, col, model) {
+  return (
+    isWithinExtendedRange(row, model.rowRange, model.maxExtraRows) &&
+    isWithinExtendedRange(col, model.colRange, model.maxExtraColumns)
+  );
+}
+
+function hasDuplicateCell(core, coresData) {
+  if (!Number.isFinite(core.row) || !Number.isFinite(core.col)) {
+    return false;
+  }
+
+  return coresData.some(
+    (candidate) =>
+      candidate !== core &&
+      !candidate.isMarker &&
+      candidate.row === core.row &&
+      candidate.col === core.col
+  );
+}
+
+function getRefinementStats(coresData, refinedCount = 0) {
+  const unresolved = coresData.filter(
+    (core) =>
+      core.isMarker &&
+      !core.offGridMarker &&
+      core.isImaginary === false
+  ).length;
+  const assigned = coresData.filter(
+    (core) => core.autoAssignedMarker && !core.isMarker
+  ).length;
+  const ignoredOffGrid = coresData.filter(
+    (core) => core.isMarker && core.offGridMarker
+  ).length;
+
+  return {
+    total: assigned + unresolved + ignoredOffGrid,
+    assigned,
+    unresolved,
+    ignoredOffGrid,
+    refined: refinedCount,
+  };
+}
+
 function getMarkerAssignmentModel(coresData, imageRotation, params = {}) {
   const placedCores = coresData.filter(
     (core) =>
@@ -1675,7 +2054,26 @@ function isGridCellOccupied(coresData, row, col, ignoredCore) {
   );
 }
 
-function getRowOrderedColumn(core, targetRow, coresData, imageRotation, model) {
+function markOffGridMarker(core, targetRow, markerSide) {
+  core.row = -1;
+  core.col = -1;
+  core.isMarker = true;
+  core.isMisaligned = false;
+  core.autoAssignedMarker = false;
+  core.offGridMarker = true;
+  core.needsReview = false;
+  core.markerGridRow = targetRow;
+  core.markerGridSide = markerSide;
+  core.markerAssignmentMethod = "off-grid-marker";
+}
+
+function clearOffGridMarkerStatus(core) {
+  core.offGridMarker = false;
+  core.markerGridRow = undefined;
+  core.markerGridSide = undefined;
+}
+
+function getOffGridMarkerSide(core, targetRow, coresData, imageRotation, model) {
   const rowCores = coresData
     .filter(
       (candidate) =>
@@ -1690,35 +2088,24 @@ function getRowOrderedColumn(core, targetRow, coresData, imageRotation, model) {
     }))
     .sort((a, b) => a.rotatedX - b.rotatedX);
 
-  if (rowCores.length === 0) {
+  if (rowCores.length < 2) {
     return null;
   }
 
   const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
   const firstX = rowCores[0].rotatedX;
   const lastX = rowCores[rowCores.length - 1].rotatedX;
-  const isOutsideRowSpan =
-    rotatedX <= firstX - model.medianRadius * 0.75 ||
-    rotatedX >= lastX + model.medianRadius * 0.75;
+  const margin = Math.max(model.medianRadius * 1.25, model.columnSpacing * 0.35);
 
-  if (!isOutsideRowSpan) {
-    return null;
+  if (rotatedX < firstX - margin) {
+    return "left";
   }
 
-  return rowCores.filter((rowCore) => rowCore.rotatedX < rotatedX).length;
-}
+  if (rotatedX > lastX + margin) {
+    return "right";
+  }
 
-function openColumnSlotInRow(coresData, targetRow, targetCol, ignoredCore) {
-  coresData.forEach((core) => {
-    if (
-      core !== ignoredCore &&
-      !core.isMarker &&
-      core.row === targetRow &&
-      core.col >= targetCol
-    ) {
-      core.col += 1;
-    }
-  });
+  return null;
 }
 
 function normalizeGridIndices(coresData) {
@@ -1755,19 +2142,34 @@ function updateMarkerAutoAssignmentStatus(stats) {
   }
 
   statusElement.classList.remove("success", "warning", "neutral");
+  const refinementText = stats.refined
+    ? ` Refined ${stats.refined} additional core assignment${
+        stats.refined === 1 ? "" : "s"
+      } with the fitted grid model.`
+    : "";
+  const ignoredText = stats.ignoredOffGrid
+    ? ` Kept ${stats.ignoredOffGrid} off-grid marker core${
+        stats.ignoredOffGrid === 1 ? "" : "s"
+      } outside row and column numbering.`
+    : "";
 
   if (stats.total === 0) {
-    statusElement.textContent = "No marker cores needed automatic placement.";
+    statusElement.textContent =
+      `No marker cores needed automatic placement.${refinementText}`;
+    statusElement.classList.add("neutral");
+  } else if (stats.assigned === 0 && stats.unresolved === 0) {
+    statusElement.textContent =
+      `No marker cores needed automatic placement.${ignoredText}${refinementText}`;
     statusElement.classList.add("neutral");
   } else if (stats.unresolved === 0) {
     statusElement.textContent = `Auto-placed ${stats.assigned} marker core${
       stats.assigned === 1 ? "" : "s"
-    } into inferred row and column positions.`;
+    } into inferred row and column positions.${ignoredText}${refinementText}`;
     statusElement.classList.add("success");
   } else {
     statusElement.textContent = `Auto-placed ${stats.assigned} marker core${
       stats.assigned === 1 ? "" : "s"
-    }; ${stats.unresolved} still need manual review.`;
+    }; ${stats.unresolved} still need manual review.${ignoredText}${refinementText}`;
     statusElement.classList.add("warning");
   }
 }
@@ -1785,6 +2187,7 @@ function assignMarkerCoresToGrid(
     total: markerCandidates.length,
     assigned: 0,
     unresolved: markerCandidates.length,
+    ignoredOffGrid: 0,
   };
 
   if (markerCandidates.length === 0) {
@@ -1815,13 +2218,12 @@ function assignMarkerCoresToGrid(
       const targetRow = getClosestExistingRow(rotatedY, model);
 
       if (targetRow === null) {
+        clearOffGridMarkerStatus(core);
         core.autoAssignedMarker = false;
         return;
       }
 
-      let targetCol = null;
-      let shouldOpenColumnSlot = false;
-      const rowOrderedCol = getRowOrderedColumn(
+      const offGridSide = getOffGridMarkerSide(
         core,
         targetRow,
         coresData,
@@ -1829,41 +2231,42 @@ function assignMarkerCoresToGrid(
         model
       );
 
-      if (rowOrderedCol !== null) {
-        targetCol = rowOrderedCol;
-        shouldOpenColumnSlot = true;
-      } else {
-        const projectedCol = getProjectedColumn(rotatedX, model);
-        if (
-          projectedCol !== null &&
-          !isGridCellOccupied(coresData, targetRow, projectedCol, core)
-        ) {
-          targetCol = projectedCol;
-        }
+      if (offGridSide) {
+        markOffGridMarker(core, targetRow, offGridSide);
+        stats.ignoredOffGrid += 1;
+        return;
+      }
+
+      let targetCol = null;
+      const projectedCol = getProjectedColumn(rotatedX, model);
+
+      if (
+        projectedCol !== null &&
+        !isGridCellOccupied(coresData, targetRow, projectedCol, core)
+      ) {
+        targetCol = projectedCol;
       }
 
       if (targetCol === null) {
+        clearOffGridMarkerStatus(core);
         core.autoAssignedMarker = false;
         return;
       }
 
-      if (shouldOpenColumnSlot) {
-        openColumnSlotInRow(coresData, targetRow, targetCol, core);
-      }
-
+      clearOffGridMarkerStatus(core);
       core.row = targetRow;
       core.col = targetCol;
       core.isMarker = false;
       core.isMisaligned = false;
       core.autoAssignedMarker = true;
-      core.markerAssignmentMethod = shouldOpenColumnSlot
-        ? "row-order"
-        : "lattice";
+      core.markerAssignmentMethod = "lattice";
       stats.assigned += 1;
     });
 
   normalizeGridIndices(coresData);
-  stats.unresolved = markerCandidates.filter((core) => core.isMarker).length;
+  stats.unresolved = markerCandidates.filter(
+    (core) => core.isMarker && !core.offGridMarker
+  ).length;
   window.markerAutoAssignmentStats = stats;
 
   if (options.updateStatus !== false) {
@@ -1871,6 +2274,159 @@ function assignMarkerCoresToGrid(
   }
 
   return coresData;
+}
+
+function refineCoresWithAffineLattice(
+  coresData,
+  imageRotation,
+  params = {},
+  options = {}
+) {
+  const allowRenumbering = options.allowLatticeRenumbering === true;
+  const model = buildRobustAffineLatticeModel(coresData, params);
+  if (!model) {
+    if (options.updateStatus !== false) {
+      updateMarkerAutoAssignmentStatus(getRefinementStats(coresData));
+    }
+    return coresData;
+  }
+
+  const candidates = coresData
+    .filter(
+      (core) =>
+        !core.offGridMarker &&
+        !core.autoAssignedMarker &&
+        core.isImaginary === false &&
+        Number.isFinite(core.x) &&
+        Number.isFinite(core.y)
+    )
+    .map((core) => {
+      const projection = projectPointToLattice(model, core);
+      const predicted = predictPointFromLattice(
+        model,
+        projection.row,
+        projection.col
+      );
+      const residual = Math.hypot(core.x - predicted.x, core.y - predicted.y);
+      const threshold = core.isMarker
+        ? model.assignmentThreshold * 1.25
+        : model.assignmentThreshold;
+      const isInBounds = isWithinLatticeBounds(
+        projection.row,
+        projection.col,
+        model
+      );
+      const isAccepted =
+        residual <= threshold &&
+        isInBounds &&
+        projection.row >= 0 &&
+        projection.col >= 0;
+      const isSameCell =
+        core.row === projection.row && core.col === projection.col;
+      const isSuspect =
+        core.isMarker ||
+        core.autoAssignedMarker ||
+        hasDuplicateCell(core, coresData);
+      const score =
+        residual -
+        (isSameCell && !core.isMarker ? model.assignmentThreshold * 0.2 : 0);
+
+      return {
+        core,
+        row: projection.row,
+        col: projection.col,
+        residual,
+        threshold,
+        isAccepted,
+        isSameCell,
+        isSuspect,
+        score,
+      };
+    })
+    .filter((candidate) => candidate.isAccepted);
+
+  const winningAssignments = new Map();
+  candidates
+    .sort((a, b) => a.score - b.score)
+    .forEach((candidate) => {
+      const key = getCellKey(candidate.row, candidate.col);
+      if (!winningAssignments.has(key)) {
+        winningAssignments.set(key, candidate);
+      }
+    });
+
+  let refinedCount = 0;
+
+  winningAssignments.forEach((assignment) => {
+    const shouldApply =
+      assignment.core.isMarker ||
+      assignment.isSameCell ||
+      (allowRenumbering && assignment.isSuspect);
+
+    if (!shouldApply) {
+      return;
+    }
+
+    const didMove =
+      assignment.core.row !== assignment.row ||
+      assignment.core.col !== assignment.col;
+    const wasMarker = assignment.core.isMarker;
+
+    if (assignment.core.isMarker || allowRenumbering) {
+      assignment.core.row = assignment.row;
+      assignment.core.col = assignment.col;
+      assignment.core.isMarker = false;
+      assignment.core.isMisaligned = false;
+    }
+
+    assignment.core.needsReview = false;
+    assignment.core.assignmentResidual = assignment.residual;
+    assignment.core.assignmentConfidence = clampNumber(
+      1 - assignment.residual / assignment.threshold,
+      0,
+      1
+    );
+
+    if (wasMarker) {
+      assignment.core.autoAssignedMarker = true;
+      assignment.core.markerAssignmentMethod = "affine-lattice";
+    }
+
+    if (didMove && !wasMarker && allowRenumbering) {
+      refinedCount += 1;
+      assignment.core.assignmentMethod = "affine-lattice-refinement";
+    }
+  });
+
+  const assignedCells = new Set(
+    coresData
+      .filter((core) => !core.isMarker && core.isImaginary === false)
+      .map((core) => getCellKey(core.row, core.col))
+  );
+
+  let refinedCores = coresData.filter(
+    (core) =>
+      !(core.isImaginary && assignedCells.has(getCellKey(core.row, core.col)))
+  );
+
+  refinedCores.forEach((core) => {
+    if ((core.isMarker && !core.offGridMarker) || hasDuplicateCell(core, refinedCores)) {
+      core.needsReview = true;
+    }
+  });
+
+  normalizeGridIndices(refinedCores);
+
+  if (options.updateStatus !== false) {
+    updateMarkerAutoAssignmentStatus(
+      getRefinementStats(refinedCores, refinedCount)
+    );
+  }
+
+  window.latticeRefinementModel = model;
+  window.latticeRefinementStats = getRefinementStats(refinedCores, refinedCount);
+
+  return refinedCores;
 }
 
 function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
@@ -1910,9 +2466,11 @@ function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
 
     // If there's another core with the same row and column, also mark it as misaligned
     if (
+      !core.isMarker &&
       coresData.some(
         (otherCore) =>
           otherCore !== core &&
+          !otherCore.isMarker &&
           otherCore.row === core.row &&
           otherCore.col === core.col
       )
@@ -1932,8 +2490,10 @@ function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
         core.row = -1;
         core.col = -1;
         core.isMarker = true;
+        clearOffGridMarkerStatus(core);
       } else {
         core.isMarker = false;
+        clearOffGridMarkerStatus(core);
       }
     }
   });
@@ -1942,13 +2502,21 @@ function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
 }
 
 function reassignCoreIndices(coresData) {
+  const markerCores = coresData.filter((core) => core.isMarker);
+  const gridCores = coresData.filter((core) => !core.isMarker);
+
+  markerCores.forEach((core) => {
+    core.row = -1;
+    core.col = -1;
+  });
+
   // Sort by row and col for consistent processing
-  coresData.sort((a, b) => a.row - b.row || a.col - b.col);
+  gridCores.sort((a, b) => a.row - b.row || a.col - b.col);
 
   // Reassign row indices
   let rowMap = {};
   let rowIndex = 0;
-  coresData
+  gridCores
     .map((core) => core.row)
     .filter((value, index, self) => self.indexOf(value) === index)
     .sort((a, b) => a - b)
@@ -1958,17 +2526,17 @@ function reassignCoreIndices(coresData) {
       } else {
         rowMap[originalRow] = originalRow;
       }
-    });
+  });
 
   // Reassign column indices within each row
-  coresData.forEach((core) => {
+  gridCores.forEach((core) => {
     core.row = rowMap[core.row]; // Update row to new mapping
   });
 
   // For each row, assign consecutive col indices starting from 0
   let lastRow = -1;
   let colIndex = 0;
-  coresData.forEach((core) => {
+  gridCores.forEach((core) => {
     if (core.row !== lastRow) {
       // New row
       lastRow = core.row;
@@ -1976,7 +2544,7 @@ function reassignCoreIndices(coresData) {
     }
     core.col = colIndex++;
   });
-  return coresData;
+  return [...gridCores, ...markerCores];
 }
 
 function alignMisalignedCores(coresData, imageRotation) {
@@ -2066,6 +2634,13 @@ function filterAndReassignCores(
     filteredCores,
     imageRotation,
     params,
+    { ...options, updateStatus: false }
+  );
+
+  filteredCores = refineCoresWithAffineLattice(
+    filteredCores,
+    imageRotation,
+    params,
     options
   );
 
@@ -2136,7 +2711,9 @@ function finalizeSaveData() {
 function obtainHyperparametersAndDrawVirtualGrid() {
   // Check if there are marker cores and if there are, alert the user to assign indices to them, or they will not show up in the virtual grid
   const sortedCoresData = window.sortedCoresData || [];
-  const markerCores = sortedCoresData.filter((core) => core.isMarker);
+  const markerCores = sortedCoresData.filter(
+    (core) => core.isMarker && !core.offGridMarker
+  );
 
   if (sortedCoresData.length === 0) {
     alert("Please wait for cores to finish loading.");

@@ -126,6 +126,7 @@ const applyOpening = (binary) => {
   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
   let opening = new cv.Mat();
   cv.morphologyEx(binary, opening, cv.MORPH_OPEN, kernel);
+  kernel.delete();
   return opening;
 };
 
@@ -134,6 +135,7 @@ const applyDilation = (opening) => {
   let kernel = cv.Mat.ones(3, 3, cv.CV_8U);
   let dilated = new cv.Mat();
   cv.dilate(opening, dilated, kernel, new cv.Point(-1, -1), 1);
+  kernel.delete();
   return dilated;
 };
 
@@ -197,6 +199,16 @@ const fillSmallHoles = (opening, dilated) => {
     let area = stats.intAt(i, cv.CC_STAT_AREA);
     areas.push(area);
   }
+
+  if (areas.length === 0) {
+    holes.delete();
+    labels.delete();
+    stats.delete();
+    centroids.delete();
+    smallHolesMask.delete();
+    return opening;
+  }
+
   const smallHoleThreshold = getSmallHoleThreshold(areas, 0.1, 0.5);
 
   // This step was missing from the original correction, so it's reintroduced here
@@ -285,6 +297,7 @@ function thresholdDistanceTransform(matrix, disTransformMultiplier) {
   cv.threshold(distTransform, sureFg, disTransformMultiplier * maxVal, 255, 0);
 
   sureFg.convertTo(sureFg, cv.CV_8U);
+  distTransform.delete();
 
   return sureFg;
 }
@@ -321,17 +334,23 @@ function calculateMedianRadius(segmented, minArea, maxArea) {
         area: area,
         radius: circle.radius,
       });
+      cnt.delete();
     }
   }
 
   const medianRadius = findMedian(circleProperties.map((x) => x.radius));
   // Cleanup
+  inverted.delete();
   contours.delete();
   hierarchy.delete();
 
   return [medianRadius, circleProperties];
 }
 function findMedian(values) {
+  if (!values || values.length === 0) {
+    return undefined;
+  }
+
   const sortedValues = [...values].sort((a, b) => a - b);
   const midIndex = Math.floor(sortedValues.length / 2);
   if (sortedValues.length % 2 === 0) {
@@ -379,6 +398,687 @@ function preprocessImageForContours(segmented) {
   return processed;
 }
 
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function calculateMedianNumber(values) {
+  const sortedValues = values
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => a - b);
+
+  if (sortedValues.length === 0) {
+    return null;
+  }
+
+  const middleIndex = Math.floor(sortedValues.length / 2);
+  return sortedValues.length % 2
+    ? sortedValues[middleIndex]
+    : (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2;
+}
+
+function sanitizeCoreProperties(properties) {
+  const values = Array.isArray(properties)
+    ? properties
+    : Object.values(properties || {});
+
+  return values
+    .map((property) => {
+      const areaFromProperty = Number.isFinite(property.area)
+        ? property.area
+        : null;
+      const radiusFromArea =
+        areaFromProperty && areaFromProperty > 0
+          ? Math.sqrt(areaFromProperty / Math.PI)
+          : null;
+      const radius = Number.isFinite(property.radius) && property.radius > 0
+        ? property.radius
+        : radiusFromArea;
+      const area = Number.isFinite(areaFromProperty) && areaFromProperty > 0
+        ? areaFromProperty
+        : radius * radius * Math.PI;
+
+      return {
+        ...property,
+        area,
+        radius,
+      };
+    })
+    .filter(
+      (property) =>
+        Number.isFinite(property.x) &&
+        Number.isFinite(property.y) &&
+        Number.isFinite(property.radius) &&
+        Number.isFinite(property.area) &&
+        property.radius > 0 &&
+        property.area > 0
+    );
+}
+
+function getDetectionMedianRadius(properties, fallbackRadius = null) {
+  return (
+    calculateMedianNumber(
+      sanitizeCoreProperties(properties).map((property) => property.radius)
+    ) ||
+    fallbackRadius ||
+    1
+  );
+}
+
+function getCoreDistance(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function getNearestNeighborDistances(properties) {
+  const sanitizedProperties = sanitizeCoreProperties(properties);
+  if (sanitizedProperties.length < 2) {
+    return [];
+  }
+
+  return sanitizedProperties.map((property, propertyIndex) => {
+    let nearestDistance = Infinity;
+    sanitizedProperties.forEach((candidate, candidateIndex) => {
+      if (propertyIndex === candidateIndex) {
+        return;
+      }
+
+      nearestDistance = Math.min(
+        nearestDistance,
+        getCoreDistance(property, candidate)
+      );
+    });
+    return nearestDistance;
+  });
+}
+
+function getTypicalCoreSpacing(properties, fallbackRadius) {
+  const typicalRadius = fallbackRadius || getDetectionMedianRadius(properties);
+  const nearestDistances = getNearestNeighborDistances(properties).filter(
+    (distance) => distance > typicalRadius * 1.2
+  );
+
+  return calculateMedianNumber(nearestDistances) || typicalRadius * 3.2;
+}
+
+function isDuplicateDetection(property, existingProperties, threshold) {
+  return existingProperties.some(
+    (existingProperty) => getCoreDistance(property, existingProperty) < threshold
+  );
+}
+
+function isPointInsideComponent(point, component, padding = 0) {
+  return (
+    Number.isFinite(component.left) &&
+    Number.isFinite(component.top) &&
+    Number.isFinite(component.width) &&
+    Number.isFinite(component.height) &&
+    point.x >= component.left - padding &&
+    point.x <= component.left + component.width + padding &&
+    point.y >= component.top - padding &&
+    point.y <= component.top + component.height + padding
+  );
+}
+
+function componentHasExistingDetection(component, existingProperties, padding) {
+  return existingProperties.some((property) =>
+    isPointInsideComponent(property, component, padding)
+  );
+}
+
+function isLikelyBridgeBetweenExistingCores(
+  property,
+  existingProperties,
+  typicalRadius
+) {
+  const nearbyExisting = existingProperties
+    .map((existingProperty) => ({
+      property: existingProperty,
+      distance: getCoreDistance(property, existingProperty),
+    }))
+    .filter(({ distance }) => distance < Math.max(typicalRadius * 1.85, 4))
+    .sort((a, b) => a.distance - b.distance);
+
+  if (nearbyExisting.length < 2) {
+    return false;
+  }
+
+  const first = nearbyExisting[0].property;
+  const second = nearbyExisting[1].property;
+  const midpoint = {
+    x: (first.x + second.x) / 2,
+    y: (first.y + second.y) / 2,
+  };
+  const midpointDistance = getCoreDistance(property, midpoint);
+
+  return midpointDistance < Math.max(typicalRadius * 0.65, 3);
+}
+
+function dedupeCoreProperties(properties, typicalRadius) {
+  const duplicateDistance = Math.max((typicalRadius || 1) * 0.8, 3);
+  return sanitizeCoreProperties(properties)
+    .sort((a, b) => {
+      const confidenceA = Number.isFinite(a.confidence) ? a.confidence : 1;
+      const confidenceB = Number.isFinite(b.confidence) ? b.confidence : 1;
+      return confidenceB - confidenceA;
+    })
+    .reduce((deduped, property) => {
+      if (!isDuplicateDetection(property, deduped, duplicateDistance)) {
+        deduped.push(property);
+      }
+      return deduped;
+    }, [])
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function filterIsolatedEdgeArtifacts(properties, imageWidth, imageHeight, typicalRadius) {
+  const sanitizedProperties = sanitizeCoreProperties(properties);
+  const typicalSpacing = getTypicalCoreSpacing(sanitizedProperties, typicalRadius);
+  const neighborDistance = Math.max(typicalSpacing * 1.35, typicalRadius * 4);
+  const edgeMargin = Math.max(typicalSpacing * 0.9, typicalRadius * 4);
+
+  return sanitizedProperties.filter((property) => {
+    const neighborCount = sanitizedProperties.filter(
+      (candidate) =>
+        candidate !== property &&
+        getCoreDistance(property, candidate) <= neighborDistance
+    ).length;
+    const isNearEdge =
+      property.x < edgeMargin ||
+      property.y < edgeMargin ||
+      property.x > imageWidth - edgeMargin ||
+      property.y > imageHeight - edgeMargin;
+
+    return !(isNearEdge && neighborCount === 0);
+  });
+}
+
+function calculateMaskComponentProperties(image, minArea, maxArea, options = {}) {
+  const minAreaScale = options.minAreaScale || 0.55;
+  const maxAreaScale = options.maxAreaScale || 1.25;
+  const maxAspectRatio = options.maxAspectRatio || 2.7;
+  const minFillRatio = options.minFillRatio || 0.18;
+  let labels = new cv.Mat();
+  let stats = new cv.Mat();
+  let centroids = new cv.Mat();
+  cv.connectedComponentsWithStats(image, labels, stats, centroids);
+
+  const properties = [];
+  for (let i = 1; i < stats.rows; i++) {
+    const area = stats.intAt(i, cv.CC_STAT_AREA);
+    const scaledArea = area * 4;
+
+    if (scaledArea < minArea * minAreaScale || scaledArea > maxArea * maxAreaScale) {
+      continue;
+    }
+
+    const width = stats.intAt(i, cv.CC_STAT_WIDTH);
+    const height = stats.intAt(i, cv.CC_STAT_HEIGHT);
+    const aspectRatio = Math.max(
+      width / Math.max(height, 1),
+      height / Math.max(width, 1)
+    );
+    const fillRatio = area / Math.max(width * height, 1);
+
+    if (aspectRatio > maxAspectRatio || fillRatio < minFillRatio) {
+      continue;
+    }
+
+    const radius = Math.sqrt(area / Math.PI);
+    properties.push({
+      x: centroids.data64F[i * 2],
+      y: centroids.data64F[i * 2 + 1],
+      area,
+      radius,
+      aspectRatio,
+      fillRatio,
+      left: stats.intAt(i, cv.CC_STAT_LEFT),
+      top: stats.intAt(i, cv.CC_STAT_TOP),
+      width,
+      height,
+    });
+  }
+
+  labels.delete();
+  stats.delete();
+  centroids.delete();
+
+  return properties;
+}
+
+function getRescueProperties(candidateProperties, existingProperties, options = {}) {
+  const existing = sanitizeCoreProperties(existingProperties);
+  const typicalRadius = getDetectionMedianRadius(
+    existing,
+    options.fallbackRadius
+  );
+  const duplicateThreshold = Math.max(
+    typicalRadius * (options.duplicateRadiusRatio || 0.95),
+    3
+  );
+  const radiusFloor = typicalRadius * (options.minRadiusRatio || 0.42);
+  const radiusCeiling = typicalRadius * (options.maxRadiusRatio || 1.95);
+  const componentPadding = typicalRadius * 0.25;
+
+  return sanitizeCoreProperties(candidateProperties)
+    .filter((property) => {
+      if (property.radius < radiusFloor || property.radius > radiusCeiling) {
+        return false;
+      }
+
+      if (isDuplicateDetection(property, existing, duplicateThreshold)) {
+        return false;
+      }
+
+      if (
+        options.rejectComponentsWithExisting === true &&
+        componentHasExistingDetection(property, existing, componentPadding)
+      ) {
+        return false;
+      }
+
+      if (
+        options.rejectBridgeCandidates === true &&
+        isLikelyBridgeBetweenExistingCores(property, existing, typicalRadius)
+      ) {
+        return false;
+      }
+
+      return true;
+    })
+    .map((property) => {
+      const radius = typicalRadius || property.radius;
+      return {
+        x: property.x,
+        y: property.y,
+        radius,
+        area: radius * radius * Math.PI,
+        detectionMethod: options.method || "fast-rescue",
+        confidence: options.confidence || 0.58,
+      };
+    });
+}
+
+function getPropertiesInsideComponent(component, properties, padding = 0) {
+  return sanitizeCoreProperties(properties).filter((property) =>
+    isPointInsideComponent(property, component, padding)
+  );
+}
+
+function getMergedComponentSplit(properties, maskProperties, typicalRadius) {
+  const existingProperties = sanitizeCoreProperties(properties);
+  const typicalSpacing = getTypicalCoreSpacing(existingProperties, typicalRadius);
+  const typicalArea = Math.PI * typicalRadius * typicalRadius;
+  const splitProperties = [];
+  const replacedProperties = new Set();
+
+  maskProperties.forEach((component) => {
+    const existingInComponent = getPropertiesInsideComponent(
+      component,
+      existingProperties,
+      typicalRadius * 0.2
+    );
+
+    if (existingInComponent.length !== 1) {
+      return;
+    }
+
+    const areaUnits = component.area / Math.max(typicalArea, 1);
+    const widthUnits = component.width / Math.max(typicalSpacing, 1);
+    const heightUnits = component.height / Math.max(typicalSpacing, 1);
+    const elongated = component.aspectRatio >= 1.35;
+    const largeEnough = areaUnits >= 1.55 || widthUnits >= 1.25 || heightUnits >= 1.25;
+
+    if (!largeEnough || (!elongated && areaUnits < 1.85)) {
+      return;
+    }
+
+    const splitCount = clampNumber(
+      Math.round(Math.max(areaUnits, widthUnits, heightUnits)),
+      2,
+      3
+    );
+
+    if (splitCount <= existingInComponent.length) {
+      return;
+    }
+
+    const splitHorizontally = component.width >= component.height;
+    const componentIsTooWide =
+      component.width > typicalSpacing * 3.5 ||
+      component.height > typicalSpacing * 3.5;
+
+    if (componentIsTooWide) {
+      return;
+    }
+
+    existingInComponent.forEach((property) => replacedProperties.add(property));
+
+    for (let index = 0; index < splitCount; index++) {
+      const fraction = (index + 0.5) / splitCount;
+      const x = splitHorizontally
+        ? component.left + component.width * fraction
+        : component.x;
+      const y = splitHorizontally
+        ? component.y
+        : component.top + component.height * fraction;
+
+      splitProperties.push({
+        x,
+        y,
+        radius: typicalRadius,
+        area: typicalRadius * typicalRadius * Math.PI,
+        detectionMethod: "merged-component-split",
+        confidence: 0.74,
+      });
+    }
+  });
+
+  return {
+    splitProperties,
+    propertiesToKeep: existingProperties.filter(
+      (property) => !replacedProperties.has(property)
+    ),
+    splitCount: splitProperties.length,
+  };
+}
+
+function clusterCoordinateValues(properties, key, tolerance) {
+  const sortedValues = sanitizeCoreProperties(properties)
+    .map((property) => property[key])
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => a - b);
+  const clusters = [];
+
+  sortedValues.forEach((value) => {
+    const currentCluster = clusters[clusters.length - 1];
+    if (
+      currentCluster &&
+      Math.abs(value - currentCluster.values[currentCluster.values.length - 1]) <= tolerance
+    ) {
+      currentCluster.values.push(value);
+      return;
+    }
+
+    clusters.push({ values: [value] });
+  });
+
+  return clusters.map((cluster) => ({
+    value: calculateMedianNumber(cluster.values),
+    support: cluster.values.length,
+  }));
+}
+
+function getMaskEvidenceAtPoint(mask, x, y, radius) {
+  const minX = Math.max(0, Math.floor(x - radius));
+  const maxX = Math.min(mask.cols - 1, Math.ceil(x + radius));
+  const minY = Math.max(0, Math.floor(y - radius));
+  const maxY = Math.min(mask.rows - 1, Math.ceil(y + radius));
+  let foregroundPixels = 0;
+  let sampledPixels = 0;
+  const radiusSquared = radius * radius;
+
+  for (let row = minY; row <= maxY; row++) {
+    for (let col = minX; col <= maxX; col++) {
+      const dx = col - x;
+      const dy = row - y;
+
+      if (dx * dx + dy * dy > radiusSquared) {
+        continue;
+      }
+
+      sampledPixels += 1;
+      if (mask.ucharPtr(row, col)[0] > 0) {
+        foregroundPixels += 1;
+      }
+    }
+  }
+
+  return {
+    foregroundPixels,
+    sampledPixels,
+    ratio: sampledPixels > 0 ? foregroundPixels / sampledPixels : 0,
+  };
+}
+
+function hasGridNeighborSupport(candidate, existingProperties, typicalRadius, typicalSpacing) {
+  const rowTolerance = Math.max(typicalRadius * 0.95, typicalSpacing * 0.28);
+  const colTolerance = rowTolerance;
+  const minGap = typicalRadius * 1.2;
+  const maxGap = typicalSpacing * 1.7;
+  let rowNeighborCount = 0;
+  let colNeighborCount = 0;
+
+  existingProperties.forEach((property) => {
+    const dx = Math.abs(property.x - candidate.x);
+    const dy = Math.abs(property.y - candidate.y);
+
+    if (dy <= rowTolerance && dx >= minGap && dx <= maxGap) {
+      rowNeighborCount += 1;
+    }
+
+    if (dx <= colTolerance && dy >= minGap && dy <= maxGap) {
+      colNeighborCount += 1;
+    }
+  });
+
+  return rowNeighborCount >= 1 && colNeighborCount >= 1;
+}
+
+function getExpectedAxisSupport(property, properties, typicalRadius, typicalSpacing) {
+  const axisTolerance = Math.max(typicalRadius * 0.75, typicalSpacing * 0.18);
+  const minExpectedGap = Math.max(typicalRadius * 1.35, typicalSpacing * 0.55);
+  const maxExpectedGap = typicalSpacing * 1.45;
+  let rowSupport = 0;
+  let colSupport = 0;
+
+  properties.forEach((candidate) => {
+    if (candidate === property) {
+      return;
+    }
+
+    const dx = Math.abs(candidate.x - property.x);
+    const dy = Math.abs(candidate.y - property.y);
+
+    if (dy <= axisTolerance && dx >= minExpectedGap && dx <= maxExpectedGap) {
+      rowSupport += 1;
+    }
+
+    if (dx <= axisTolerance && dy >= minExpectedGap && dy <= maxExpectedGap) {
+      colSupport += 1;
+    }
+  });
+
+  return { rowSupport, colSupport };
+}
+
+function getBetweenCloseNeighborPair(property, properties, typicalRadius, typicalSpacing) {
+  const closeNeighborDistance = Math.max(typicalRadius * 2.2, typicalSpacing * 0.72);
+  const minPairDistance = Math.max(typicalRadius * 1.55, typicalSpacing * 0.45);
+  const maxPairDistance = typicalSpacing * 1.35;
+  const midpointTolerance = Math.max(typicalRadius * 0.75, typicalSpacing * 0.18);
+  const closeNeighbors = properties
+    .filter((candidate) => candidate !== property)
+    .map((candidate) => ({
+      property: candidate,
+      distance: getCoreDistance(property, candidate),
+      dx: candidate.x - property.x,
+      dy: candidate.y - property.y,
+    }))
+    .filter(({ distance }) => distance > 0 && distance <= closeNeighborDistance);
+
+  for (let firstIndex = 0; firstIndex < closeNeighbors.length; firstIndex++) {
+    for (
+      let secondIndex = firstIndex + 1;
+      secondIndex < closeNeighbors.length;
+      secondIndex++
+    ) {
+      const first = closeNeighbors[firstIndex];
+      const second = closeNeighbors[secondIndex];
+      const dotProduct =
+        (first.dx * second.dx + first.dy * second.dy) /
+        Math.max(first.distance * second.distance, 1);
+
+      if (dotProduct > -0.62) {
+        continue;
+      }
+
+      const pairDistance = getCoreDistance(first.property, second.property);
+      if (pairDistance < minPairDistance || pairDistance > maxPairDistance) {
+        continue;
+      }
+
+      const midpoint = {
+        x: (first.property.x + second.property.x) / 2,
+        y: (first.property.y + second.property.y) / 2,
+      };
+
+      if (getCoreDistance(property, midpoint) > midpointTolerance) {
+        continue;
+      }
+
+      return {
+        orientation:
+          Math.abs(first.property.x - second.property.x) >=
+          Math.abs(first.property.y - second.property.y)
+            ? "horizontal"
+            : "vertical",
+      };
+    }
+  }
+
+  return null;
+}
+
+function filterCrowdedBridgeArtifacts(properties, typicalRadius) {
+  const sanitizedProperties = sanitizeCoreProperties(properties);
+  if (sanitizedProperties.length < 3) {
+    return sanitizedProperties;
+  }
+
+  const typicalSpacing = getTypicalCoreSpacing(sanitizedProperties, typicalRadius);
+
+  return sanitizedProperties.filter((property) => {
+    const bridgePair = getBetweenCloseNeighborPair(
+      property,
+      sanitizedProperties,
+      typicalRadius,
+      typicalSpacing
+    );
+
+    if (!bridgePair) {
+      return true;
+    }
+
+    const support = getExpectedAxisSupport(
+      property,
+      sanitizedProperties,
+      typicalRadius,
+      typicalSpacing
+    );
+    const perpendicularSupport =
+      bridgePair.orientation === "horizontal"
+        ? support.colSupport
+        : support.rowSupport;
+
+    return perpendicularSupport > 0;
+  });
+}
+
+function getGridMaskRescueProperties(mask, existingProperties, typicalRadius) {
+  const existing = sanitizeCoreProperties(existingProperties);
+  if (existing.length < 12) {
+    return [];
+  }
+
+  const typicalSpacing = getTypicalCoreSpacing(existing, typicalRadius);
+  const clusterTolerance = Math.max(typicalRadius * 0.85, typicalSpacing * 0.25);
+  const rows = clusterCoordinateValues(existing, "y", clusterTolerance).filter(
+    (row) => row.support >= 4
+  );
+  const cols = clusterCoordinateValues(existing, "x", clusterTolerance).filter(
+    (col) => col.support >= 3
+  );
+  const rescues = [];
+  const duplicateThreshold = Math.max(typicalRadius * 1.2, 4);
+
+  rows.forEach((row) => {
+    cols.forEach((col) => {
+      const candidate = {
+        x: col.value,
+        y: row.value,
+        radius: typicalRadius,
+        area: typicalRadius * typicalRadius * Math.PI,
+      };
+
+      if (
+        isDuplicateDetection(candidate, existing, duplicateThreshold) ||
+        isDuplicateDetection(candidate, rescues, duplicateThreshold)
+      ) {
+        return;
+      }
+
+      if (!hasGridNeighborSupport(candidate, existing, typicalRadius, typicalSpacing)) {
+        return;
+      }
+
+      const evidence = getMaskEvidenceAtPoint(mask, candidate.x, candidate.y, typicalRadius * 1.05);
+      if (evidence.ratio < 0.18 || evidence.foregroundPixels < typicalRadius * typicalRadius * 0.45) {
+        return;
+      }
+
+      rescues.push({
+        ...candidate,
+        detectionMethod: "grid-mask-rescue",
+        confidence: clampNumber(0.48 + evidence.ratio * 0.45, 0.5, 0.82),
+        maskEvidence: Number(evidence.ratio.toFixed(3)),
+      });
+    });
+  });
+
+  return rescues;
+}
+
+function getRelaxedDistanceTransformRescues(
+  filledOpening,
+  existingProperties,
+  minArea,
+  maxArea,
+  disTransformMultiplier,
+  fallbackRadius
+) {
+  const relaxedMultiplier = clampNumber(
+    disTransformMultiplier * 0.72,
+    0.18,
+    0.85
+  );
+
+  if (Math.abs(relaxedMultiplier - disTransformMultiplier) < 0.02) {
+    return [];
+  }
+
+  const relaxedSureFg = thresholdDistanceTransform(
+    filledOpening,
+    relaxedMultiplier
+  );
+  const relaxedProperties = calculateRegionProperties(
+    relaxedSureFg,
+    Math.max(1, minArea * 0.45),
+    maxArea
+  );
+  const rescues = getRescueProperties(relaxedProperties, existingProperties, {
+    fallbackRadius,
+    method: "relaxed-distance-rescue",
+    confidence: 0.52,
+    duplicateRadiusRatio: 1.25,
+    minRadiusRatio: 0.35,
+    maxRadiusRatio: 1.55,
+    rejectBridgeCandidates: true,
+  });
+  relaxedSureFg.delete();
+
+  return rescues;
+}
+
 // Modified segmentationAlgorithm to include watershed and statistics extraction
 function segmentationAlgorithm(
   data,
@@ -409,11 +1109,94 @@ function segmentationAlgorithm(
   ); // This function might need adjustment to work with watershed output
 
   const centroidsFinal = calculateRegionProperties(sureFg, minArea, maxArea);
+  const watershedRadius =
+    Number.isFinite(medianRadius) && medianRadius > 1
+      ? medianRadius - 1
+      : null;
 
   centroidsFinal.forEach((centroid) => {
-    centroid.radius = medianRadius - 1;
+    centroid.radius = watershedRadius || centroid.radius;
     centroid.area = centroid.radius * centroid.radius * Math.PI;
+    centroid.confidence = 1;
   });
+
+  const maskProperties = calculateMaskComponentProperties(
+    filledOpening,
+    minArea,
+    maxArea
+  );
+  const mergedComponentProperties = calculateMaskComponentProperties(
+    filledOpening,
+    minArea,
+    maxArea,
+    {
+      maxAreaScale: 3.2,
+      maxAspectRatio: 3.2,
+      minFillRatio: 0.16,
+    }
+  );
+  const maskRescues = getRescueProperties(maskProperties, centroidsFinal, {
+    fallbackRadius: watershedRadius,
+    method: "mask-component-rescue",
+    confidence: 0.56,
+    duplicateRadiusRatio: 1.2,
+    minRadiusRatio: 0.4,
+    maxRadiusRatio: 1.85,
+    rejectComponentsWithExisting: true,
+  });
+  const relaxedRescues = getRelaxedDistanceTransformRescues(
+    filledOpening,
+    [...centroidsFinal, ...maskRescues],
+    minArea,
+    maxArea,
+    disTransformMultiplier,
+    watershedRadius
+  );
+  const typicalRadius = getDetectionMedianRadius(centroidsFinal, watershedRadius);
+  const mergedSplit = getMergedComponentSplit(
+    [...centroidsFinal, ...maskRescues, ...relaxedRescues],
+    mergedComponentProperties,
+    typicalRadius
+  );
+  const baseProperties = [
+    ...mergedSplit.propertiesToKeep,
+    ...mergedSplit.splitProperties,
+  ];
+  const bridgeFilteredBaseProperties = filterCrowdedBridgeArtifacts(
+    baseProperties,
+    typicalRadius
+  );
+  const gridRescues = getGridMaskRescueProperties(
+    filledOpening,
+    bridgeFilteredBaseProperties,
+    typicalRadius
+  );
+  const dedupedProperties = dedupeCoreProperties(
+    [...bridgeFilteredBaseProperties, ...gridRescues],
+    typicalRadius
+  );
+  const bridgeFilteredProperties = filterCrowdedBridgeArtifacts(
+    dedupedProperties,
+    typicalRadius
+  );
+  const finalProperties = filterIsolatedEdgeArtifacts(
+    bridgeFilteredProperties,
+    filledOpening.cols,
+    filledOpening.rows,
+    typicalRadius
+  );
+  window.coreDetectionRescueStats = {
+    maskRescued: maskRescues.length,
+    relaxedRescued: relaxedRescues.length,
+    mergedSplit: mergedSplit.splitProperties.length,
+    gridRescued: gridRescues.length,
+    bridgeRemoved:
+      baseProperties.length -
+      bridgeFilteredBaseProperties.length +
+      dedupedProperties.length -
+      bridgeFilteredProperties.length,
+    isolatedRemoved: bridgeFilteredProperties.length - finalProperties.length,
+  };
 
   // Cleanup
   gray.delete();
@@ -424,7 +1207,7 @@ function segmentationAlgorithm(
   markers.delete();
   segmented.delete();
 
-  return centroidsFinal;
+  return finalProperties;
 }
 
 async function preprocessAndPredict(imageElement, model) {
@@ -506,7 +1289,10 @@ async function preprocessAndPredict(imageElement, model) {
 
 // Function to apply the threshold to the predictions
 function applyThreshold(predictions, threshold) {
-  return predictions.greaterEqual(tf.scalar(threshold)).toFloat();
+  const safeThreshold = Number.isFinite(threshold) ? threshold : 0.5;
+  return tf.tidy(() =>
+    predictions.greaterEqual(tf.scalar(safeThreshold)).toFloat()
+  );
 }
 
 function calculateMedianSpacing(points) {
@@ -558,7 +1344,35 @@ function tensorToCvMat(tensor) {
   squeezed.dispose();
   let srcMatRgb = new cv.Mat();
   cv.cvtColor(out, srcMatRgb, cv.COLOR_GRAY2RGB);
+  out.delete();
   return srcMatRgb;
+}
+
+function scaleCorePropertiesToImage(properties, imageElement) {
+  const originalWidth = imageElement.width;
+  const originalHeight = imageElement.height;
+  const scaleX = ((originalWidth / 512) * 1024) / originalWidth;
+  const scaleY = ((originalHeight / 512) * 1024) / originalHeight;
+  const scaledRadiusMultiplier = Math.sqrt(scaleX * scaleY) * 0.95;
+
+  return sanitizeCoreProperties(properties)
+    .map((property) => ({
+      ...property,
+      x: property.x * scaleX,
+      y: property.y * scaleY,
+      radius: property.radius * scaledRadiusMultiplier,
+    }))
+    .map((property) => ({
+      ...property,
+      area: property.radius * property.radius * Math.PI,
+    }))
+    .filter(
+      (property) =>
+        property.x >= 0 &&
+        property.y >= 0 &&
+        property.x <= originalWidth &&
+        property.y <= originalHeight
+    );
 }
 
 // Main function to run the full prediction and visualization pipeline
@@ -590,24 +1404,28 @@ async function runSegmentationAndObtainCoreProperties(
     maxArea,
     disTransformMultiplier
   );
+  const scaledProperties = scaleCorePropertiesToImage(properties, imageElement);
+  srcMat.delete();
 
-  // Original image dimensionsƒ
-  const originalWidth = imageElement.width;
-  const originalHeight = imageElement.height;
-
-  // Scale centroids back to the original image size
-  const scaleX = ((originalWidth / 512) * 1024) / originalWidth;
-  const scaleY = ((originalHeight / 512) * 1024) / originalHeight;
-  for (const prop in properties) {
-    properties[prop].x *= scaleX;
-    properties[prop].y *= scaleY;
-    properties[prop].radius *= Math.sqrt(scaleX * scaleY) * 0.95; // Scale the radius appropriately
+  if (
+    window.thresholdedPredictions &&
+    window.thresholdedPredictions !== thresholdedPredictions &&
+    typeof window.thresholdedPredictions.dispose === "function"
+  ) {
+    window.thresholdedPredictions.dispose();
   }
 
-  window.properties = Object.values(properties);
+  window.properties = scaledProperties;
   window.thresholdedPredictions = thresholdedPredictions;
+  window.coreDetectionDiagnostics = {
+    mode: "fast",
+    total: scaledProperties.length,
+    rescued: scaledProperties.filter((property) => property.detectionMethod)
+      .length,
+    rescueStats: window.coreDetectionRescueStats || null,
+  };
 
-  return [Object.values(properties), thresholdedPredictions];
+  return [scaledProperties, thresholdedPredictions];
 }
 
 export {
