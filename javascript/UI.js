@@ -320,6 +320,8 @@ function resetApplication() {
   window.viewer?.destroy();
   window.viewer = undefined;
   window.imageSource = "";
+  window.loadedWSIInfo = undefined;
+  window.originalImageUrl = undefined;
   window.scalingFactor = 1;
   window.uploadedImageFileType = undefined;
   window.boxFile = undefined;

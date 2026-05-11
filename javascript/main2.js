@@ -104,21 +104,38 @@ const getLowercasePath = (path = "") => {
 const hasAnyExtension = (path, extensions) =>
   extensions.some((extension) => getLowercasePath(path).endsWith(extension));
 
-const getImageTypeFromUrl = (url = "") => {
-  const path = getLowercasePath(url);
-  const extension = path.split(".").pop();
-  if (extension === "jpg") {
+const normalizeImageType = (imageType = "") => {
+  const type = String(imageType).toLowerCase();
+  if (type === "jpg") {
     return "jpeg";
   }
+  if (type === "tif") {
+    return "tiff";
+  }
+  return type;
+};
 
-  return extension || "";
+const getImageTypeFromUrl = (url = "") => {
+  const path = getLowercasePath(url);
+  const fileName = path.split("/").pop() || "";
+  if (!fileName.includes(".")) {
+    return "";
+  }
+  const extension = fileName.split(".").pop();
+
+  return normalizeImageType(extension || "");
+};
+
+const getImageTypeFromName = (name = "") => {
+  const normalizedName = String(name);
+  if (!normalizedName.includes(".")) {
+    return "";
+  }
+  return normalizeImageType(normalizedName.split(".").pop() || "");
 };
 
 const isSimpleImageType = (imageType = "") =>
-  ["png", "jpeg", "jpg", "webp"].includes(imageType.toLowerCase());
-
-const isSimpleImageUrl = (url = "") =>
-  hasAnyExtension(url, SIMPLE_IMAGE_EXTENSIONS);
+  ["png", "jpeg", "webp"].includes(normalizeImageType(imageType));
 
 const isWsiImageUrl = (url = "") => hasAnyExtension(url, WSI_IMAGE_EXTENSIONS);
 
@@ -144,8 +161,12 @@ function installOpenSeadragonDecodeShim() {
     return Promise.resolve(this);
   };
 
-  [window.HTMLCanvasElement, window.OffscreenCanvas, window.ImageBitmap].forEach(
-    (constructor) => {
+  [
+    window.HTMLImageElement,
+    window.HTMLCanvasElement,
+    window.OffscreenCanvas,
+    window.ImageBitmap,
+  ].forEach((constructor) => {
       try {
         if (
           constructor?.prototype &&
@@ -160,10 +181,92 @@ function installOpenSeadragonDecodeShim() {
         // Some browser-provided prototypes are not extensible. OpenSeadragon can
         // still use the native image path in those browsers.
       }
-    }
-  );
+    });
 
   openSeadragonDecodeShimInstalled = true;
+}
+
+function createImageboxTileSource(imageUrl, imageInfo) {
+  const tileSize = 512;
+  const width = Math.max(1, Math.round(imageInfo.width));
+  const height = Math.max(1, Math.round(imageInfo.height));
+  const maxLevel = Math.ceil(Math.log2(Math.max(width, height)));
+  const tileSource = new OpenSeadragon.TileSource({
+    width,
+    height,
+    tileSize,
+    tileOverlap: 0,
+    minLevel: 0,
+    maxLevel,
+  });
+
+  tileSource.getTileUrl = function (level, x, y) {
+    return `${level}/${x}_${y}`;
+  };
+
+  tileSource.hasTransparency = function () {
+    return false;
+  };
+
+  tileSource.downloadTileStart = function (context) {
+    const tile = context.tile;
+    const levelScale = this.getLevelScale(tile.level);
+    const scaledWidth = this.dimensions.x * levelScale;
+    const scaledHeight = this.dimensions.y * levelScale;
+    const scaledTileX = tile.x * tileSize;
+    const scaledTileY = tile.y * tileSize;
+    const scaledTileWidth = Math.min(tileSize, scaledWidth - scaledTileX);
+    const scaledTileHeight = Math.min(tileSize, scaledHeight - scaledTileY);
+    const tileParams = {
+      tileX: Math.max(0, Math.floor(scaledTileX / levelScale)),
+      tileY: Math.max(0, Math.floor(scaledTileY / levelScale)),
+      tileWidth: Math.max(1, Math.ceil(scaledTileWidth / levelScale)),
+      tileHeight: Math.max(1, Math.ceil(scaledTileHeight / levelScale)),
+      tileSize: Math.max(
+        1,
+        Math.ceil(Math.max(scaledTileWidth, scaledTileHeight))
+      ),
+    };
+    const request = context.src;
+    context.userData = context.userData || {};
+    context.userData.abortRequested = false;
+
+    getRegionFromWSI(imageUrl, tileParams)
+      .then((imageResponse) => coerceImageResponseToBlob(imageResponse))
+      .then((blob) => {
+        if (context.userData.abortRequested) {
+          context.finish(null, request, "Tile load aborted.");
+          return;
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+        const image = new Image();
+        image.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          context.finish(image, request);
+        };
+        image.onerror = image.onabort = () => {
+          URL.revokeObjectURL(objectUrl);
+          context.finish(null, request, "Imagebox3 tile image failed to load.");
+        };
+        image.src = objectUrl;
+      })
+      .catch((error) => {
+        context.finish(
+          null,
+          request,
+          error?.message || "Imagebox3 tile request failed."
+        );
+      });
+  };
+
+  tileSource.downloadTileAbort = function (context) {
+    if (context.userData) {
+      context.userData.abortRequested = true;
+    }
+  };
+
+  return tileSource;
 }
 
 const bindOnce = (element, eventName, handler, bindingName = eventName) => {
@@ -529,6 +632,7 @@ const updateUIForScaledImage = (src, scalingFactor, imgDimensions) => {
 
 const handleSVSFile = async (file, processCallback) => {
   const imageInfo = await getWSIInfo(file);
+  window.loadedWSIInfo = imageInfo;
   const scalingFactor = Math.min(
     MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
     MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
@@ -566,7 +670,7 @@ const handleSVSFile = async (file, processCallback) => {
     processCallback();
 
     window.loadedImg = originalImageContainer;
-    updateUploadSummary(file.name.split(".").pop().toLowerCase());
+    updateUploadSummary(getImageTypeFromName(file.name));
     document.getElementById("loadingSpinner").style.display = "none";
 
     // Get the name of the file 
@@ -589,8 +693,25 @@ const handleSVSFile = async (file, processCallback) => {
 const handleImageLoad = (file, processCallback) => {
   document.getElementById("imageUrlInput").value = null;
   document.getElementById("loadingSpinner").style.display = "block";
+  const fileName = file?.name || "";
+  const fileType =
+    getImageTypeFromName(fileName) ||
+    normalizeImageType(file?.type?.split("/")?.[1] || "");
 
-  if (file && file.type.startsWith("image/")) {
+  if (file && fileName && isWsiImageUrl(fileName)) {
+    updateImagePreview(
+      originalImageContainer.src,
+      originalImageContainer.width,
+      originalImageContainer.height
+    );
+
+    handleSVSFile(file, processCallback);
+    window.uploadedImageFileType = fileType;
+  } else if (
+    file &&
+    file.type.startsWith("image/") &&
+    isSimpleImageType(fileType)
+  ) {
     loadImage(file)
       .then(createImageElement)
       .then((img) => {
@@ -633,38 +754,11 @@ const handleImageLoad = (file, processCallback) => {
         console.error("Image failed to load.");
       });
 
-    window.uploadedImageFileType = file.type.split("/")[1];
-  } else if (file && file.name.endsWith(".svs")) {
-    updateImagePreview(
-      originalImageContainer.src,
-      originalImageContainer.width,
-      originalImageContainer.height
-    );
-
-    handleSVSFile(file, processCallback);
-    window.uploadedImageFileType = "svs";
-  } else if (file && file.name.endsWith(".ndpi")) {
-    updateImagePreview(
-      originalImageContainer.src,
-      originalImageContainer.width,
-      originalImageContainer.height
-    );
-
-    handleSVSFile(file, processCallback);
-    window.uploadedImageFileType = "ndpi";
-  } else if (file && file.name.endsWith(".tiff")) {
-    updateImagePreview(
-      originalImageContainer.src,
-      originalImageContainer.width,
-      originalImageContainer.height
-    );
-
-    handleSVSFile(file, processCallback);
-    window.uploadedImageFileType = "tiff";
+    window.uploadedImageFileType = fileType;
   } else {
     updateStatusMessage(
       "imageLoadStatus",
-      "File loaded is not in a supported image format. Supported formats include .svs, .ndpi, .jpg, .jpeg, and .png.",
+      "File loaded is not in a supported image format. Supported formats include .svs, .ndpi, .tif, .tiff, .jpg, .jpeg, .webp, and .png.",
       "error-message"
     );
     console.error("File loaded is not an image.");
@@ -859,7 +953,7 @@ const handleLoadImageUrlClick = async () => {
       const contentType = resp.headers.get("content-type") || "";
       if (contentType.startsWith("image/")) {
         const headerType = contentType.split(";")[0].split("/")[1];
-        return headerType === "jpg" ? "jpeg" : headerType;
+        return normalizeImageType(headerType);
       }
 
       if (contentType === "application/octet-stream") {
@@ -899,6 +993,7 @@ const handleLoadImageUrlClick = async () => {
           return;
         }
         console.log("imageInfo", imageInfo);
+        window.loadedWSIInfo = imageInfo;
         width = imageInfo.width;
         height = imageInfo.height;
 
@@ -1429,7 +1524,7 @@ function initializeBoxPicker(accessToken, folderId = "0") {
     chooseButtonLabel: "Select Image",
     cancelButtonLabel: "Cancel",
     container: "#boxFilesContainer",
-    extensions: ["png", "jpg", "jpeg", "svs", "ndpi", "tiff"],
+    extensions: ["png", "jpg", "jpeg", "webp", "svs", "ndpi", "tif", "tiff"],
     maxSelectable: 1,
   };
 
@@ -1495,12 +1590,11 @@ function bindEventListeners() {
 
       // Check image data type
       if (
-        window.uploadedImageFileType === "jpeg" ||
-        window.uploadedImageFileType === "png" ||
+        isSimpleImageType(window.uploadedImageFileType) ||
         window.ndpiScalingFactor
       ) {
         alert(
-          "Full resolution downloads are not supported for .png/jpg images or locally uploaded .ndpi images."
+          "Full resolution downloads are not supported for regular image files or locally uploaded .ndpi images."
         );
         return;
       }
@@ -1567,10 +1661,7 @@ function bindEventListeners() {
         10
       );
 
-      if (
-        window.uploadedImageFileType === "jpeg" ||
-        window.uploadedImageFileType === "png"
-      ) {
+      if (isSimpleImageType(window.uploadedImageFileType)) {
         // Update the virtual grid with the new spacing values
         updateVirtualGridSpacing(
           horizontalSpacing,
@@ -1727,12 +1818,14 @@ const initSegmentation = async () => {
         if (document.getElementById("fileInput").files[0]) {
           const localFile = document.getElementById("fileInput").files[0];
           if (checkExtension(localFile.name)) {
-            imageInfo.type = localFile.name.split(".").slice(-1)[0];
-            imageInfo.isSimpleImage = !localFile.name.endsWith(".svs");
+            imageInfo.type = getImageTypeFromName(localFile.name);
+            const useLocalNdpiThumbnail = imageInfo.type === "ndpi";
+            imageInfo.isSimpleImage =
+              isSimpleImageType(imageInfo.type) || useLocalNdpiThumbnail;
             imageInfo.isOperable = true;
 
             // If the image is an ndpi, pass in the URL used by the originalImage image
-            if (localFile.name.endsWith(".ndpi")) {
+            if (useLocalNdpiThumbnail) {
               imageInfo.url = document.getElementById("originalImage").src;
               window.ndpiScalingFactor = window.scalingFactor;
               window.scalingFactor = 1;
@@ -1744,17 +1837,27 @@ const initSegmentation = async () => {
           }
         } else if (getInputValue("imageUrlInput")) {
           const url = getInputValue("imageUrlInput");
-          imageInfo.type = getImageTypeFromUrl(url);
-          imageInfo.isSimpleImage = isSimpleImageUrl(url);
+          imageInfo.type =
+            getImageTypeFromUrl(url) ||
+            normalizeImageType(window.uploadedImageFileType || "");
+          imageInfo.isSimpleImage = isSimpleImageType(imageInfo.type);
           imageInfo.isOperable = true;
           imageInfo.url = url;
         } else if (window.boxFileInfo) {
           if (checkExtension(window.boxFileInfo.name)) {
-            imageInfo.type = window.boxFileInfo.name.split(".").slice(-1)[0];
-            imageInfo.isSimpleImage = !window.boxFileInfo.name.endsWith(".svs");
+            imageInfo.type = getImageTypeFromName(window.boxFileInfo.name);
+            imageInfo.isSimpleImage = isSimpleImageType(imageInfo.type);
             imageInfo.isOperable = true;
             imageInfo.url = URL.createObjectURL(window.boxFile);
           }
+        }
+
+        if (imageInfo.isOperable && !imageInfo.isSimpleImage) {
+          const sourceInfo =
+            window.loadedWSIInfo || (await getWSIInfo(imageInfo.url));
+          imageInfo.width = sourceInfo.width;
+          imageInfo.height = sourceInfo.height;
+          window.loadedWSIInfo = sourceInfo;
         }
 
         return imageInfo;
@@ -1774,18 +1877,14 @@ const initSegmentation = async () => {
           type: "image",
           url: imageInfo.url,
         };
+      } else if (imageInfo.width && imageInfo.height) {
+        tileSources = createImageboxTileSource(imageInfo.url, imageInfo);
       } else {
-        tileSources = (
-          await OpenSeadragon.GeoTIFFTileSource.getAllTileSources(
-            imageInfo.url,
-            {
-              logLatency: false,
-              cache: true,
-              slideOnly: true,
-              pool: window.viewer?.world?.getItemAt(0)?.source?._pool,
-            }
-          )
-        )[0];
+        document.getElementById("rawDataLoadingSpinner").style.display = "none";
+        alert(
+          "Could not initialize the full-resolution tile viewer for this image."
+        );
+        return;
       }
       // document.getElementById(
       //   "osdViewer"

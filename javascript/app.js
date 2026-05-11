@@ -258,13 +258,14 @@ document.addEventListener("DOMContentLoaded", function () {
     if (files.length === 0) return;
 
     const file = files[0];
-    // Check if the file is an image or a .svs file
+    const extension = file.name.split(".").pop().toLowerCase();
+    const wsiExtensions = ["svs", "ndpi", "tif", "tiff"];
+    // Check if the file is a regular image or a supported whole-slide image.
     if (
       !file.type.startsWith("image/") &&
-      file.name.split(".").pop().toLowerCase() !== "svs" &&
-      file.name.split(".").pop().toLowerCase() !== "ndpi"
+      !wsiExtensions.includes(extension)
     ) {
-      alert("File is not an image, .svs, or .ndpi file.");
+      alert("File is not an image, .svs, .ndpi, .tif, or .tiff file.");
       return;
     }
 

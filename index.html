@@ -120,7 +120,7 @@
                     <h2 class="text-xl font-semibold">Uploading an Image</h2>
                     <p>
                         Start by uploading an <span class="span-file-type">.svs</span>, <span
-                            class="span-file-type">.tiff</span>, or <span class="span-file-type">.ndpi</span> image for
+                            class="span-file-type">.tif/.tiff</span>, or <span class="span-file-type">.ndpi</span> image for
                         optimal results. While
                         you can use <span class="span-file-type">.png</span> or <span class="span-file-type">.jpg</span>
                         files, please note that virtual
@@ -179,7 +179,7 @@
                                     <p>Drag and drop files here</p>
                                     <p>or</p>
                                     <label class="browse-button" for="fileInput">Browse Files</label>
-                                    <input type="file" id="fileInput" accept="image/*,.svs, .ndpi, .tiff"
+                                    <input type="file" id="fileInput" accept="image/*,.svs,.ndpi,.tif,.tiff"
                                         style="display: none;">
                                 </form>
 
@@ -302,7 +302,7 @@
                             <div class="text-xl font-semibold mb-4 parameters-header">
                                 <h2 class="title">Segmentation Parameters</h2>
                                 <div class="window-controls">
-                                    <button class="close-button" onclick="toggleSidebarSegmentation()">×</button>
+                                    <button type="button" class="close-button" onclick="toggleSidebarSegmentation()">×</button>
                                 </div>
                             </div>
 
@@ -476,11 +476,11 @@
                     <!-- Sidebar -->
                     <aside id="gridding-sidebar"
                         class="w-1/3 sm:w-full md:w-1/4 lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
-                        <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content">
+                        <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content" novalidate>
                             <div class="text-xl font-semibold mb-4 parameters-header">
                                 <h2 class="title">Configure Parameters</h2>
                                 <div class="window-controls">
-                                    <button class="close-button" onclick="toggleSidebarGridding()">×</button>
+                                    <button type="button" class="close-button" onclick="toggleSidebarGridding()">×</button>
                                 </div>
                             </div>
 
@@ -544,12 +544,12 @@
                                     <label for="gridWidth"
                                         title="Width of one square in the grid used in the traveling algorithm">Grid
                                         Width</label>
-                                    <input type="number" id="gridWidth" name="gridWidth" step="1" value="70">
+                                    <input type="number" id="gridWidth" name="gridWidth" step="any" value="70">
 
                                     <label for="gamma"
                                         title="Distance after the the core with the greatest X value to stop the traveling algorithm">Stopping
                                         Distance</label>
-                                    <input type="number" id="gamma" name="gamma" step="1" value="60">
+                                    <input type="number" id="gamma" name="gamma" step="any" value="60">
 
                                     <label for="multiplier"
                                         title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
@@ -559,7 +559,7 @@
                                     <label for="imageWidth"
                                         title="Width of the entire gird used in the traveling algorithm">Image
                                         Width</label>
-                                    <input type="number" id="imageWidth" name="imageWidth" step="1" value="1024">
+                                    <input type="number" id="imageWidth" name="imageWidth" step="any" value="1024">
 
                                     <label for="searchAngle" title="Angle to search in the traveling algorithm">Search
                                         Angle</label>
@@ -927,9 +927,6 @@
         referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js"
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script
-        src="https://cdn.jsdelivr.net/gh/episphere/GeoTIFFTileSource-JPEG2k@ed333822e17a52dbaf151312ec29c29b5b1d4da5/GeoTIFFTileSource.js"
-        type="module" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
