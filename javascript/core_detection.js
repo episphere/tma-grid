@@ -611,6 +611,8 @@ function calculateMaskComponentProperties(image, minArea, maxArea, options = {})
       continue;
     }
 
+    const left = stats.intAt(i, cv.CC_STAT_LEFT);
+    const top = stats.intAt(i, cv.CC_STAT_TOP);
     const width = stats.intAt(i, cv.CC_STAT_WIDTH);
     const height = stats.intAt(i, cv.CC_STAT_HEIGHT);
     const aspectRatio = Math.max(
@@ -631,10 +633,12 @@ function calculateMaskComponentProperties(image, minArea, maxArea, options = {})
       radius,
       aspectRatio,
       fillRatio,
-      left: stats.intAt(i, cv.CC_STAT_LEFT),
-      top: stats.intAt(i, cv.CC_STAT_TOP),
+      left,
+      top,
       width,
       height,
+      centerX: left + width / 2,
+      centerY: top + height / 2,
     });
   }
 
@@ -702,6 +706,207 @@ function getPropertiesInsideComponent(component, properties, padding = 0) {
   return sanitizeCoreProperties(properties).filter((property) =>
     isPointInsideComponent(property, component, padding)
   );
+}
+
+function getComponentDistanceToPoint(component, point) {
+  const right = component.left + component.width;
+  const bottom = component.top + component.height;
+  const dx = Math.max(component.left - point.x, 0, point.x - right);
+  const dy = Math.max(component.top - point.y, 0, point.y - bottom);
+  return Math.hypot(dx, dy);
+}
+
+function getComponentEnvelope(components) {
+  if (!components.length) {
+    return null;
+  }
+
+  const left = Math.min(...components.map((component) => component.left));
+  const top = Math.min(...components.map((component) => component.top));
+  const right = Math.max(
+    ...components.map((component) => component.left + component.width)
+  );
+  const bottom = Math.max(
+    ...components.map((component) => component.top + component.height)
+  );
+  const width = right - left;
+  const height = bottom - top;
+  const area = components.reduce((sum, component) => sum + component.area, 0);
+  const aspectRatio = Math.max(
+    width / Math.max(height, 1),
+    height / Math.max(width, 1)
+  );
+
+  return {
+    left,
+    top,
+    width,
+    height,
+    area,
+    aspectRatio,
+    fillRatio: area / Math.max(width * height, 1),
+    centerX: left + width / 2,
+    centerY: top + height / 2,
+  };
+}
+
+function getFragmentEnvelopeForDamagedCore(
+  property,
+  existingProperties,
+  fragmentProperties,
+  typicalRadius,
+  typicalSpacing
+) {
+  const searchDistance = Math.max(typicalRadius * 1.8, typicalSpacing * 0.48);
+  const nearbyFragments = fragmentProperties
+    .map((component) => ({
+      component,
+      distance: getComponentDistanceToPoint(component, property),
+    }))
+    .filter(({ distance }) => distance <= searchDistance)
+    .sort((a, b) => a.distance - b.distance);
+  const maxEnvelopeSize = typicalSpacing * 0.95;
+
+  const containingFragments = nearbyFragments
+    .map(({ component }) => component)
+    .filter((component) =>
+      isPointInsideComponent(property, component, typicalRadius * 0.35)
+    );
+
+  if (containingFragments.length === 0) {
+    return null;
+  }
+
+  const selectedFragments = [...containingFragments];
+  nearbyFragments.forEach(({ component }) => {
+    if (selectedFragments.includes(component)) {
+      return;
+    }
+
+    const candidateEnvelope = getComponentEnvelope([
+      ...selectedFragments,
+      component,
+    ]);
+    const maxDimension = Math.max(
+      candidateEnvelope.width,
+      candidateEnvelope.height
+    );
+
+    if (
+      maxDimension <= maxEnvelopeSize &&
+      candidateEnvelope.aspectRatio <= 2.05
+    ) {
+      selectedFragments.push(component);
+    }
+  });
+
+  const envelope = getComponentEnvelope(selectedFragments);
+  if (!envelope) {
+    return null;
+  }
+
+  const propertiesInEnvelope = getPropertiesInsideComponent(
+    envelope,
+    existingProperties,
+    typicalRadius * 0.25
+  );
+
+  if (propertiesInEnvelope.length !== 1) {
+    return null;
+  }
+
+  return envelope;
+}
+
+function recenterDamagedSingleCoreDetections(
+  properties,
+  maskProperties,
+  fragmentProperties,
+  typicalRadius
+) {
+  const existingProperties = sanitizeCoreProperties(properties);
+  const typicalSpacing = getTypicalCoreSpacing(existingProperties, typicalRadius);
+  const minEnvelopeSize = typicalRadius * 1.35;
+  const maxEnvelopeSize = typicalSpacing * 0.95;
+  const centerOffsetThreshold = Math.max(typicalRadius * 0.45, typicalSpacing * 0.08);
+  let recenteredCount = 0;
+
+  const adjustedProperties = existingProperties.map((property) => {
+    const singleComponent = maskProperties.find((candidateComponent) => {
+      const propertiesInComponent = getPropertiesInsideComponent(
+        candidateComponent,
+        existingProperties,
+        typicalRadius * 0.3
+      );
+
+      return (
+        propertiesInComponent.length === 1 &&
+        isPointInsideComponent(property, candidateComponent, typicalRadius * 0.3)
+      );
+    });
+    const fragmentEnvelope = getFragmentEnvelopeForDamagedCore(
+      property,
+      existingProperties,
+      fragmentProperties,
+      typicalRadius,
+      typicalSpacing
+    );
+    const component = fragmentEnvelope || singleComponent;
+
+    if (!component) {
+      return property;
+    }
+
+    const minDimension = Math.min(component.width, component.height);
+    const maxDimension = Math.max(component.width, component.height);
+    if (
+      minDimension < minEnvelopeSize ||
+      maxDimension > maxEnvelopeSize ||
+      component.aspectRatio > 1.9
+    ) {
+      return property;
+    }
+
+    const envelopeCenter = {
+      x: component.centerX,
+      y: component.centerY,
+    };
+    const centerOffset = getCoreDistance(property, envelopeCenter);
+    if (centerOffset < centerOffsetThreshold) {
+      return property;
+    }
+
+    const support = getExpectedAxisSupport(
+      envelopeCenter,
+      existingProperties,
+      typicalRadius,
+      typicalSpacing
+    );
+    const hasGridSupport = support.rowSupport > 0 || support.colSupport > 0;
+    const hasDamagedEnvelope =
+      component.fillRatio < 0.66 || centerOffset > typicalRadius * 0.65;
+
+    if (!hasDamagedEnvelope && !hasGridSupport) {
+      return property;
+    }
+
+    recenteredCount += 1;
+    return {
+      ...property,
+      x: envelopeCenter.x,
+      y: envelopeCenter.y,
+      centerAdjusted: true,
+      centerAdjustmentMethod: "single-core-envelope",
+      confidence: Number.isFinite(property.confidence)
+        ? Math.min(property.confidence, 0.92)
+        : 0.86,
+    };
+  });
+
+  return {
+    properties: adjustedProperties,
+    recenteredCount,
+  };
 }
 
 function getMergedComponentSplit(properties, maskProperties, typicalRadius) {
@@ -1125,6 +1330,17 @@ function segmentationAlgorithm(
     minArea,
     maxArea
   );
+  const fragmentComponentProperties = calculateMaskComponentProperties(
+    filledOpening,
+    minArea,
+    maxArea,
+    {
+      minAreaScale: 0.12,
+      maxAreaScale: 1.45,
+      maxAspectRatio: 3.4,
+      minFillRatio: 0.08,
+    }
+  );
   const mergedComponentProperties = calculateMaskComponentProperties(
     filledOpening,
     minArea,
@@ -1162,8 +1378,14 @@ function segmentationAlgorithm(
     ...mergedSplit.propertiesToKeep,
     ...mergedSplit.splitProperties,
   ];
-  const bridgeFilteredBaseProperties = filterCrowdedBridgeArtifacts(
+  const recenteredBase = recenterDamagedSingleCoreDetections(
     baseProperties,
+    maskProperties,
+    fragmentComponentProperties,
+    typicalRadius
+  );
+  const bridgeFilteredBaseProperties = filterCrowdedBridgeArtifacts(
+    recenteredBase.properties,
     typicalRadius
   );
   const gridRescues = getGridMaskRescueProperties(
@@ -1189,9 +1411,10 @@ function segmentationAlgorithm(
     maskRescued: maskRescues.length,
     relaxedRescued: relaxedRescues.length,
     mergedSplit: mergedSplit.splitProperties.length,
+    recentered: recenteredBase.recenteredCount,
     gridRescued: gridRescues.length,
     bridgeRemoved:
-      baseProperties.length -
+      recenteredBase.properties.length -
       bridgeFilteredBaseProperties.length +
       dedupedProperties.length -
       bridgeFilteredProperties.length,
@@ -1375,6 +1598,268 @@ function scaleCorePropertiesToImage(properties, imageElement) {
     );
 }
 
+function getPixelAppearanceFeatures(red, green, blue) {
+  const channelSum = red + green + blue || 1;
+  const maxChannel = Math.max(red, green, blue);
+  const minChannel = Math.min(red, green, blue);
+  const saturation = maxChannel > 0 ? (maxChannel - minChannel) / maxChannel : 0;
+
+  return {
+    redNorm: red / channelSum,
+    greenNorm: green / channelSum,
+    blueNorm: blue / channelSum,
+    saturation,
+    brightness: (red + green + blue) / 3,
+  };
+}
+
+function isLikelySlideBackground(feature) {
+  return feature.brightness > 232 && feature.saturation < 0.1;
+}
+
+function isDigitalAnnotationLikePixel(red, green, blue) {
+  const feature = getPixelAppearanceFeatures(red, green, blue);
+  const redAnnotation =
+    red > 150 && red > green * 1.55 && red > blue * 1.35 && feature.saturation > 0.35;
+  const greenAnnotation =
+    green > 130 && green > red * 1.35 && green > blue * 1.35 && feature.saturation > 0.35;
+  const blueAnnotation =
+    blue > 130 && blue > red * 1.35 && blue > green * 1.15 && feature.saturation > 0.32;
+  const neutralText = feature.brightness < 135 && feature.saturation < 0.18;
+
+  return redAnnotation || greenAnnotation || blueAnnotation || neutralText;
+}
+
+function getCoreAppearanceFeatures(imageData, imageWidth, imageHeight, property) {
+  const sampleRadius = clampNumber(property.radius * 0.85, 5, 42);
+  const minX = Math.max(0, Math.floor(property.x - sampleRadius));
+  const maxX = Math.min(imageWidth - 1, Math.ceil(property.x + sampleRadius));
+  const minY = Math.max(0, Math.floor(property.y - sampleRadius));
+  const maxY = Math.min(imageHeight - 1, Math.ceil(property.y + sampleRadius));
+  const radiusSquared = sampleRadius * sampleRadius;
+  const features = [];
+
+  for (let row = minY; row <= maxY; row += 1) {
+    for (let col = minX; col <= maxX; col += 1) {
+      const dx = col - property.x;
+      const dy = row - property.y;
+
+      if (dx * dx + dy * dy > radiusSquared) {
+        continue;
+      }
+
+      const offset = (row * imageWidth + col) * 4;
+      const red = imageData[offset];
+      const green = imageData[offset + 1];
+      const blue = imageData[offset + 2];
+      features.push({
+        ...getPixelAppearanceFeatures(red, green, blue),
+        annotationLike: isDigitalAnnotationLikePixel(red, green, blue),
+      });
+    }
+  }
+
+  return features;
+}
+
+function getAppearanceMedian(features, key) {
+  return calculateMedianNumber(features.map((feature) => feature[key])) || 0;
+}
+
+function getAppearanceSpread(features, key, center, minimumSpread) {
+  const medianAbsoluteDeviation =
+    calculateMedianNumber(
+      features.map((feature) => Math.abs(feature[key] - center))
+    ) || 0;
+
+  return Math.max(medianAbsoluteDeviation * 1.4826, minimumSpread);
+}
+
+function summarizeCoreAppearance(imageData, imageWidth, imageHeight, property) {
+  const features = getCoreAppearanceFeatures(
+    imageData,
+    imageWidth,
+    imageHeight,
+    property
+  );
+  const informativeFeatures = features.filter(
+    (feature) => !isLikelySlideBackground(feature)
+  );
+  const summaryFeatures =
+    informativeFeatures.length >= Math.max(8, features.length * 0.04)
+      ? informativeFeatures
+      : features;
+
+  return {
+    property,
+    features,
+    summaryFeatures,
+    sampledPixels: features.length,
+    foregroundRatio: features.length > 0 ? informativeFeatures.length / features.length : 0,
+    annotationRatio:
+      features.length > 0
+        ? features.filter((feature) => feature.annotationLike).length /
+          features.length
+        : 0,
+    redNorm: getAppearanceMedian(summaryFeatures, "redNorm"),
+    greenNorm: getAppearanceMedian(summaryFeatures, "greenNorm"),
+    blueNorm: getAppearanceMedian(summaryFeatures, "blueNorm"),
+    saturation: getAppearanceMedian(summaryFeatures, "saturation"),
+    brightness: getAppearanceMedian(summaryFeatures, "brightness"),
+  };
+}
+
+function getAppearanceDistance(feature, model) {
+  const colorDistance =
+    Math.abs(feature.redNorm - model.redNorm) / model.redSpread +
+    Math.abs(feature.greenNorm - model.greenNorm) / model.greenSpread +
+    Math.abs(feature.blueNorm - model.blueNorm) / model.blueSpread;
+  const saturationDistance =
+    Math.abs(feature.saturation - model.saturation) / model.saturationSpread;
+
+  return colorDistance + saturationDistance * 0.35;
+}
+
+function buildAdaptiveTissueAppearanceModel(properties, summaries) {
+  const sanitizedProperties = sanitizeCoreProperties(properties);
+  if (sanitizedProperties.length < 6) {
+    return null;
+  }
+
+  const typicalRadius = getDetectionMedianRadius(sanitizedProperties);
+  const eligibleSummaries = summaries
+    .filter((summary) => {
+      const property = summary.property;
+      return (
+        property.radius >= typicalRadius * 0.45 &&
+        property.radius <= typicalRadius * 1.9
+      );
+    })
+    .filter((summary) => summary.sampledPixels > 0);
+
+  if (eligibleSummaries.length < 6) {
+    return null;
+  }
+
+  const medianForegroundRatio =
+    calculateMedianNumber(
+      eligibleSummaries.map((summary) => summary.foregroundRatio)
+    ) ||
+    0;
+  const trainingSummaries = eligibleSummaries.filter(
+    (summary) =>
+      summary.foregroundRatio >= Math.max(0.06, medianForegroundRatio * 0.4)
+  );
+  const trainingSet =
+    trainingSummaries.length >= Math.max(6, eligibleSummaries.length * 0.45)
+      ? trainingSummaries
+      : eligibleSummaries;
+  const redNorm = getAppearanceMedian(trainingSet, "redNorm");
+  const greenNorm = getAppearanceMedian(trainingSet, "greenNorm");
+  const blueNorm = getAppearanceMedian(trainingSet, "blueNorm");
+  const saturation = getAppearanceMedian(trainingSet, "saturation");
+  const brightness = getAppearanceMedian(trainingSet, "brightness");
+
+  return {
+    redNorm,
+    greenNorm,
+    blueNorm,
+    saturation,
+    brightness,
+    redSpread: getAppearanceSpread(trainingSet, "redNorm", redNorm, 0.018),
+    greenSpread: getAppearanceSpread(trainingSet, "greenNorm", greenNorm, 0.018),
+    blueSpread: getAppearanceSpread(trainingSet, "blueNorm", blueNorm, 0.018),
+    saturationSpread: getAppearanceSpread(
+      trainingSet,
+      "saturation",
+      saturation,
+      0.055
+    ),
+    foregroundFloor: Math.max(0.045, medianForegroundRatio * 0.22),
+    pixelDistanceThreshold: 4.8,
+    summaryDistanceThreshold: 4.2,
+  };
+}
+
+function getAdaptiveTissueEvidence(summary, model) {
+  const foregroundFeatures = summary.features.filter(
+    (feature) => !isLikelySlideBackground(feature)
+  );
+  const similarPixels = foregroundFeatures.filter(
+    (feature) => getAppearanceDistance(feature, model) <= model.pixelDistanceThreshold
+  ).length;
+  const summaryDistance = getAppearanceDistance(summary, model);
+
+  return {
+    foregroundRatio: summary.foregroundRatio,
+    annotationRatio: summary.annotationRatio,
+    similarRatio:
+      summary.features.length > 0 ? similarPixels / summary.features.length : 0,
+    summaryDistance,
+  };
+}
+
+function filterNonTissueCoreArtifacts(properties, imageElement) {
+  const originalWidth = imageElement.width;
+  const originalHeight = imageElement.height;
+  const canvas = document.createElement("canvas");
+  canvas.width = originalWidth;
+  canvas.height = originalHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  if (!context) {
+    return { properties, removedCount: 0 };
+  }
+
+  try {
+    context.drawImage(imageElement, 0, 0, originalWidth, originalHeight);
+    const imageData = context.getImageData(0, 0, originalWidth, originalHeight)
+      .data;
+    const summaries = properties.map((property) =>
+      summarizeCoreAppearance(
+        imageData,
+        originalWidth,
+        originalHeight,
+        property
+      )
+    );
+    const appearanceModel = buildAdaptiveTissueAppearanceModel(
+      properties,
+      summaries
+    );
+
+    if (!appearanceModel) {
+      return { properties, removedCount: 0 };
+    }
+
+    const filteredProperties = summaries.filter((summary) => {
+      const evidence = getAdaptiveTissueEvidence(summary, appearanceModel);
+      const property = summary.property;
+      const minSimilarRatio = property.detectionMethod ? 0.085 : 0.07;
+      const appearanceMatches =
+        evidence.similarRatio >= minSimilarRatio ||
+        evidence.summaryDistance <= appearanceModel.summaryDistanceThreshold;
+      const annotationDominated =
+        evidence.annotationRatio > 0.18 &&
+        evidence.annotationRatio > evidence.similarRatio * 1.35;
+
+      return (
+        evidence.foregroundRatio >= appearanceModel.foregroundFloor &&
+        appearanceMatches &&
+        !(annotationDominated && evidence.similarRatio < minSimilarRatio * 1.4)
+      );
+    }).map((summary) => summary.property);
+
+    return {
+      properties: filteredProperties,
+      removedCount: properties.length - filteredProperties.length,
+    };
+  } catch (error) {
+    console.warn("Skipping tissue appearance filter", error);
+    return { properties, removedCount: 0 };
+  }
+}
+
 // Main function to run the full prediction and visualization pipeline
 async function runSegmentationAndObtainCoreProperties(
   imageElement,
@@ -1405,6 +1890,11 @@ async function runSegmentationAndObtainCoreProperties(
     disTransformMultiplier
   );
   const scaledProperties = scaleCorePropertiesToImage(properties, imageElement);
+  const tissueFiltered = filterNonTissueCoreArtifacts(
+    scaledProperties,
+    imageElement
+  );
+  const finalProperties = tissueFiltered.properties;
   srcMat.delete();
 
   if (
@@ -1415,17 +1905,21 @@ async function runSegmentationAndObtainCoreProperties(
     window.thresholdedPredictions.dispose();
   }
 
-  window.properties = scaledProperties;
+  window.coreDetectionRescueStats = {
+    ...(window.coreDetectionRescueStats || {}),
+    nonTissueRemoved: tissueFiltered.removedCount,
+  };
+  window.properties = finalProperties;
   window.thresholdedPredictions = thresholdedPredictions;
   window.coreDetectionDiagnostics = {
     mode: "fast",
-    total: scaledProperties.length,
-    rescued: scaledProperties.filter((property) => property.detectionMethod)
+    total: finalProperties.length,
+    rescued: finalProperties.filter((property) => property.detectionMethod)
       .length,
     rescueStats: window.coreDetectionRescueStats || null,
   };
 
-  return [scaledProperties, thresholdedPredictions];
+  return [finalProperties, thresholdedPredictions];
 }
 
 export {
