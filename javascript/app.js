@@ -62,7 +62,8 @@ function nextSection() {
 
   // Check if there are marker cores and if there are, alert the user to assign indices to them, or they will not show up in the virtual grid
 
-  const markerCores = window.sortedCoresData.filter((core) => core.isMarker);
+  const sortedCoresData = window.sortedCoresData || [];
+  const markerCores = sortedCoresData.filter((core) => core.isMarker);
 
   if (currentStep == 2) {
     if (sortedCoresData.length == 0) {
@@ -70,10 +71,14 @@ function nextSection() {
       return;
     }
 
-    if (markerCores.length > 0) {
-      alert(
-        "Please assign row and column indices to the green marker cores, or they will not show up in the virtual grid."
-      );
+    if (
+      markerCores.length > 0 &&
+      !window.confirm(
+        `${markerCores.length} marker core${
+          markerCores.length === 1 ? "" : "s"
+        } could not be placed automatically. Continue without them?`
+      )
+    ) {
       return;
     }
   }
@@ -97,7 +102,13 @@ function nextSection() {
 
 // Handling the '.btn-proceed' buttons to navigate through steps
 document.querySelectorAll(".btn-proceed").forEach((button) => {
-  button.addEventListener("click", nextSection);
+  button.addEventListener("click", function () {
+    if (this.dataset.deferNavigation === "true") {
+      return;
+    }
+
+    nextSection();
+  });
 });
 
 document.getElementById("useTemplate").addEventListener("click", nextSection);
@@ -290,4 +301,8 @@ function openInstructions() {
 // Get the help displays to work
 document
   .getElementById("helpButton")
+  .addEventListener("click", openInstructions);
+
+document
+  .getElementById("helpButtonMobile")
   .addEventListener("click", openInstructions);

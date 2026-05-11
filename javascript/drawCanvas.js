@@ -683,6 +683,10 @@ function drawCore(core, index = -1) {
     overlayElement.classList.add("marker");
   }
 
+  if (core.autoAssignedMarker) {
+    overlayElement.classList.add("auto-assigned-marker");
+  }
+
   if (document.getElementById("flagMisalignmentCheckbox").checked) {
     if (core.isMisaligned) {
       overlayElement.classList.add("misaligned");
@@ -1260,7 +1264,12 @@ async function findOptimalAngle(
       preprocessedCores,
       hyperparameters
     );
-    sortedCoresData = filterAndReassignCores(sortedCoresData, angle);
+    sortedCoresData = filterAndReassignCores(
+      sortedCoresData,
+      angle,
+      hyperparameters,
+      { updateStatus: false }
+    );
     const imaginaryCoresCount = sortedCoresData.filter(
       (core) => core.isImaginary
     ).length;
@@ -1377,7 +1386,8 @@ async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
 
   sortedCoresData = filterAndReassignCores(
     sortedCoresData,
-    hyperparameters.originAngle
+    hyperparameters.originAngle,
+    hyperparameters
   );
 
   updateSpacingInVirtualGrid(hyperparameters.gridWidth * 1.5);
@@ -1480,6 +1490,389 @@ function determineMedianRowColumnValues(coresData, imageRotation) {
   return medianValues;
 }
 
+function calculateMedianNumber(values) {
+  const sortedValues = values
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => a - b);
+
+  if (sortedValues.length === 0) {
+    return null;
+  }
+
+  const middleIndex = Math.floor(sortedValues.length / 2);
+  return sortedValues.length % 2
+    ? sortedValues[middleIndex]
+    : (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2;
+}
+
+function getMedianEntries(medianValues, key) {
+  return Object.entries(medianValues)
+    .map(([index, value]) => ({
+      index: parseInt(index, 10),
+      value: value[key],
+    }))
+    .filter((entry) => Number.isFinite(entry.index) && Number.isFinite(entry.value))
+    .sort((a, b) => a.index - b.index);
+}
+
+function estimateIndexedSpacing(entries, fallbackSpacing) {
+  if (Number.isFinite(fallbackSpacing) && fallbackSpacing > 0) {
+    return fallbackSpacing;
+  }
+
+  const spacings = [];
+  for (let i = 1; i < entries.length; i++) {
+    const indexDistance = entries[i].index - entries[i - 1].index;
+    const coordinateDistance = entries[i].value - entries[i - 1].value;
+
+    if (indexDistance > 0 && coordinateDistance > 0) {
+      spacings.push(coordinateDistance / indexDistance);
+    }
+  }
+
+  return calculateMedianNumber(spacings);
+}
+
+function getIndexRange(entries) {
+  const indexes = entries.map((entry) => entry.index);
+  return {
+    min: Math.min(...indexes),
+    max: Math.max(...indexes),
+  };
+}
+
+function getMarkerAssignmentModel(coresData, imageRotation, params = {}) {
+  const placedCores = coresData.filter(
+    (core) =>
+      !core.isMarker &&
+      Number.isFinite(core.row) &&
+      Number.isFinite(core.col) &&
+      core.row >= 0 &&
+      core.col >= 0
+  );
+
+  if (placedCores.length < 4) {
+    return null;
+  }
+
+  const medianValues = determineMedianRowColumnValues(placedCores, imageRotation);
+  const rowEntries = getMedianEntries(medianValues.rows, "medianY");
+  const columnEntries = getMedianEntries(medianValues.columns, "medianX");
+
+  if (rowEntries.length === 0 || columnEntries.length === 0) {
+    return null;
+  }
+
+  const fallbackSpacing =
+    Number.isFinite(params.gridWidth) && params.gridWidth > 0
+      ? params.gridWidth
+      : parseFloat(document.getElementById("gridWidth")?.value);
+  const medianRadius =
+    calculateMedianNumber(
+      placedCores
+        .map((core) => core.currentRadius)
+        .filter((radius) => Number.isFinite(radius) && radius > 0)
+    ) || 1;
+  const columnSpacing =
+    estimateIndexedSpacing(columnEntries, fallbackSpacing) || medianRadius * 3;
+  const rowSpacing =
+    estimateIndexedSpacing(rowEntries, fallbackSpacing) || medianRadius * 3;
+
+  const columnOrigin = calculateMedianNumber(
+    columnEntries.map((entry) => entry.value - entry.index * columnSpacing)
+  );
+  const rowOrigin = calculateMedianNumber(
+    rowEntries.map((entry) => entry.value - entry.index * rowSpacing)
+  );
+
+  return {
+    columnEntries,
+    rowEntries,
+    columnRange: getIndexRange(columnEntries),
+    rowRange: getIndexRange(rowEntries),
+    columnOrigin,
+    rowOrigin,
+    columnSpacing,
+    rowSpacing,
+    columnThreshold: Math.max(medianRadius * 1.35, columnSpacing * 0.32),
+    rowThreshold: Math.max(medianRadius * 1.5, rowSpacing * 0.42),
+    medianRadius,
+    maxExtraColumns: Math.max(3, Math.ceil(columnEntries.length * 0.5)),
+    maxExtraRows: Math.max(2, Math.ceil(rowEntries.length * 0.25)),
+  };
+}
+
+function isWithinExtendedRange(index, range, extra) {
+  return index >= range.min - extra && index <= range.max + extra;
+}
+
+function getClosestExistingRow(rotatedY, model) {
+  let closestRow = null;
+  let closestDistance = Infinity;
+
+  model.rowEntries.forEach((entry) => {
+    const distance = Math.abs(entry.value - rotatedY);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestRow = entry.index;
+    }
+  });
+
+  if (closestDistance <= model.rowThreshold) {
+    return closestRow;
+  }
+
+  if (!Number.isFinite(model.rowOrigin) || !Number.isFinite(model.rowSpacing)) {
+    return null;
+  }
+
+  const projectedRow = Math.round((rotatedY - model.rowOrigin) / model.rowSpacing);
+  const projectedY = model.rowOrigin + projectedRow * model.rowSpacing;
+  const residual = Math.abs(rotatedY - projectedY);
+
+  if (
+    residual <= model.rowThreshold &&
+    isWithinExtendedRange(projectedRow, model.rowRange, model.maxExtraRows)
+  ) {
+    return projectedRow;
+  }
+
+  return null;
+}
+
+function getProjectedColumn(rotatedX, model) {
+  if (!Number.isFinite(model.columnOrigin) || !Number.isFinite(model.columnSpacing)) {
+    return null;
+  }
+
+  const projectedColumn = Math.round(
+    (rotatedX - model.columnOrigin) / model.columnSpacing
+  );
+  const projectedX = model.columnOrigin + projectedColumn * model.columnSpacing;
+  const residual = Math.abs(rotatedX - projectedX);
+
+  if (
+    residual <= model.columnThreshold &&
+    isWithinExtendedRange(
+      projectedColumn,
+      model.columnRange,
+      model.maxExtraColumns
+    )
+  ) {
+    return projectedColumn;
+  }
+
+  return null;
+}
+
+function isGridCellOccupied(coresData, row, col, ignoredCore) {
+  return coresData.some(
+    (core) =>
+      core !== ignoredCore &&
+      !core.isMarker &&
+      core.row === row &&
+      core.col === col
+  );
+}
+
+function getRowOrderedColumn(core, targetRow, coresData, imageRotation, model) {
+  const rowCores = coresData
+    .filter(
+      (candidate) =>
+        candidate !== core &&
+        !candidate.isMarker &&
+        candidate.row === targetRow &&
+        Number.isFinite(candidate.col)
+    )
+    .map((candidate) => ({
+      core: candidate,
+      rotatedX: rotatePoint([candidate.x, candidate.y], -imageRotation)[0],
+    }))
+    .sort((a, b) => a.rotatedX - b.rotatedX);
+
+  if (rowCores.length === 0) {
+    return null;
+  }
+
+  const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
+  const firstX = rowCores[0].rotatedX;
+  const lastX = rowCores[rowCores.length - 1].rotatedX;
+  const isOutsideRowSpan =
+    rotatedX <= firstX - model.medianRadius * 0.75 ||
+    rotatedX >= lastX + model.medianRadius * 0.75;
+
+  if (!isOutsideRowSpan) {
+    return null;
+  }
+
+  return rowCores.filter((rowCore) => rowCore.rotatedX < rotatedX).length;
+}
+
+function openColumnSlotInRow(coresData, targetRow, targetCol, ignoredCore) {
+  coresData.forEach((core) => {
+    if (
+      core !== ignoredCore &&
+      !core.isMarker &&
+      core.row === targetRow &&
+      core.col >= targetCol
+    ) {
+      core.col += 1;
+    }
+  });
+}
+
+function normalizeGridIndices(coresData) {
+  const placedCores = coresData.filter(
+    (core) =>
+      !core.isMarker &&
+      Number.isFinite(core.row) &&
+      Number.isFinite(core.col)
+  );
+
+  if (placedCores.length === 0) {
+    return;
+  }
+
+  const minRow = Math.min(...placedCores.map((core) => core.row));
+  const minCol = Math.min(...placedCores.map((core) => core.col));
+  const rowOffset = minRow < 0 ? Math.abs(minRow) : 0;
+  const colOffset = minCol < 0 ? Math.abs(minCol) : 0;
+
+  if (rowOffset === 0 && colOffset === 0) {
+    return;
+  }
+
+  placedCores.forEach((core) => {
+    core.row += rowOffset;
+    core.col += colOffset;
+  });
+}
+
+function updateMarkerAutoAssignmentStatus(stats) {
+  const statusElement = document.getElementById("markerAutoStatus");
+  if (!statusElement || !stats) {
+    return;
+  }
+
+  statusElement.classList.remove("success", "warning", "neutral");
+
+  if (stats.total === 0) {
+    statusElement.textContent = "No marker cores needed automatic placement.";
+    statusElement.classList.add("neutral");
+  } else if (stats.unresolved === 0) {
+    statusElement.textContent = `Auto-placed ${stats.assigned} marker core${
+      stats.assigned === 1 ? "" : "s"
+    } into inferred row and column positions.`;
+    statusElement.classList.add("success");
+  } else {
+    statusElement.textContent = `Auto-placed ${stats.assigned} marker core${
+      stats.assigned === 1 ? "" : "s"
+    }; ${stats.unresolved} still need manual review.`;
+    statusElement.classList.add("warning");
+  }
+}
+
+function assignMarkerCoresToGrid(
+  coresData,
+  imageRotation,
+  params = {},
+  options = {}
+) {
+  const markerCandidates = coresData.filter(
+    (core) => core.isMarker && core.isImaginary === false
+  );
+  const stats = {
+    total: markerCandidates.length,
+    assigned: 0,
+    unresolved: markerCandidates.length,
+  };
+
+  if (markerCandidates.length === 0) {
+    window.markerAutoAssignmentStats = stats;
+    if (options.updateStatus !== false) {
+      updateMarkerAutoAssignmentStatus(stats);
+    }
+    return coresData;
+  }
+
+  const model = getMarkerAssignmentModel(coresData, imageRotation, params);
+  if (!model) {
+    window.markerAutoAssignmentStats = stats;
+    if (options.updateStatus !== false) {
+      updateMarkerAutoAssignmentStatus(stats);
+    }
+    return coresData;
+  }
+
+  markerCandidates
+    .sort((a, b) => {
+      const [aX, aY] = rotatePoint([a.x, a.y], -imageRotation);
+      const [bX, bY] = rotatePoint([b.x, b.y], -imageRotation);
+      return aY - bY || aX - bX;
+    })
+    .forEach((core) => {
+      const [rotatedX, rotatedY] = rotatePoint([core.x, core.y], -imageRotation);
+      const targetRow = getClosestExistingRow(rotatedY, model);
+
+      if (targetRow === null) {
+        core.autoAssignedMarker = false;
+        return;
+      }
+
+      let targetCol = null;
+      let shouldOpenColumnSlot = false;
+      const rowOrderedCol = getRowOrderedColumn(
+        core,
+        targetRow,
+        coresData,
+        imageRotation,
+        model
+      );
+
+      if (rowOrderedCol !== null) {
+        targetCol = rowOrderedCol;
+        shouldOpenColumnSlot = true;
+      } else {
+        const projectedCol = getProjectedColumn(rotatedX, model);
+        if (
+          projectedCol !== null &&
+          !isGridCellOccupied(coresData, targetRow, projectedCol, core)
+        ) {
+          targetCol = projectedCol;
+        }
+      }
+
+      if (targetCol === null) {
+        core.autoAssignedMarker = false;
+        return;
+      }
+
+      if (shouldOpenColumnSlot) {
+        openColumnSlotInRow(coresData, targetRow, targetCol, core);
+      }
+
+      core.row = targetRow;
+      core.col = targetCol;
+      core.isMarker = false;
+      core.isMisaligned = false;
+      core.autoAssignedMarker = true;
+      core.markerAssignmentMethod = shouldOpenColumnSlot
+        ? "row-order"
+        : "lattice";
+      stats.assigned += 1;
+    });
+
+  normalizeGridIndices(coresData);
+  stats.unresolved = markerCandidates.filter((core) => core.isMarker).length;
+  window.markerAutoAssignmentStats = stats;
+
+  if (options.updateStatus !== false) {
+    updateMarkerAutoAssignmentStatus(stats);
+  }
+
+  return coresData;
+}
+
 function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
   const medianValues = determineMedianRowColumnValues(coresData, imageRotation);
 
@@ -1503,11 +1896,12 @@ function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
   // Modify this part to take into account the number of cores in each column
   coresData.forEach((core) => {
     const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
+    const targetColumnX = medianRotatedXValues[core.col];
 
     // If the core's rotated X value is 1 radius outside of the median rotatedX value or if the core's column has less than two cores, mark it as misaligned.
     if (
-      Math.abs(medianRotatedXValues[core.col] - rotatedX) >
-      1 * core.currentRadius
+      Number.isFinite(targetColumnX) &&
+      Math.abs(targetColumnX - rotatedX) > 1 * core.currentRadius
     ) {
       core.isMisaligned = true;
     } else {
@@ -1604,6 +1998,10 @@ function alignMisalignedCores(coresData, imageRotation) {
 
   // Modify this part to take into account the number of cores in each column
   coresData.forEach((core) => {
+    if (core.isMarker) {
+      return;
+    }
+
     const rotatedX = rotatePoint([core.x, core.y], -imageRotation)[0];
     let nearestCol = null;
     let minDistance = Infinity;
@@ -1628,7 +2026,9 @@ function alignMisalignedCores(coresData, imageRotation) {
       }
     });
 
-    core.col = parseInt(nearestCol);
+    if (nearestCol !== null) {
+      core.col = parseInt(nearestCol, 10);
+    }
   });
 
   // Filter out "imaginary" cores that are outside the threshold for all columns
@@ -1648,7 +2048,12 @@ function alignMisalignedCores(coresData, imageRotation) {
   return coresData;
 }
 
-function filterAndReassignCores(coresData, imageRotation) {
+function filterAndReassignCores(
+  coresData,
+  imageRotation,
+  params = {},
+  options = {}
+) {
   let filteredCores = flagMisalignedCores(coresData, imageRotation, true);
 
   filteredCores = alignMisalignedCores(filteredCores, imageRotation);
@@ -1657,23 +2062,32 @@ function filterAndReassignCores(coresData, imageRotation) {
 
   filteredCores = reassignCoreIndices(filteredCores);
 
-  filteredCores = flagMisalignedCores(filteredCores, imageRotation, true);
+  filteredCores = assignMarkerCoresToGrid(
+    filteredCores,
+    imageRotation,
+    params,
+    options
+  );
+
+  filteredCores = flagMisalignedCores(filteredCores, imageRotation, false);
 
   return filteredCores;
 }
 
 function finalizeSaveData() {
   // Create finalSaveData by mapping over sortedCoresData
-  const finalSaveData = window.sortedCoresData.map((core) => {
-    return {
-      ...core,
-      x: core.x / (window.ndpiScalingFactor ?? 1),
-      y: core.y / (window.ndpiScalingFactor ?? 1),
-      currentRadius: core.currentRadius / (window.ndpiScalingFactor ?? 1),
-      row: core.row + 1,
-      col: core.col + 1,
-    };
-  });
+  const finalSaveData = window.sortedCoresData
+    .filter((core) => !core.isMarker)
+    .map((core) => {
+      return {
+        ...core,
+        x: core.x / (window.ndpiScalingFactor ?? 1),
+        y: core.y / (window.ndpiScalingFactor ?? 1),
+        currentRadius: core.currentRadius / (window.ndpiScalingFactor ?? 1),
+        row: core.row + 1,
+        col: core.col + 1,
+      };
+    });
 
   // Check if there's uploaded metadata to update
   if (window.userUploadedMetadata && window.userUploadedMetadata.length > 0) {
@@ -1721,9 +2135,22 @@ function finalizeSaveData() {
 
 function obtainHyperparametersAndDrawVirtualGrid() {
   // Check if there are marker cores and if there are, alert the user to assign indices to them, or they will not show up in the virtual grid
-  const markerCores = window.sortedCoresData.filter((core) => core.isMarker);
+  const sortedCoresData = window.sortedCoresData || [];
+  const markerCores = sortedCoresData.filter((core) => core.isMarker);
 
-  if (markerCores.length > 0 || sortedCoresData.length === 0) {
+  if (sortedCoresData.length === 0) {
+    alert("Please wait for cores to finish loading.");
+    return;
+  }
+
+  if (
+    markerCores.length > 0 &&
+    !window.confirm(
+      `${markerCores.length} marker core${
+        markerCores.length === 1 ? "" : "s"
+      } could not be placed automatically. Continue without them?`
+    )
+  ) {
     return;
   }
 
@@ -1750,6 +2177,7 @@ function obtainHyperparametersAndDrawVirtualGrid() {
     true
   );
   document.getElementById("virtualGridTabButton").disabled = false;
+  document.getElementById("virtualGridTabButton").click();
 
   // If an element with id of popupGridding exists, show the popup
 

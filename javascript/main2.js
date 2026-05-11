@@ -891,7 +891,7 @@ function bindEventListeners() {
         return;
       }
 
-      downloadAllCores(window.sortedCoresData);
+      downloadAllCores(window.sortedCoresData.filter((core) => !core.isMarker));
     });
 
   // document.querySelectorAll("input[type='number']").forEach((e) => {
@@ -1336,6 +1336,11 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
 });
 
 async function downloadAllCores(cores) {
+  if (!cores || cores.length === 0) {
+    alert("No placed cores are available to export.");
+    return;
+  }
+
   const svsImageURL = document.getElementById("imageUrlInput").value
     ? document.getElementById("imageUrlInput").value
     : document.getElementById("fileInput").files.length > 0

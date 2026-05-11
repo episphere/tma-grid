@@ -1471,3 +1471,347 @@ svg {
     display: block; 
     width: 100%;
 }
+
+/* Responsive workflow polish */
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100%;
+  color: #111827;
+}
+
+.body-container {
+  width: min(100%, 1440px);
+  max-width: 1440px;
+  min-height: 100vh;
+  padding: 16px;
+  border-radius: 0;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+}
+
+.app-header .container {
+  box-shadow: none;
+  padding: 0.75rem 0;
+}
+
+.app-title {
+  font-size: clamp(1.35rem, 4vw, 1.875rem);
+  line-height: 1.1;
+}
+
+#navMenuMobile {
+  right: 0.5rem;
+  top: calc(100% + 0.5rem) !important;
+  width: min(92vw, 280px);
+  padding: 0.5rem;
+}
+
+#navMenuMobile a,
+#navMenuMobile button,
+nav a,
+.btn-proceed,
+.btn-back,
+.upload-option-tab,
+.browse-button,
+.standard-button,
+.file-upload-button,
+.osdViewerControl {
+  min-height: 44px;
+}
+
+.tool-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+}
+
+.upload-tabs {
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  justify-content: flex-start;
+}
+
+.upload-option-tab {
+  flex: 0 0 auto;
+  min-width: max-content;
+  border-radius: 6px 6px 0 0;
+}
+
+.preview-image img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+#url-upload {
+  align-items: stretch;
+}
+
+#url-upload .form-input {
+  min-width: 0;
+}
+
+#drop-area {
+  max-width: 880px;
+}
+
+.workspace-layout {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.segmentation-workspace,
+.gridding-workspace {
+  flex-wrap: nowrap;
+}
+
+#segmentation-sidebar,
+#gridding-sidebar,
+#virtual-grid-sidebar {
+  flex: 0 0 320px;
+  max-width: 100%;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+}
+
+#segmentation-sidebar.collapsed,
+#gridding-sidebar.collapsed,
+#virtual-grid-sidebar.collapsed {
+  flex-basis: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.parameterSidebar {
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  padding-top: 0;
+}
+
+.viewer-panel {
+  min-width: 0;
+}
+
+.viewer-scroll {
+  width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+#ImageSegmentation,
+#VirtualGrid,
+.virtual-grid-main {
+  min-width: 0;
+}
+
+#segmentationResultsCanvas,
+#virtualGridCanvas {
+  max-width: 100%;
+  height: auto;
+}
+
+#osdViewer {
+  max-width: 100%;
+  background: #ffffff;
+}
+
+.virtual-grid-layout {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  min-height: 0;
+}
+
+.virtual-grid-stage {
+  display: flex;
+  min-width: 0;
+  overflow: auto;
+}
+
+.marker-auto-status {
+  display: block;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--primary-color);
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.marker-auto-status.success {
+  border-color: #bbf7d0;
+  border-left-color: var(--secondary-color);
+  background: #f0fdf4;
+}
+
+.marker-auto-status.warning {
+  border-color: #fde68a;
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.marker-auto-status.neutral {
+  border-color: #e5e7eb;
+  border-left-color: #6b7280;
+  background: #f9fafb;
+}
+
+.core-overlay-for-gridding.auto-assigned-marker {
+  border-color: #0891b2;
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.22);
+}
+
+input[type="number"],
+input[type="text"],
+textarea,
+select {
+  min-height: 44px;
+  font-size: 16px;
+}
+
+input[type="range"] {
+  min-height: 36px;
+}
+
+@media (max-width: 900px) {
+  .body-container {
+    padding: 10px;
+    box-shadow: none;
+  }
+
+  section[id] {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .tool-panel {
+    padding: 1rem !important;
+  }
+
+  .workspace-layout,
+  .virtual-grid-layout {
+    flex-direction: column;
+  }
+
+  #segmentation-sidebar,
+  #gridding-sidebar,
+  #virtual-grid-sidebar {
+    flex: 1 1 auto;
+    width: 100% !important;
+    max-height: none;
+    margin-right: 0 !important;
+  }
+
+  #segmentation-sidebar.collapsed,
+  #gridding-sidebar.collapsed,
+  #virtual-grid-sidebar.collapsed {
+    height: 0;
+    min-height: 0;
+  }
+
+  .parameterSidebar {
+    border-radius: 8px;
+  }
+
+  #drop-area {
+    width: 100%;
+    min-height: 180px;
+    margin: 16px auto;
+  }
+
+  #url-upload {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  #url-upload .standard-button,
+  .standard-button {
+    width: 100%;
+  }
+
+  .preview-image,
+  .load-status,
+  .width-90-middle {
+    width: 100%;
+  }
+
+  .edit-sidebar {
+    position: fixed;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    width: 100%;
+    height: min(80vh, 620px);
+    max-height: 80vh;
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+    z-index: 1000;
+  }
+
+  .osdViewerControlsParent {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .osdViewerControl {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header .container {
+    padding: 0.5rem 0;
+  }
+
+  .upload-option-tab {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .instructions-container {
+    margin-left: 0;
+    padding: 0.875rem 2.5rem 0.875rem 0.875rem;
+  }
+
+  .flex.justify-between.items-center.mt-8,
+  .flex.justify-between.mt-6 {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .flex.justify-between.items-center.mt-8 > button,
+  .flex.justify-between.mt-6 > button,
+  .btn-proceed,
+  .btn-back {
+    width: 100%;
+  }
+
+  .carousel-controls {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.96);
+  }
+}

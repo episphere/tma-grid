@@ -19,16 +19,16 @@
 </head>
 
 <body class="bg-gray-100">
-    <div class="body-container mx-auto px-4 lg:ma">
+    <div class="body-container mx-auto">
 
-        <header class="px-1 py-1 shadow-sm relative">
+        <header class="app-header px-1 py-1 shadow-sm relative">
             <div class="container mx-auto flex justify-between items-center">
                 <a href="./" class="flex items-center hover:bg-inherit">
                     <img src="./icons/Logo.webp" alt="Your Logo" class="h-8 w-8 mr-2 rounded-full">
-                    <h1 class="text-3xl font-light text-gray-800">TMA-Grid</h1>
+                    <h1 class="app-title text-3xl font-light text-gray-800">TMA-Grid</h1>
                 </a>
                 <!-- Mobile Menu Button -->
-                <button id="menuBtn" class="z-20 md:hidden block text-gray-800 focus:outline-none">
+                <button id="menuBtn" class="z-20 md:hidden block text-gray-800 focus:outline-none" aria-label="Open navigation menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7">
@@ -100,9 +100,9 @@
                         button to continue to image segmentation.</p>
                 </div>
 
-                <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="tool-panel bg-white p-6 rounded-lg shadow-lg">
 
-                    <nav class="flex mb-5 border-b justify-center">
+                    <nav class="upload-tabs flex mb-5 border-b justify-center" aria-label="Upload method">
                         <button
                             class="active upload-option-tab px-6 py-2 text-gray-800 border-b-2 border-blue-500 hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
                             data-target="direct-upload">Direct Upload</button>
@@ -240,7 +240,7 @@
                     <p><kbd>Click</kbd> on the image to add a core.</p>
                     <p><kbd>Shift-click</kbd> a core to remove it.</p>
                 </div>
-                <div class="flex flex-wrap-mx-4">
+                <div class="workspace-layout segmentation-workspace">
                     <!-- Sidebar -->
                     <aside id="segmentation-sidebar"
                         class="bg-gray-50 rounded-lg shadow-lg p-1 transition-all duration-300 transform md:translate-x-0 sm:block collapsed">
@@ -341,8 +341,8 @@
                     <p>Once you're satisfied with the gridding, click the <span
                             class="span-button-proceed">Proceed</span>
                         button to proceed to the Virtual Grid section.</p>
-                    <p><strong>Ensure that you assign your green marker cores row and column values, or else they will
-                            not be available for download in the Virtual Grid Tab!</strong></p>
+                    <p><strong>Marker cores are now placed automatically when the surrounding row and column lattice
+                            can be inferred confidently.</strong></p>
                 </div>
 
                 <div class="instructions-container mb-4">
@@ -361,7 +361,11 @@
                         set the core's location and size.</p>
                 </div>
 
-                <div class="flex flex-wrap lg:flex-nowrap">
+                <div id="markerAutoStatus" class="marker-auto-status" aria-live="polite">
+                    Marker core placement will be checked after gridding runs.
+                </div>
+
+                <div class="workspace-layout gridding-workspace">
                     <!-- Sidebar Toggle Icon -->
                     <div id="griddingSidebarIcon" class="parameterSidebar" onclick="toggleSidebarGridding()">
                         <!-- Menu Icon (three horizontal lines) -->
@@ -510,9 +514,9 @@
                     </aside>
 
                     <!-- Main Content -->
-                    <main class="mx-auto w-full">
+                    <main class="viewer-panel mx-auto w-full">
                         <!-- Main content goes here -->
-                        <div class="flex" id="main-container">
+                        <div class="viewer-scroll" id="main-container">
                             <!-- Image Viewer or other main content -->
                             <div id="osdViewer" style="margin:auto"></div>
                         </div>
@@ -595,7 +599,8 @@
                     <button
                         class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Back</button>
                     <button id="create-virtual-grid"
-                        class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Proceed</button>
+                        class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150"
+                        data-defer-navigation="true">Proceed</button>
                 </div>
 
             </section>
@@ -622,7 +627,7 @@
                         var virtualSidebarIcon = document.getElementById('virtualGridSidebarIcon');
                         sidebar.classList.toggle('collapsed');
 
-                        virtualSidebarIcon.classList.tog
+                        virtualSidebarIcon.classList.toggle('hidden');
                     }
 
                 </script>
@@ -646,7 +651,7 @@
                 </div>
 
 
-                <div class="flex h-full">
+                <div class="virtual-grid-layout">
                     <aside id="virtual-grid-sidebar"
                         class="w-full md:w-2/3 lg:w-1/3 bg-gray-50 p-4 rounded-lg shadow-lg mr-2 overflow-y-auto"
                         style="max-height: 90vh;">
@@ -686,10 +691,10 @@
 
 
                     <!-- Virtual Grid Display and Interaction -->
-                    <main class="flex-1 w-full mx-auto">
+                    <main class="virtual-grid-main flex-1 w-full mx-auto">
                         <div id="VirtualGrid" class="tabcontent">
 
-                            <div class="flex">
+                            <div class="virtual-grid-stage">
                                 <div id="virtualGridSidebarIcon" class="parameterSidebar hidden"
                                     onclick="toggleSidebarVirtual()">
                                     <!-- Menu Icon (three horizontal lines) -->
