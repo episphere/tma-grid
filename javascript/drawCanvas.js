@@ -15,6 +15,43 @@ import { getRegionFromWSI } from "./wsi.js";
 
 // const OSD_WIDTH_SCALEDOWN_FACTOR_FOR_EDIT_SIDEBAR = 0.8; // Adjust for the 20% width of the add core sidebar.
 
+const coerceImageResponseToBlob = async (imageResponse) => {
+  if (imageResponse instanceof Blob) {
+    return imageResponse;
+  }
+
+  if (typeof imageResponse?.blob === "function") {
+    return await imageResponse.blob();
+  }
+
+  throw new Error("Image response did not contain a readable image blob.");
+};
+
+const getCoreRegionParams = (core, tileSize) => {
+  const imageWidth = window.loadedWSIInfo?.width;
+  const imageHeight = window.loadedWSIInfo?.height;
+  const left = Math.floor(core.x - core.currentRadius);
+  const top = Math.floor(core.y - core.currentRadius);
+  const right = Math.ceil(core.x + core.currentRadius);
+  const bottom = Math.ceil(core.y + core.currentRadius);
+  const clampedLeft = Math.max(0, left);
+  const clampedTop = Math.max(0, top);
+  const clampedRight = Number.isFinite(imageWidth)
+    ? Math.min(imageWidth, right)
+    : right;
+  const clampedBottom = Number.isFinite(imageHeight)
+    ? Math.min(imageHeight, bottom)
+    : bottom;
+
+  return {
+    tileX: clampedLeft,
+    tileY: clampedTop,
+    tileWidth: Math.max(1, clampedRight - clampedLeft),
+    tileHeight: Math.max(1, clampedBottom - clampedTop),
+    tileSize: Math.max(1, Math.round(tileSize)),
+  };
+};
+
 let lastActionTime = 0;
 const actionDebounceInterval = 500; // milliseconds
 
@@ -2848,19 +2885,13 @@ async function initiateDownload(
     window.uploadedImageFileType === "tiff"
   ) {
     // Use the getRegionFromWSI function to download the full resolution version of the image
-    const fullResTileParams = {
-      tileX: core.x - core.currentRadius,
-      tileY: core.y - core.currentRadius,
-      tileWidth: coreWidth,
-      tileHeight: coreHeight,
-      tileSize: coreWidth,
-    };
+    const fullResTileParams = getCoreRegionParams(core, coreWidth);
 
     const fullSizeImageResp = await getRegionFromWSI(
       svsImageURL,
       fullResTileParams
     );
-    const blob = await fullSizeImageResp.blob();
+    const blob = await coerceImageResponseToBlob(fullSizeImageResp);
 
     downloadLink.href = URL.createObjectURL(blob);
     downloadLink.download = fileName;
@@ -3156,22 +3187,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
 async function createImageForCore(svsImageURL, core, coreSize = 64) {
   const coreWidth = core.currentRadius * 2;
   const coreHeight = core.currentRadius * 2;
-
-  const tileParams = {
-    tileX: core.x - core.currentRadius,
-    tileY: core.y - core.currentRadius,
-    tileWidth: coreWidth,
-    tileHeight: coreHeight,
-    tileSize: coreSize,
-  };
-
-  const imageResp = await getRegionFromWSI(svsImageURL, tileParams, 1);
-  const blob = await imageResp.blob();
-  const img = new Image(coreSize, coreSize);
-
-  // Set the width and height of the image to fill the container
-  img.style.width = "100%";
-  img.style.height = "100%";
+  const tileParams = getCoreRegionParams(core, coreSize);
 
   // Create container div to hold the image and overlay
   const container = document.createElement("div");
@@ -3203,20 +3219,47 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
   };
 
   // Append children to the container
-  container.appendChild(img);
   container.appendChild(overlay);
 
   // Add the container to the array of core containers
   coreContainers.push(container);
 
-  return new Promise((resolve, reject) => {
-    // Adjust the img.onload function as necessary to handle the blob URL...
-    img.onload = function () {
-      resolve(container); // Resolve with the container
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(blob); // Create a blob URL from the blob
-  });
+  try {
+    const imageResp = await getRegionFromWSI(svsImageURL, tileParams, 1);
+    const blob = await coerceImageResponseToBlob(imageResp);
+    const img = new Image(coreSize, coreSize);
+
+    // Set the width and height of the image to fill the container
+    img.style.width = "100%";
+    img.style.height = "100%";
+
+    await new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(blob);
+      img.onload = function () {
+        URL.revokeObjectURL(objectUrl);
+        resolve();
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Core image failed to load."));
+      };
+      img.src = objectUrl;
+    });
+
+    container.prepend(img);
+  } catch (error) {
+    console.warn(
+      `Could not render core preview at row ${core.row}, col ${core.col}.`,
+      error
+    );
+    const placeholder = document.createElement("div");
+    placeholder.className = "image-placeholder";
+    placeholder.textContent = "Preview unavailable";
+    container.classList.add("image-container-missing");
+    container.prepend(placeholder);
+  }
+
+  return container;
 }
 
 function updateGridSpacingInVirtualGridForSVS(
@@ -3247,34 +3290,47 @@ async function drawVirtualGridFromWSI(
   sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
   const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
   virtualGridDiv.innerHTML = ""; // Clear existing content
+  coreContainers.length = 0;
+
+  if (sortedCoresData.length === 0) {
+    return;
+  }
 
   // Calculate grid dimensions
+  const minRow = Math.min(...sortedCoresData.map((core) => core.row));
+  const minCol = Math.min(...sortedCoresData.map((core) => core.col));
   const maxRow = Math.max(...sortedCoresData.map((core) => core.row));
   const maxCol = Math.max(...sortedCoresData.map((core) => core.col));
+  const rowsAreZeroBased = minRow === 0;
+  const colsAreZeroBased = minCol === 0;
+  const rowCount = rowsAreZeroBased ? maxRow + 1 : maxRow;
+  const colCount = colsAreZeroBased ? maxCol + 1 : maxCol;
+  const getDisplayRow = (core) => (rowsAreZeroBased ? core.row + 1 : core.row);
+  const getDisplayCol = (core) => (colsAreZeroBased ? core.col + 1 : core.col);
 
   // Create and append column headers
-  for (let col = 0; col < maxCol; col++) {
+  for (let col = 1; col <= colCount; col++) {
     const columnHeader = document.createElement("div");
-    columnHeader.textContent = `${col + 1}`;
+    columnHeader.textContent = `${col}`;
     columnHeader.style.gridRow = 1; // Place in the first row
-    columnHeader.style.gridColumn = col + 2; // Offset by 1 for headers
+    columnHeader.style.gridColumn = col + 1; // Offset by 1 for headers
     columnHeader.classList.add("grid-header");
     virtualGridDiv.appendChild(columnHeader);
   }
 
   // Create and append row headers
-  for (let row = 0; row < maxRow; row++) {
+  for (let row = 1; row <= rowCount; row++) {
     const rowHeader = document.createElement("div");
-    rowHeader.textContent = `${row + 1}`;
+    rowHeader.textContent = `${row}`;
     rowHeader.style.gridColumn = 1; // Place in the first column
-    rowHeader.style.gridRow = row + 2; // Offset by 1 for headers
+    rowHeader.style.gridRow = row + 1; // Offset by 1 for headers
     rowHeader.classList.add("grid-header");
     virtualGridDiv.appendChild(rowHeader);
   }
 
   // Adjust the container to include headers in its grid template
-  virtualGridDiv.style.gridTemplateColumns = `auto repeat(${maxCol}, 1fr)`;
-  virtualGridDiv.style.gridTemplateRows = `auto repeat(${maxRow}, 1fr)`;
+  virtualGridDiv.style.gridTemplateColumns = `auto repeat(${colCount}, 1fr)`;
+  virtualGridDiv.style.gridTemplateRows = `auto repeat(${rowCount}, 1fr)`;
 
   const concurrencyLimit = 1;
   let activePromises = [];
@@ -3282,22 +3338,29 @@ async function drawVirtualGridFromWSI(
     const promise = createImageForCore(svsImageURL, core, coreSize).then(
       (img) => {
         // Position the image in the grid based on the core's row and col properties
-        img.style.gridColumn = core.col + 1; // CSS grid lines are 1-based
-        img.style.gridRow = core.row + 1;
+        img.style.gridColumn = getDisplayCol(core) + 1; // CSS grid lines are 1-based
+        img.style.gridRow = getDisplayRow(core) + 1;
         return img;
       }
+    ).catch((error) => {
+      console.warn(
+        `Skipping core at row ${core.row}, col ${core.col} after preview failure.`,
+        error
+      );
+      return null;
+    }
     );
     activePromises.push(promise);
 
     if (activePromises.length >= concurrencyLimit) {
       await Promise.all(activePromises).then((images) => {
-        images.forEach((img) => virtualGridDiv.appendChild(img));
+        images.filter(Boolean).forEach((img) => virtualGridDiv.appendChild(img));
       });
       activePromises = [];
     }
   }
   await Promise.all(activePromises).then((images) => {
-    images.forEach((img) => virtualGridDiv.appendChild(img));
+    images.filter(Boolean).forEach((img) => virtualGridDiv.appendChild(img));
   });
 }
 

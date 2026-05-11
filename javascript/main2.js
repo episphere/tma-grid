@@ -144,7 +144,7 @@ const coerceImageResponseToBlob = async (imageResponse) => {
     return imageResponse;
   }
 
-  if (imageResponse?.blob) {
+  if (typeof imageResponse?.blob === "function") {
     return await imageResponse.blob();
   }
 
@@ -208,6 +208,17 @@ function createImageboxTileSource(imageUrl, imageInfo) {
     return false;
   };
 
+  const finishBlankTile = (context, request, blankWidth = tileSize, blankHeight = tileSize) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(blankWidth));
+    canvas.height = Math.max(1, Math.round(blankHeight));
+    const image = new Image();
+    image.onload = () => context.finish(image, request);
+    image.onerror = () =>
+      context.finish(null, request, "Imagebox3 fallback tile failed to load.");
+    image.src = canvas.toDataURL("image/png");
+  };
+
   tileSource.downloadTileStart = function (context) {
     const tile = context.tile;
     const levelScale = this.getLevelScale(tile.level);
@@ -217,17 +228,39 @@ function createImageboxTileSource(imageUrl, imageInfo) {
     const scaledTileY = tile.y * tileSize;
     const scaledTileWidth = Math.min(tileSize, scaledWidth - scaledTileX);
     const scaledTileHeight = Math.min(tileSize, scaledHeight - scaledTileY);
+    const request = context.src;
+
+    if (scaledTileWidth <= 0 || scaledTileHeight <= 0) {
+      finishBlankTile(context, request);
+      return;
+    }
+
+    const tileLeft = Math.max(0, Math.floor(scaledTileX / levelScale));
+    const tileTop = Math.max(0, Math.floor(scaledTileY / levelScale));
+    const tileRight = Math.min(
+      width,
+      Math.ceil((scaledTileX + scaledTileWidth) / levelScale)
+    );
+    const tileBottom = Math.min(
+      height,
+      Math.ceil((scaledTileY + scaledTileHeight) / levelScale)
+    );
+
+    if (tileRight <= tileLeft || tileBottom <= tileTop) {
+      finishBlankTile(context, request, scaledTileWidth, scaledTileHeight);
+      return;
+    }
+
     const tileParams = {
-      tileX: Math.max(0, Math.floor(scaledTileX / levelScale)),
-      tileY: Math.max(0, Math.floor(scaledTileY / levelScale)),
-      tileWidth: Math.max(1, Math.ceil(scaledTileWidth / levelScale)),
-      tileHeight: Math.max(1, Math.ceil(scaledTileHeight / levelScale)),
+      tileX: tileLeft,
+      tileY: tileTop,
+      tileWidth: tileRight - tileLeft,
+      tileHeight: tileBottom - tileTop,
       tileSize: Math.max(
         1,
         Math.ceil(Math.max(scaledTileWidth, scaledTileHeight))
       ),
     };
-    const request = context.src;
     context.userData = context.userData || {};
     context.userData.abortRequested = false;
 
@@ -252,11 +285,11 @@ function createImageboxTileSource(imageUrl, imageInfo) {
         image.src = objectUrl;
       })
       .catch((error) => {
-        context.finish(
-          null,
-          request,
-          error?.message || "Imagebox3 tile request failed."
+        console.warn(
+          `Imagebox3 tile request failed for ${request}; using a blank tile.`,
+          error
         );
+        finishBlankTile(context, request, scaledTileWidth, scaledTileHeight);
       });
   };
 
@@ -642,7 +675,9 @@ const handleSVSFile = async (file, processCallback) => {
     file,
     MAX_DIMENSION_FOR_DOWNSAMPLING
   );
-  let objectURL = URL.createObjectURL(await wsiThumbnail.blob());
+  let objectURL = URL.createObjectURL(
+    await coerceImageResponseToBlob(wsiThumbnail)
+  );
 
   originalImageContainer.crossOrigin = "anonymous";
   originalImageContainer.src = objectURL;
@@ -1230,6 +1265,8 @@ async function redrawSegmentationPreviewOnly() {
 }
 
 function setupUiEnhancements() {
+  setupMobileWorkspaceControls();
+
   document.querySelectorAll("[data-segmentation-mode]").forEach((button) => {
     bindOnce(button, "click", () =>
       setSegmentationMode(button.dataset.segmentationMode)
@@ -1344,6 +1381,56 @@ function setupUiEnhancements() {
   updateUploadSummary();
   updateSegmentationStats();
   renderReviewPanel();
+}
+
+function setupMobileWorkspaceControls() {
+  const mobileControlsQuery = window.matchMedia("(max-width: 760px)");
+
+  const setControlsOpen = (button, open) => {
+    const panel = getElement(button.dataset.mobileControlsTarget);
+    if (!panel) {
+      return;
+    }
+
+    button.dataset.mobileControlsOpen = open ? "true" : "false";
+    button.setAttribute("aria-expanded", open ? "true" : "false");
+    button.textContent = open ? "Hide tools" : "Show tools";
+    panel.classList.toggle(
+      "mobile-controls-collapsed",
+      mobileControlsQuery.matches && !open
+    );
+  };
+
+  const syncMobileControls = () => {
+    document.querySelectorAll("[data-mobile-controls-target]").forEach((button) => {
+      const panel = getElement(button.dataset.mobileControlsTarget);
+      if (!panel) {
+        return;
+      }
+
+      if (!mobileControlsQuery.matches) {
+        panel.classList.remove("mobile-controls-collapsed");
+        button.setAttribute("aria-expanded", "true");
+        button.textContent = "Tools";
+        return;
+      }
+
+      setControlsOpen(button, button.dataset.mobileControlsOpen === "true");
+    });
+  };
+
+  document.querySelectorAll("[data-mobile-controls-target]").forEach((button) => {
+    bindOnce(button, "click", () => {
+      setControlsOpen(button, button.dataset.mobileControlsOpen !== "true");
+    }, "mobileControls");
+  });
+
+  if (mobileControlsQuery.addEventListener) {
+    mobileControlsQuery.addEventListener("change", syncMobileControls);
+  } else {
+    mobileControlsQuery.addListener(syncMobileControls);
+  }
+  syncMobileControls();
 }
 
 // Function to handle Box login and OAuth flow
@@ -2105,7 +2192,7 @@ async function downloadAllCores(cores) {
         tileSize: tileWidth,
       };
       const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
-      const blob = await fullSizeImageResp.blob();
+      const blob = await coerceImageResponseToBlob(fullSizeImageResp);
       const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`;
       const fileHandle = await downloadFolder.getFileHandle(fileName, { create: true });
       const writable = await fileHandle.createWritable();

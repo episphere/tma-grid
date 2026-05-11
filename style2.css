@@ -996,6 +996,26 @@ svg {
   overflow: hidden;
 }
 
+.image-placeholder {
+  min-width: 64px;
+  min-height: 64px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.image-container-missing {
+  background: #f8fafc;
+}
+
 .image-container.active {
   border: 2px solid var(--primary-color); /* Highlight border for active container */
   z-index: 10;
@@ -2941,5 +2961,204 @@ fieldset.p-6 {
 
   .segmented-control .toolbar-button {
     flex: 1 1 0;
+  }
+}
+
+/* Mobile work mode: keep the canvas dominant and make controls hideable. */
+.mobile-workspace-controls-toggle {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    position: static;
+    padding: 6px 0;
+    margin-bottom: 4px;
+  }
+
+  #app {
+    padding: 8px;
+  }
+
+  section[id] {
+    padding-top: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .instructions-container {
+    display: none;
+  }
+
+  .mobile-workspace-controls-toggle {
+    width: 100%;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.45rem;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 900;
+  }
+
+  .mobile-workspace-controls-toggle[aria-expanded="true"] {
+    border-color: #0f766e;
+    background: #ecfdf5;
+    color: #047857;
+  }
+
+  .viewer-toolbar {
+    position: static;
+    top: auto;
+    z-index: auto;
+    margin-bottom: 0.45rem;
+    padding: 0.4rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    box-shadow: none;
+    scrollbar-width: thin;
+  }
+
+  .viewer-toolbar.mobile-controls-collapsed {
+    display: none;
+  }
+
+  .segmentation-toolbar,
+  .gridding-toolbar {
+    display: flex;
+    grid-template-columns: none;
+  }
+
+  .workspace-panel-toggle.parameterSidebar {
+    min-width: max-content;
+    justify-content: center;
+  }
+
+  .segmented-control {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .segmented-control .toolbar-button,
+  .toolbar-button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .stats-strip {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    overflow-x: auto;
+    margin-bottom: 0.45rem;
+    padding: 0.4rem;
+    font-size: 0.78rem;
+    scrollbar-width: thin;
+  }
+
+  .stats-strip span {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.45rem;
+  }
+
+  #markerAutoStatus {
+    max-height: 42px;
+    overflow: auto;
+    margin: 0.4rem 0;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.78rem;
+  }
+
+  .review-panel {
+    margin: 0.4rem 0;
+    padding: 0.45rem;
+    box-shadow: none;
+  }
+
+  .review-panel-header {
+    gap: 0.45rem;
+  }
+
+  .review-panel h2 {
+    font-size: 0.9rem;
+  }
+
+  .review-panel p {
+    display: none;
+  }
+
+  .review-actions {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .review-actions .toolbar-button {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0.32rem 0.5rem;
+    font-size: 0.76rem;
+  }
+
+  .review-issue-drawer {
+    max-height: min(38vh, 260px);
+  }
+
+  .viewer-scroll {
+    max-height: calc(100vh - 152px);
+    border-radius: 8px;
+  }
+
+  #segmentationResultsCanvas {
+    width: 100% !important;
+    max-height: calc(100vh - 152px);
+    object-fit: contain;
+  }
+
+  #osdViewer {
+    min-height: min(68vh, 560px);
+  }
+
+  .osdViewerControlsParent {
+    display: none !important;
+  }
+
+  .carousel-controls,
+  .workflow-steps {
+    position: static !important;
+    bottom: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    margin: 0.5rem auto 0 !important;
+    padding: 0.45rem 0 !important;
+    background: transparent;
+    scrollbar-width: thin;
+  }
+
+  .workflow-step {
+    min-width: 112px;
+    min-height: 42px;
+    padding: 0.35rem 0.55rem;
+    flex: 0 0 auto;
+  }
+
+  .workflow-step .step-index {
+    width: 24px;
+    height: 24px;
+    font-size: 0.78rem;
+  }
+
+  .workflow-step .step-label {
+    font-size: 0.82rem;
+  }
+
+  .workflow-step .step-status {
+    display: none;
   }
 }

@@ -358,7 +358,12 @@
                     </aside>
                     <div id="ImageSegmentation" class="flex-grow sm:block sm:w-full">
                         <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
-                        <div class="viewer-toolbar segmentation-toolbar" aria-label="Segmentation tools">
+                        <button type="button" class="mobile-workspace-controls-toggle"
+                            data-mobile-controls-target="segmentationToolbar" aria-controls="segmentationToolbar"
+                            aria-expanded="false">Show tools</button>
+                        <div id="segmentationToolbar"
+                            class="viewer-toolbar segmentation-toolbar mobile-controls-panel mobile-controls-collapsed"
+                            aria-label="Segmentation tools">
                             <button type="button" id="segmentationSidebarIcon"
                                 class="toolbar-button parameterSidebar workspace-panel-toggle"
                                 onclick="toggleSidebarSegmentation()" aria-controls="segmentation-sidebar"
@@ -615,7 +620,12 @@
                     <!-- Main Content -->
                     <main class="viewer-panel mx-auto w-full">
                         <!-- Main content goes here -->
-                        <div class="viewer-toolbar gridding-toolbar" aria-label="Gridding tools">
+                        <button type="button" class="mobile-workspace-controls-toggle"
+                            data-mobile-controls-target="griddingToolbar" aria-controls="griddingToolbar"
+                            aria-expanded="false">Show tools</button>
+                        <div id="griddingToolbar"
+                            class="viewer-toolbar gridding-toolbar mobile-controls-panel mobile-controls-collapsed"
+                            aria-label="Gridding tools">
                             <button type="button" id="griddingSidebarIcon"
                                 class="toolbar-button parameterSidebar workspace-panel-toggle"
                                 onclick="toggleSidebarGridding()" aria-controls="gridding-sidebar"
