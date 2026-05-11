@@ -96,8 +96,13 @@ function handleCanvasClick(event) {
     event,
     "segmentationResultsCanvas"
   );
+  const editMode = window.segmentationEditMode || "add";
 
-  if (event.shiftKey) {
+  if (editMode === "inspect") {
+    return;
+  }
+
+  if (event.shiftKey || editMode === "remove") {
     // If the shift key is pressed, remove a core
     removeCore(offsetX, offsetY);
   } else {
@@ -345,6 +350,11 @@ async function visualizeSegmentationResults(
 }
 
 function addSegmentationCanvasEventListeners(canvas) {
+  if (canvas.dataset.segmentationEventsBound === "true") {
+    return;
+  }
+
+  canvas.dataset.segmentationEventsBound = "true";
   canvas.addEventListener("mousedown", function (event) {
     // Throttle clicks to avoid rapid repeated actions if necessary
     const currentTime = Date.now();
@@ -3471,4 +3481,6 @@ export {
   redrawCoresForTravelingAlgorithm,
   visualizeSegmentationResults,
   obtainHyperparametersAndDrawVirtualGrid,
+  undo,
+  redo,
 };

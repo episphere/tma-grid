@@ -21,60 +21,92 @@
 <body class="bg-gray-100">
     <div class="body-container mx-auto">
 
-        <header class="app-header px-1 py-1 shadow-sm relative">
-            <div class="container mx-auto flex justify-between items-center">
-                <a href="./" class="flex items-center hover:bg-inherit">
-                    <img src="./icons/Logo.webp" alt="Your Logo" class="h-8 w-8 mr-2 rounded-full">
-                    <h1 class="app-title text-3xl font-light text-gray-800">TMA-Grid</h1>
+        <header class="app-header relative">
+            <div class="app-header-inner">
+                <a href="./" class="brand-link" aria-label="TMA-Grid home">
+                    <span class="brand-mark">
+                        <img src="./icons/Logo.webp" alt="" class="brand-logo">
+                    </span>
+                    <span class="brand-copy">
+                        <span class="app-title">TMA-Grid</span>
+                        <span class="app-subtitle">Tissue microarray de-arraying</span>
+                    </span>
                 </a>
-                <!-- Mobile Menu Button -->
-                <button id="menuBtn" class="z-20 md:hidden block text-gray-800 focus:outline-none" aria-label="Open navigation menu">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7">
-                        </path>
-                    </svg>
-                </button>
-                <!-- Mobile Dropdown Menu -->
-                <div id="navMenuMobile"
-                    class="hidden absolute z-10 right-10 mt-1 w-24 bg-gray-100 shadow-md py-2 rounded-md transform translate-x-0 transition-transform duration-300 ease-out"
-                    style="top: 30%">
-                    <a href="./"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Home</a>
-                    <a href="https://github.com/episphere/tma-grid"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">GitHub</a>
-                    <a href="https://github.com/episphere/tma-grid/issues"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Issues</a>
-                    <a href="https://youtu.be/miajqyw4BVk"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Tutorial</a>
-                    <a href="#"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Manuscript</a>
-                    <button id="helpButtonMobile" class="actionButton px-4">?</button> <!-- Add this line -->
-
-                </div>
                 <!-- Desktop Navigation Menu -->
-                <nav class="hidden md:flex items-center space-x-4">
-                    <a href="./"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Home</a>
-                    <a href="https://github.com/episphere/tma-grid"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">GitHub</a>
-                    <a href="https://github.com/episphere/tma-grid/issues"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Issues</a>
-                    <a href="https://youtu.be/miajqyw4BVk"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Tutorial</a>
-                    <a href="#"
-                        class="text-sm text-gray-800 hover:underline transition-colors duration-200 block px-4 py-2">Manuscript</a>
-                    <button id="helpButton" class="actionButton px-4">?</button> <!-- Add this line -->
-
+                <nav class="app-nav hidden md:flex" aria-label="Primary navigation">
+                    <a href="./" class="app-nav-link active">Home</a>
+                    <a href="https://github.com/episphere/tma-grid" class="app-nav-link">GitHub</a>
+                    <a href="https://github.com/episphere/tma-grid/issues" class="app-nav-link">Issues</a>
+                    <a href="https://youtu.be/miajqyw4BVk" class="app-nav-link">Tutorial</a>
+                    <a href="#" class="app-nav-link">Manuscript</a>
                 </nav>
+                <div class="app-actions">
+                    <button id="helpButton" class="help-button hidden md:inline-flex" type="button">Help</button>
+                    <span class="app-status-pill hidden lg:inline-flex">Ready</span>
+                    <!-- Mobile Menu Button -->
+                    <button id="menuBtn" class="mobile-menu-button md:hidden" type="button"
+                        aria-label="Open navigation menu" aria-controls="navMenuMobile" aria-expanded="false">
+                        <span class="menu-button-text">Menu</span>
+                        <span class="menu-button-icon" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </button>
+                </div>
+                <!-- Mobile Dropdown Menu -->
+                <div id="navMenuMobile" class="app-mobile-menu hidden">
+                    <a href="./" class="app-mobile-link">Home</a>
+                    <a href="https://github.com/episphere/tma-grid" class="app-mobile-link">GitHub</a>
+                    <a href="https://github.com/episphere/tma-grid/issues" class="app-mobile-link">Issues</a>
+                    <a href="https://youtu.be/miajqyw4BVk" class="app-mobile-link">Tutorial</a>
+                    <a href="#" class="app-mobile-link">Manuscript</a>
+                    <button id="helpButtonMobile" class="app-mobile-link mobile-help-button" type="button">Help</button>
+                </div>
             </div>
+            <div id="mobileMenuBackdrop" class="mobile-menu-backdrop hidden" aria-hidden="true"></div>
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     const menuBtn = document.getElementById('menuBtn');
                     const navMenuMobile = document.getElementById('navMenuMobile');
+                    const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+                    const menuButtonText = menuBtn.querySelector('.menu-button-text');
+                    const appHeader = document.querySelector('.app-header');
 
-                    menuBtn.addEventListener('click', () => {
-                        navMenuMobile.classList.toggle('hidden');
+                    const setMenuOpen = (isOpen) => {
+                        navMenuMobile.classList.toggle('hidden', !isOpen);
+                        mobileMenuBackdrop.classList.toggle('hidden', !isOpen);
+                        menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                        menuBtn.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+                        menuButtonText.textContent = isOpen ? 'Close' : 'Menu';
+                        document.body.classList.toggle('mobile-menu-open', isOpen);
+                        appHeader.classList.toggle('menu-open', isOpen);
+                    };
+
+                    menuBtn.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        setMenuOpen(navMenuMobile.classList.contains('hidden'));
+                    });
+
+                    mobileMenuBackdrop.addEventListener('click', () => setMenuOpen(false));
+
+                    navMenuMobile.addEventListener('click', (event) => {
+                        if (event.target.closest('a, button')) {
+                            setMenuOpen(false);
+                        }
+                    });
+
+                    document.addEventListener('keydown', (event) => {
+                        if (event.key === 'Escape') {
+                            setMenuOpen(false);
+                        }
+                    });
+
+                    document.addEventListener('click', (event) => {
+                        const isOpen = !navMenuMobile.classList.contains('hidden');
+                        if (isOpen && !appHeader.contains(event.target)) {
+                            setMenuOpen(false);
+                        }
                     });
                 });
             </script>
@@ -104,10 +136,10 @@
 
                     <nav class="upload-tabs flex mb-5 border-b justify-center" aria-label="Upload method">
                         <button
-                            class="active upload-option-tab px-6 py-2 text-gray-800 border-b-2 border-blue-500 hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
+                            class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
                             data-target="direct-upload">Direct Upload</button>
                         <button
-                            class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
+                            class="active upload-option-tab px-6 py-2 text-gray-800 border-b-2 border-blue-500 hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
                             data-target="url-upload">Image URL</button>
                         <button
                             class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
@@ -123,11 +155,25 @@
                     <div id="imageLoadStatus" class="load-status neutral-message">
                         No image uploaded.
                     </div>
+                    <div id="uploadSummary" class="upload-summary" aria-live="polite">
+                        <div>
+                            <span class="summary-label">Image</span>
+                            <strong id="uploadSummaryName">None selected</strong>
+                        </div>
+                        <div>
+                            <span class="summary-label">Dimensions</span>
+                            <strong id="uploadSummaryDimensions">--</strong>
+                        </div>
+                        <div>
+                            <span class="summary-label">Export</span>
+                            <strong id="uploadSummaryCapability">Load an image to check support</strong>
+                        </div>
+                    </div>
 
 
 
                     <div id="tab-contents" class="mb-20">
-                        <div id="direct-upload" class="tab-content active">
+                        <div id="direct-upload" class="tab-content hidden">
                             <div id="drop-area">
                                 <form class="my-form">
                                     <p>Drag and drop files here</p>
@@ -148,15 +194,22 @@
                             </div>
                         </div>
 
-                        <div id="url-upload" class="tab-content flex hidden gap-5 lg:gap-10 md:gap-5 sm:gap-5">
+                        <div id="url-upload" class="tab-content active url-upload-panel">
+                            <div class="sample-image-card">
+                                <div>
+                                    <span class="summary-label">Demo image</span>
+                                    <strong>HE Hamamatsu tissue microarray</strong>
+                                </div>
+                                <button id="loadSampleImageBtn" type="button" class="sample-image-button">Load Sample</button>
+                            </div>
 
-                            <input type="text" id="imageUrlInput" class="form-input"
-                                style="flex-grow: 1; margin-top: 0; border-radius: 4px; border: 1px solid #ccc; padding: 10px; font-size: 16px;"
-                                placeholder="Enter Image URL"
-                                value="https://storage.googleapis.com/imagebox_test/TMAs/HE_Hamamatsu.tiff">
+                            <div class="url-upload-row">
+                                <input type="text" id="imageUrlInput" class="form-input"
+                                    placeholder="Enter Image URL"
+                                    value="https://storage.googleapis.com/imagebox_test/TMAs/HE_Hamamatsu.tiff">
 
-                            <button id="loadImageUrlBtn" type="button" class="standard-button"
-                                style="height: 100%; padding: 10px 0px; margin: auto;">Load</button>
+                                <button id="loadImageUrlBtn" type="button" class="standard-button">Load URL</button>
+                            </div>
 
                         </div>
 
@@ -254,6 +307,16 @@
                             </div>
 
                             <div class="space-y-3">
+                                <label for="segmentationPresetSelect"
+                                    class="text-sm font-medium text-gray-700 block">Preset</label>
+                                <select id="segmentationPresetSelect" class="w-full border-gray-300 rounded-md shadow-sm">
+                                    <option value="default">Default tissue cores</option>
+                                    <option value="dense">Dense cores</option>
+                                    <option value="sparse">Sparse cores</option>
+                                    <option value="damaged">Damaged or torn cores</option>
+                                    <option value="noisy">Noisy background</option>
+                                </select>
+
                                 <label for="maskAlphaSlider" class="text-sm font-medium text-gray-700 block">Mask
                                     Alpha: <span id="maskAlphaValue">0.2</span></label>
                                 <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.2"
@@ -261,7 +324,7 @@
 
                                 <label for="thresholdSlider"
                                     class="text-sm font-medium text-gray-700 block">Sensitivity:
-                                    <span id="thresholdValue">0.5</Wspan></label>
+                                    <span id="thresholdValue">0.5</span></label>
                                 <input type="range" id="thresholdSlider" min="0.01" max="0.99" step="0.0025" value="0.5"
                                     class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
 
@@ -275,32 +338,57 @@
                                 <input type="number" id="maxAreaInput" value="3000" step="1" min="1"
                                     class="w-full border-gray-300 rounded-md shadow-sm">
 
-                                <label for="disTransformMultiplierInput"
-                                    class="text-sm font-medium text-gray-700 block">Distance
-                                    Transform
-                                    Multiplier:</label>
-                                <input type="number" id="disTransformMultiplierInput" value="0.5" step="0.025"
-                                    min="0.025" max="1" class="w-full border-gray-300 rounded-md shadow-sm">
+                                <details class="advanced-control-group">
+                                    <summary>Advanced segmentation</summary>
+                                    <label for="disTransformMultiplierInput"
+                                        class="text-sm font-medium text-gray-700 block">Distance
+                                        Transform
+                                        Multiplier:</label>
+                                    <input type="number" id="disTransformMultiplierInput" value="0.5" step="0.025"
+                                        min="0.025" max="1" class="w-full border-gray-300 rounded-md shadow-sm">
+                                </details>
                             </div>
 
                             <button type="button" id="applySegmentation"
                                 class="mt-4 w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out">
                                 Apply
                             </button>
+                            <p id="segmentationApplyStatus" class="apply-status" aria-live="polite">Parameters are current.</p>
                         </fieldset>
                     </aside>
-                    <!-- Sidebar Toggle Icon -->
-                    <div id="segmentationSidebarIcon" class="parameterSidebar" onclick="toggleSidebarSegmentation()">
-                        <!-- Menu Icon (three horizontal lines) -->
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </div>
-
-
                     <div id="ImageSegmentation" class="flex-grow sm:block sm:w-full">
                         <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
+                        <div class="viewer-toolbar segmentation-toolbar" aria-label="Segmentation tools">
+                            <button type="button" id="segmentationSidebarIcon"
+                                class="toolbar-button parameterSidebar workspace-panel-toggle"
+                                onclick="toggleSidebarSegmentation()" aria-controls="segmentation-sidebar"
+                                aria-expanded="false">
+                                <span class="panel-toggle-icon" aria-hidden="true">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                                <span>Parameters</span>
+                            </button>
+                            <div class="segmented-control" role="group" aria-label="Edit mode">
+                                <button type="button" class="toolbar-button active" data-segmentation-mode="add"
+                                    aria-pressed="true">Add</button>
+                                <button type="button" class="toolbar-button" data-segmentation-mode="remove"
+                                    aria-pressed="false">Remove</button>
+                                <button type="button" class="toolbar-button" data-segmentation-mode="inspect"
+                                    aria-pressed="false">Inspect</button>
+                            </div>
+                            <button type="button" id="segmentationUndoButton" class="toolbar-button">Undo</button>
+                            <button type="button" id="segmentationRedoButton" class="toolbar-button">Redo</button>
+                            <button type="button" id="toggleSegmentationMaskButton" class="toolbar-button"
+                                aria-pressed="true">Mask On</button>
+                        </div>
+                        <div id="segmentationStats" class="stats-strip" aria-live="polite">
+                            <span>Detected: --</span>
+                            <span>Rescued: --</span>
+                            <span>Removed artifacts: --</span>
+                            <span>Recentered: --</span>
+                        </div>
                         <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="mx-auto w-4/5"></canvas>
                     </div>
                 </div>
@@ -319,8 +407,8 @@
                     var segmentationSidebarIcon = document.getElementById('segmentationSidebarIcon');
 
                     sidebar.classList.toggle('collapsed');
-                    segmentationSidebarIcon.classList.toggle('hidden');
-                    console.log("Hidden")
+                    var isOpen = !sidebar.classList.contains('collapsed');
+                    segmentationSidebarIcon.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 }
             </script>
 
@@ -364,16 +452,27 @@
                 <div id="markerAutoStatus" class="marker-auto-status" aria-live="polite">
                     Marker core placement will be checked after gridding runs.
                 </div>
+                <section id="reviewPanel" class="review-panel review-panel-collapsed" aria-live="polite">
+                    <div class="review-panel-header">
+                        <div class="review-panel-title">
+                            <h2>Review Queue <span id="reviewIssueCount" class="review-count-badge">0</span></h2>
+                            <p id="reviewSummary">No issues detected yet.</p>
+                        </div>
+                        <div class="review-actions">
+                            <button type="button" id="toggleReviewPanelButton" class="toolbar-button"
+                                aria-expanded="false">Open Review</button>
+                            <button type="button" id="previousIssueButton" class="toolbar-button">Previous</button>
+                            <button type="button" id="nextIssueButton" class="toolbar-button">Next</button>
+                            <button type="button" id="resolveIssueButton" class="toolbar-button">Resolve</button>
+                            <button type="button" id="resolveAllIssuesButton" class="toolbar-button">Resolve All</button>
+                        </div>
+                    </div>
+                    <div id="reviewIssueDrawer" class="review-issue-drawer hidden">
+                        <ul id="reviewIssueList" class="review-issue-list"></ul>
+                    </div>
+                </section>
 
                 <div class="workspace-layout gridding-workspace">
-                    <!-- Sidebar Toggle Icon -->
-                    <div id="griddingSidebarIcon" class="parameterSidebar" onclick="toggleSidebarGridding()">
-                        <!-- Menu Icon (three horizontal lines) -->
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </div>
                     <!-- Sidebar -->
                     <aside id="gridding-sidebar"
                         class="w-1/3 sm:w-full md:w-1/4 lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
@@ -516,6 +615,27 @@
                     <!-- Main Content -->
                     <main class="viewer-panel mx-auto w-full">
                         <!-- Main content goes here -->
+                        <div class="viewer-toolbar gridding-toolbar" aria-label="Gridding tools">
+                            <button type="button" id="griddingSidebarIcon"
+                                class="toolbar-button parameterSidebar workspace-panel-toggle"
+                                onclick="toggleSidebarGridding()" aria-controls="gridding-sidebar"
+                                aria-expanded="false">
+                                <span class="panel-toggle-icon" aria-hidden="true">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                                <span>Parameters</span>
+                            </button>
+                            <button type="button" id="toolbarAddCoreButton" class="toolbar-button">Add Core</button>
+                            <button type="button" id="zoomInButton" class="toolbar-button">Zoom In</button>
+                            <button type="button" id="zoomOutButton" class="toolbar-button">Zoom Out</button>
+                            <button type="button" id="fitImageButton" class="toolbar-button">Fit</button>
+                            <button type="button" id="toggleGridLabelsButton" class="toolbar-button"
+                                aria-pressed="true">Labels On</button>
+                            <button type="button" id="toggleGridLinesButton" class="toolbar-button"
+                                aria-pressed="true">Lines On</button>
+                        </div>
                         <div class="viewer-scroll" id="main-container">
                             <!-- Image Viewer or other main content -->
                             <div id="osdViewer" style="margin:auto"></div>
@@ -613,7 +733,8 @@
                     var griddingSidebarIcon = document.getElementById('griddingSidebarIcon');
                     sidebar.classList.toggle('collapsed');
 
-                    griddingSidebarIcon.classList.toggle('hidden');
+                    var isOpen = !sidebar.classList.contains('collapsed');
+                    griddingSidebarIcon.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 }
 
             </script>
@@ -627,7 +748,8 @@
                         var virtualSidebarIcon = document.getElementById('virtualGridSidebarIcon');
                         sidebar.classList.toggle('collapsed');
 
-                        virtualSidebarIcon.classList.toggle('hidden');
+                        var isOpen = !sidebar.classList.contains('collapsed');
+                        virtualSidebarIcon.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                     }
 
                 </script>
@@ -695,14 +817,17 @@
                         <div id="VirtualGrid" class="tabcontent">
 
                             <div class="virtual-grid-stage">
-                                <div id="virtualGridSidebarIcon" class="parameterSidebar hidden"
-                                    onclick="toggleSidebarVirtual()">
-                                    <!-- Menu Icon (three horizontal lines) -->
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 6h16M4 12h16M4 18h16" />
-                                    </svg>
-                                </div>
+                                <button type="button" id="virtualGridSidebarIcon"
+                                    class="toolbar-button parameterSidebar workspace-panel-toggle virtual-panel-toggle"
+                                    onclick="toggleSidebarVirtual()" aria-controls="virtual-grid-sidebar"
+                                    aria-expanded="true">
+                                    <span class="panel-toggle-icon" aria-hidden="true">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                                    <span>Metadata</span>
+                                </button>
 
                                 <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"
                                     class="w-full"></canvas>
@@ -753,19 +878,36 @@
 
 
         <!-- Carousel controls for the sections -->
-        <div class="carousel-controls flex justify-center space-x-1 md:space-x-3 p-4 mb-10">
+        <div class="carousel-controls workflow-steps flex justify-center space-x-1 md:space-x-3 p-4 mb-10"
+            aria-label="Workflow steps">
             <button id="imageUploadTabButton"
-                class="carousel-control active w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="1"></button>
+                class="carousel-control workflow-step active bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
+                data-step="1" data-label="Upload">
+                <span class="step-index">1</span>
+                <span class="step-label">Upload</span>
+                <span class="step-status"></span>
+            </button>
             <button id="imageSegmentationTabButton"
-                class="carousel-control w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="2" disabled></button>
+                class="carousel-control workflow-step bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
+                data-step="2" data-label="Segment" disabled>
+                <span class="step-index">2</span>
+                <span class="step-label">Segment</span>
+                <span class="step-status"></span>
+            </button>
             <button id="rawDataTabButton"
-                class="carousel-control w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="3" disabled></button>
+                class="carousel-control workflow-step bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
+                data-step="3" data-label="Grid" disabled>
+                <span class="step-index">3</span>
+                <span class="step-label">Grid</span>
+                <span class="step-status"></span>
+            </button>
             <button id="virtualGridTabButton"
-                class="carousel-control w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="4" disabled></button>
+                class="carousel-control workflow-step bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
+                data-step="4" data-label="Export" disabled>
+                <span class="step-index">4</span>
+                <span class="step-label">Export</span>
+                <span class="step-status"></span>
+            </button>
             <!-- ... Add more buttons if you have more steps -->
         </div>
 

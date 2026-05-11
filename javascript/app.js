@@ -161,27 +161,48 @@ function updateCurrentStep(step) {
   const currentStep = parseInt(step, 10);
   const allControls = document.querySelectorAll(".carousel-control");
   allControls.forEach((control, index) => {
+    const status = control.querySelector(".step-status");
+    const indexLabel = control.querySelector(".step-index");
+
     if (index < currentStep - 1) {
       // Mark previous steps as completed
       control.classList.add("completed");
       control.classList.remove("border-blue-500", "active");
-      control.innerHTML = `<span class="checkmark">✔</span>`; // Add checkmark
+      control.setAttribute("aria-current", "false");
+      if (status) {
+        status.textContent = "Complete";
+      }
+      if (indexLabel) {
+        indexLabel.textContent = "✓";
+      }
     } else if (index === currentStep - 1) {
       // Highlight the current step
       control.classList.add("border-blue-500", "active");
       control.classList.remove("completed");
-      control.classList.add();
-      control.innerHTML = ""; // Remove the checkmark
+      control.setAttribute("aria-current", "step");
+      if (status) {
+        status.textContent = "Current";
+      }
+      if (indexLabel) {
+        indexLabel.textContent = `${index + 1}`;
+      }
     } else {
       // Reset the rest
       control.classList.remove("completed", "border-blue-500", "active");
-      control.innerHTML = ""; // Remove the checkmark
+      control.setAttribute("aria-current", "false");
+      if (status) {
+        status.textContent = "";
+      }
+      if (indexLabel) {
+        indexLabel.textContent = `${index + 1}`;
+      }
     }
   });
 }
 
 // Initialize the current step
 let currentStep = 0;
+updateCurrentStep(1);
 
 document.addEventListener("DOMContentLoaded", function () {
   const dropArea = document.getElementById("drop-area");

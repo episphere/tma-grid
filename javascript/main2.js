@@ -20,6 +20,8 @@ import {
   updateVirtualGridSpacing,
   redrawCoresForTravelingAlgorithm,
   obtainHyperparametersAndDrawVirtualGrid,
+  undo,
+  redo,
 } from "./drawCanvas.js";
 
 import {
@@ -31,6 +33,50 @@ import {
 import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
 
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
+const SAMPLE_IMAGE_URL =
+  "https://storage.googleapis.com/imagebox_test/TMAs/HE_Hamamatsu.tiff";
+const SIMPLE_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
+const WSI_IMAGE_EXTENSIONS = [".svs", ".ndpi", ".tif", ".tiff"];
+const SEGMENTATION_PRESETS = {
+  default: {
+    threshold: 0.5,
+    minArea: 20,
+    maxArea: 3000,
+    distance: 0.5,
+    maskAlpha: 0.2,
+  },
+  dense: {
+    threshold: 0.48,
+    minArea: 15,
+    maxArea: 2600,
+    distance: 0.55,
+    maskAlpha: 0.18,
+  },
+  sparse: {
+    threshold: 0.52,
+    minArea: 30,
+    maxArea: 4200,
+    distance: 0.48,
+    maskAlpha: 0.2,
+  },
+  damaged: {
+    threshold: 0.44,
+    minArea: 12,
+    maxArea: 4200,
+    distance: 0.42,
+    maskAlpha: 0.24,
+  },
+  noisy: {
+    threshold: 0.58,
+    minArea: 35,
+    maxArea: 2600,
+    distance: 0.58,
+    maskAlpha: 0.16,
+  },
+};
+let currentReviewIssueIndex = -1;
+let currentReviewIssues = [];
+let resolvedReviewIssueKeys = new Set();
 
 // Initialize image elements
 const originalImageContainer = document.getElementById("originalImage");
@@ -44,6 +90,396 @@ const loadDependencies = async () => ({
 
 // Pure function to get input values
 const getInputValue = (inputId) => document.getElementById(inputId).value;
+
+const getElement = (id) => document.getElementById(id);
+
+const getLowercasePath = (path = "") => {
+  try {
+    return new URL(path, window.location.href).pathname.toLowerCase();
+  } catch {
+    return String(path).split(/[?#]/)[0].toLowerCase();
+  }
+};
+
+const hasAnyExtension = (path, extensions) =>
+  extensions.some((extension) => getLowercasePath(path).endsWith(extension));
+
+const getImageTypeFromUrl = (url = "") => {
+  const path = getLowercasePath(url);
+  const extension = path.split(".").pop();
+  if (extension === "jpg") {
+    return "jpeg";
+  }
+
+  return extension || "";
+};
+
+const isSimpleImageType = (imageType = "") =>
+  ["png", "jpeg", "jpg", "webp"].includes(imageType.toLowerCase());
+
+const isSimpleImageUrl = (url = "") =>
+  hasAnyExtension(url, SIMPLE_IMAGE_EXTENSIONS);
+
+const isWsiImageUrl = (url = "") => hasAnyExtension(url, WSI_IMAGE_EXTENSIONS);
+
+const coerceImageResponseToBlob = async (imageResponse) => {
+  if (imageResponse instanceof Blob) {
+    return imageResponse;
+  }
+
+  if (imageResponse?.blob) {
+    return await imageResponse.blob();
+  }
+
+  throw new Error("Image response did not contain a readable image blob.");
+};
+
+let openSeadragonDecodeShimInstalled = false;
+function installOpenSeadragonDecodeShim() {
+  if (openSeadragonDecodeShimInstalled) {
+    return;
+  }
+
+  const decode = function () {
+    return Promise.resolve(this);
+  };
+
+  [window.HTMLCanvasElement, window.OffscreenCanvas, window.ImageBitmap].forEach(
+    (constructor) => {
+      try {
+        if (
+          constructor?.prototype &&
+          typeof constructor.prototype.decode !== "function"
+        ) {
+          Object.defineProperty(constructor.prototype, "decode", {
+            value: decode,
+            configurable: true,
+          });
+        }
+      } catch {
+        // Some browser-provided prototypes are not extensible. OpenSeadragon can
+        // still use the native image path in those browsers.
+      }
+    }
+  );
+
+  openSeadragonDecodeShimInstalled = true;
+}
+
+const bindOnce = (element, eventName, handler, bindingName = eventName) => {
+  if (!element) {
+    return;
+  }
+
+  const bindingKey = `bound${bindingName}`;
+  if (element.dataset[bindingKey] === "true") {
+    return;
+  }
+
+  element.dataset[bindingKey] = "true";
+  element.addEventListener(eventName, handler);
+};
+
+function setApplyStatus(message, tone = "neutral") {
+  const status = getElement("segmentationApplyStatus");
+  if (!status) {
+    return;
+  }
+
+  status.textContent = message;
+  status.dataset.tone = tone;
+}
+
+function markSegmentationParametersDirty() {
+  setApplyStatus("Parameters changed. Apply to update detection.", "warning");
+}
+
+function applySegmentationPreset(presetName) {
+  const preset = SEGMENTATION_PRESETS[presetName] || SEGMENTATION_PRESETS.default;
+  getElement("thresholdSlider").value = preset.threshold;
+  getElement("maskAlphaSlider").value = preset.maskAlpha;
+  getElement("minAreaInput").value = preset.minArea;
+  getElement("maxAreaInput").value = preset.maxArea;
+  getElement("disTransformMultiplierInput").value = preset.distance;
+  updateSliderUIText(window.state || {});
+  markSegmentationParametersDirty();
+}
+
+function selectUploadMethod(targetId) {
+  const tab = document.querySelector(`.upload-option-tab[data-target="${targetId}"]`);
+  if (tab) {
+    tab.click();
+  }
+}
+
+function getUploadedFileName() {
+  const fileInput = getElement("fileInput");
+  if (fileInput?.files?.[0]) {
+    return fileInput.files[0].name;
+  }
+
+  if (window.boxFileInfo?.name) {
+    return window.boxFileInfo.name;
+  }
+
+  const url = getInputValue("imageUrlInput");
+  if (url) {
+    return url.split("/").pop() || "Image URL";
+  }
+
+  return getElement("file-name")?.textContent || "Loaded image";
+}
+
+function updateUploadSummary(fileType = window.uploadedImageFileType) {
+  const image = originalImageContainer;
+  const nameEl = getElement("uploadSummaryName");
+  const dimensionsEl = getElement("uploadSummaryDimensions");
+  const capabilityEl = getElement("uploadSummaryCapability");
+
+  if (!nameEl || !dimensionsEl || !capabilityEl) {
+    return;
+  }
+
+  if (!image?.src || image.src.endsWith("#")) {
+    nameEl.textContent = "None selected";
+    dimensionsEl.textContent = "--";
+    capabilityEl.textContent = "Load an image to check support";
+    return;
+  }
+
+  const width = image.naturalWidth || image.width;
+  const height = image.naturalHeight || image.height;
+  const scale = Number.isFinite(window.scalingFactor) ? window.scalingFactor : 1;
+  const nativeWidth = width && scale ? Math.round(width / scale) : width;
+  const nativeHeight = height && scale ? Math.round(height / scale) : height;
+  const simpleImageTypes = ["png", "jpeg", "jpg"];
+
+  nameEl.textContent = getUploadedFileName();
+  dimensionsEl.textContent =
+    nativeWidth && nativeHeight
+      ? `${nativeWidth} × ${nativeHeight}px`
+      : "Dimensions unavailable";
+  capabilityEl.textContent = simpleImageTypes.includes(fileType)
+    ? "Metadata export available; full-resolution core export unavailable"
+    : "Metadata and grid export available when source tiles are readable";
+}
+
+function getRemovedArtifactCount(stats = {}) {
+  return (
+    (stats.nonTissueRemoved || 0) +
+    (stats.bridgeRemoved || 0) +
+    (stats.isolatedRemoved || 0)
+  );
+}
+
+function updateSegmentationStats() {
+  const statsEl = getElement("segmentationStats");
+  if (!statsEl) {
+    return;
+  }
+
+  const diagnostics = window.coreDetectionDiagnostics || {};
+  const rescueStats = diagnostics.rescueStats || {};
+  statsEl.innerHTML = `
+    <span>Detected: ${diagnostics.total ?? "--"}</span>
+    <span>Rescued: ${diagnostics.rescued ?? "--"}</span>
+    <span>Removed artifacts: ${getRemovedArtifactCount(rescueStats)}</span>
+    <span>Recentered: ${rescueStats.recentered || 0}</span>
+  `;
+}
+
+function collectReviewIssues() {
+  const issues = [];
+  const rescueStats = window.coreDetectionDiagnostics?.rescueStats || {};
+
+  if (getRemovedArtifactCount(rescueStats) > 0) {
+    issues.push({
+      type: "summary",
+      title: `${getRemovedArtifactCount(rescueStats)} non-core artifact candidates removed`,
+      detail: "Review nearby scale bars, labels, and merged tissue if counts look surprising.",
+    });
+  }
+
+  (window.sortedCoresData || []).forEach((core, index) => {
+    if (core.needsReview || core.offGridMarker) {
+      issues.push({
+        type: "core",
+        title: core.offGridMarker
+          ? `Off-grid marker ${core.row + 1 || "?"},${core.col + 1 || "?"}`
+          : `Review core ${core.row + 1 || "?"},${core.col + 1 || "?"}`,
+        detail: core.offGridMarker
+          ? "Off-grid marker kept separate from the main row/column lattice."
+          : "Needs review after automatic row/column assignment.",
+        core,
+        index,
+      });
+    }
+  });
+
+  return issues
+    .map((issue) => ({
+      ...issue,
+      key: getReviewIssueKey(issue),
+    }))
+    .filter((issue) => !resolvedReviewIssueKeys.has(issue.key))
+    .slice(0, 50);
+}
+
+function getReviewIssueKey(issue) {
+  if (issue.type === "summary") {
+    return `summary:${issue.title}`;
+  }
+
+  if (issue.type === "core") {
+    const core = issue.core || {};
+    return [
+      "core",
+      issue.index,
+      core.row,
+      core.col,
+      core.needsReview ? "review" : "",
+      core.offGridMarker ? "offgrid" : "",
+    ].join(":");
+  }
+
+  return `${issue.type}:${issue.index}:${issue.title}`;
+}
+
+function setReviewControlsState() {
+  const hasIssues = currentReviewIssues.length > 0;
+  [
+    "previousIssueButton",
+    "nextIssueButton",
+    "resolveIssueButton",
+    "resolveAllIssuesButton",
+    "toggleReviewPanelButton",
+  ].forEach((buttonId) => {
+    const button = getElement(buttonId);
+    if (button) {
+      button.disabled = !hasIssues;
+    }
+  });
+}
+
+function renderReviewPanel() {
+  const list = getElement("reviewIssueList");
+  const summary = getElement("reviewSummary");
+  const count = getElement("reviewIssueCount");
+  if (!list || !summary || !count) {
+    return;
+  }
+
+  currentReviewIssues = collectReviewIssues();
+  currentReviewIssueIndex = currentReviewIssues.length ? 0 : -1;
+  count.textContent = currentReviewIssues.length;
+  summary.textContent = currentReviewIssues.length
+    ? `${currentReviewIssues.length} flagged item${currentReviewIssues.length === 1 ? "" : "s"} ready for triage.`
+    : "No flagged marker or row/column issues.";
+  list.innerHTML = "";
+
+  currentReviewIssues.forEach((issue, index) => {
+    const item = document.createElement("li");
+    item.className = "review-issue-item";
+    item.innerHTML = `
+      <button type="button" class="review-issue-focus" data-review-index="${index}">
+        <span>
+          <strong>${issue.title}</strong>
+          <small>${issue.detail}</small>
+        </span>
+      </button>
+      <button type="button" class="review-issue-resolve" data-resolve-index="${index}">Resolve</button>
+    `;
+    list.appendChild(item);
+  });
+  if (currentReviewIssues.length === 0) {
+    toggleReviewPanel(false);
+  }
+  setReviewControlsState();
+}
+
+function focusReviewIssue(index) {
+  if (!currentReviewIssues.length) {
+    return;
+  }
+
+  currentReviewIssueIndex =
+    (index + currentReviewIssues.length) % currentReviewIssues.length;
+  const issue = currentReviewIssues[currentReviewIssueIndex];
+
+  document.querySelectorAll(".review-issue-item").forEach((item, itemIndex) => {
+    item.classList.toggle("active", itemIndex === currentReviewIssueIndex);
+  });
+
+  if (issue.core && window.viewer) {
+    const point = new OpenSeadragon.Point(issue.core.x, issue.core.y);
+    window.viewer.viewport.panTo(
+      window.viewer.viewport.imageToViewportCoordinates(point),
+      false
+    );
+    window.viewer.viewport.zoomTo(
+      Math.max(window.viewer.viewport.getZoom(), 2.5),
+      null,
+      false
+    );
+  } else if (issue.property) {
+    getElement("segmentationResultsCanvas")?.scrollIntoView({
+      block: "center",
+      behavior: "smooth",
+    });
+  }
+}
+
+function clearCoreReviewFlag(issue) {
+  if (issue?.type !== "core" || !issue.core) {
+    return;
+  }
+
+  if (issue.core.needsReview) {
+    issue.core.needsReview = false;
+  }
+
+  const overlay = document.querySelector(
+    `[data-core-index="${issue.index}"]`
+  );
+  overlay?.classList.remove("needs-review");
+}
+
+function resolveReviewIssue(index = currentReviewIssueIndex) {
+  const issue = currentReviewIssues[index];
+  if (!issue) {
+    return;
+  }
+
+  resolvedReviewIssueKeys.add(issue.key || getReviewIssueKey(issue));
+  clearCoreReviewFlag(issue);
+  renderReviewPanel();
+  focusReviewIssue(Math.min(index, currentReviewIssues.length - 1));
+}
+
+function resolveAllReviewIssues() {
+  currentReviewIssues.forEach((issue) => {
+    resolvedReviewIssueKeys.add(issue.key || getReviewIssueKey(issue));
+    clearCoreReviewFlag(issue);
+  });
+  renderReviewPanel();
+}
+
+function toggleReviewPanel(forceOpen = null) {
+  const panel = getElement("reviewPanel");
+  const drawer = getElement("reviewIssueDrawer");
+  const button = getElement("toggleReviewPanelButton");
+
+  if (!panel || !drawer || !button) {
+    return;
+  }
+
+  const shouldOpen =
+    forceOpen === null ? panel.classList.contains("review-panel-collapsed") : forceOpen;
+  panel.classList.toggle("review-panel-collapsed", !shouldOpen);
+  drawer.classList.toggle("hidden", !shouldOpen);
+  button.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+  button.textContent = shouldOpen ? "Close Review" : "Open Review";
+}
 
 // Helper functions to abstract operations
 const loadImage = (file) =>
@@ -130,6 +566,7 @@ const handleSVSFile = async (file, processCallback) => {
     processCallback();
 
     window.loadedImg = originalImageContainer;
+    updateUploadSummary(file.name.split(".").pop().toLowerCase());
     document.getElementById("loadingSpinner").style.display = "none";
 
     // Get the name of the file 
@@ -171,6 +608,7 @@ const handleImageLoad = (file, processCallback) => {
           );
           processCallback();
           window.loadedImg = originalImageContainer;
+          updateUploadSummary(file.type.split("/")[1]);
           document.getElementById("loadingSpinner").style.display = "none";
         };
         originalImageContainer.onerror = () => {
@@ -235,6 +673,7 @@ const handleImageLoad = (file, processCallback) => {
 // Main event handler, refactored to use functional programming
 const handleImageInputChange = async (e, processCallback) => {
   resetApplication();
+  resolvedReviewIssueKeys = new Set();
   document.getElementById("imageUrlInput").value = null;
 
   const file = e.target.files[0];
@@ -400,6 +839,7 @@ const getInputParameters = () => {
 // Event handler for load image from URL
 const handleLoadImageUrlClick = async () => {
   resetApplication();
+  resolvedReviewIssueKeys = new Set();
   document.getElementById("fileInput").value = null;
   // Show loading spinner
   document.getElementById("loadingSpinner").style.display = "block";
@@ -412,22 +852,24 @@ const handleLoadImageUrlClick = async () => {
   // $("#imageUrlInput").val(corsProxy + $("#imageUrlInput").val());
 
   const checkImageType = async (url) => {
-    const ac = new AbortController();
-    const resp = await fetch(url, {
-      signal: ac.signal,
-    });
-    ac.abort();
+    const fallbackType = getImageTypeFromUrl(url);
 
-    const contentType = resp.headers.get("content-type");
-    switch (contentType) {
-      case "image/png":
-      case "image/jpeg":
-      case "image/tiff":
-        return contentType.split("/")[1];
+    try {
+      const resp = await fetch(url, { method: "HEAD" });
+      const contentType = resp.headers.get("content-type") || "";
+      if (contentType.startsWith("image/")) {
+        const headerType = contentType.split(";")[0].split("/")[1];
+        return headerType === "jpg" ? "jpeg" : headerType;
+      }
 
-      case "application/octet-stream":
-        return "svs";
+      if (contentType === "application/octet-stream") {
+        return fallbackType || "svs";
+      }
+    } catch (error) {
+      console.warn("Could not read image headers; using URL extension.", error);
     }
+
+    return fallbackType;
   };
 
   const imageUrl = getInputValue("imageUrlInput");
@@ -436,42 +878,59 @@ const handleLoadImageUrlClick = async () => {
     let imageResp = undefined;
     let width, height;
     window.uploadedImageFileType = await checkImageType(imageUrl);
+    window.originalImageUrl = imageUrl;
 
-    if (
-      window.uploadedImageFileType === "jpeg" ||
-      window.uploadedImageFileType === "png"
-    ) {
-      imageResp = fetch(imageUrl);
-    } else {
-      let imageInfo;
-      try {
-        imageInfo = await getWSIInfo(imageUrl);
-      } catch (e) {
-        console.error(e);
-        alert("Image unsupported! Please try with a different URL.");
-        return;
-      }
-      console.log("imageInfo", imageInfo);
-      width = imageInfo.width;
-      height = imageInfo.height;
-
-      if (
-        imageInfo.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
-        imageInfo.height > MAX_DIMENSION_FOR_DOWNSAMPLING
-      ) {
-        const scalingFactor = Math.min(
-          MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
-          MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
-        );
-        window.scalingFactor = scalingFactor;
-      } else {
+    try {
+      if (isSimpleImageType(window.uploadedImageFileType)) {
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          throw new Error(`Image URL returned ${response.status}`);
+        }
+        imageResp = await response.blob();
         window.scalingFactor = 1;
-      }
+      } else {
+        let imageInfo;
+        try {
+          imageInfo = await getWSIInfo(imageUrl);
+        } catch (e) {
+          console.error(e);
+          alert("Image unsupported! Please try with a different URL.");
+          document.getElementById("loadingSpinner").style.display = "none";
+          return;
+        }
+        console.log("imageInfo", imageInfo);
+        width = imageInfo.width;
+        height = imageInfo.height;
 
-      imageResp = await getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING);
+        if (
+          imageInfo.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
+          imageInfo.height > MAX_DIMENSION_FOR_DOWNSAMPLING
+        ) {
+          const scalingFactor = Math.min(
+            MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.width,
+            MAX_DIMENSION_FOR_DOWNSAMPLING / imageInfo.height
+          );
+          window.scalingFactor = scalingFactor;
+        } else {
+          window.scalingFactor = 1;
+        }
+
+        imageResp = await coerceImageResponseToBlob(
+          await getPNGFromWSI(imageUrl, MAX_DIMENSION_FOR_DOWNSAMPLING)
+        );
+      }
+    } catch (error) {
+      updateStatusMessage(
+        "imageLoadStatus",
+        "Invalid image URL.",
+        "error-message"
+      );
+      document.getElementById("loadingSpinner").style.display = "none";
+      console.error("There has been a problem loading the image URL: ", error);
+      return;
     }
 
-    if (imageResp.type !== "image/png") {
+    if (!(imageResp instanceof Blob)) {
       updateStatusMessage(
         "imageLoadStatus",
         "Invalid image URL.",
@@ -489,6 +948,8 @@ const handleLoadImageUrlClick = async () => {
       const img = new Image();
       img.src = objectURL;
       img.onload = async () => {
+        width = width || img.naturalWidth || img.width;
+        height = height || img.naturalHeight || img.height;
         // Check if the image needs to be scaled down. Will only occur for png/jpg images
         if (
           img.width > MAX_DIMENSION_FOR_DOWNSAMPLING ||
@@ -508,6 +969,9 @@ const handleLoadImageUrlClick = async () => {
         } else {
           // For SVS files, you don't need to check the scaling factor, because the scaling factor is already set and the
           // image is already scaled down
+          if (isSimpleImageType(window.uploadedImageFileType)) {
+            window.scalingFactor = 1;
+          }
           originalImageContainer.src = img.src;
         }
       };
@@ -522,10 +986,13 @@ const handleLoadImageUrlClick = async () => {
           height = originalImageContainer.height;
         }
 
+        const displayScale = Number.isFinite(window.scalingFactor)
+          ? window.scalingFactor
+          : 1;
         const osdCanvasParent = document.getElementById("osdViewer");
-        osdCanvasParent.style.width = `${Math.ceil(width * scalingFactor)}px`;
+        osdCanvasParent.style.width = `${Math.ceil(width * displayScale)}px`;
         osdCanvasParent.style.height = `${Math.ceil(
-          height * scalingFactor
+          height * displayScale
         )}px`;
 
         window.loadedImg = originalImageContainer;
@@ -537,9 +1004,10 @@ const handleLoadImageUrlClick = async () => {
         );
         updateImagePreview(
           originalImageContainer.src,
-          width * scalingFactor,
-          height * scalingFactor
+          width * displayScale,
+          height * displayScale
         );
+        updateUploadSummary(window.uploadedImageFileType);
         await segmentImage(true);
       };
     }
@@ -622,19 +1090,165 @@ async function segmentImage(initializeParams = false) {
       }
     } catch (error) {
       console.error("Error processing image:", error);
+      setApplyStatus("Detection failed. Check parameters and try again.", "error");
     } finally {
-      // Visualize the predictions with the mask overlay and centroids
-      await visualizeSegmentationResults(
-        originalImageContainer,
-        thresholdedPredictions,
-        preprocessedCores,
-        processedImageCanvasID,
-        maskAlpha
-      );
+      if (thresholdedPredictions && preprocessedCores) {
+        // Visualize the predictions with the mask overlay and centroids
+        await visualizeSegmentationResults(
+          originalImageContainer,
+          thresholdedPredictions,
+          preprocessedCores,
+          processedImageCanvasID,
+          maskAlpha
+        );
+        updateSegmentationStats();
+        renderReviewPanel();
+        setApplyStatus("Detection updated.", "success");
+      }
       // Hide loading spinner
       document.getElementById("loadingSpinner").style.display = "none";
     }
   }
+}
+
+function setSegmentationMode(mode) {
+  window.segmentationEditMode = mode;
+  document.querySelectorAll("[data-segmentation-mode]").forEach((button) => {
+    const isActive = button.dataset.segmentationMode === mode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+async function redrawSegmentationPreviewOnly() {
+  if (!window.properties || !window.thresholdedPredictions) {
+    return;
+  }
+
+  await visualizeSegmentationResults(
+    originalImageContainer,
+    window.thresholdedPredictions,
+    window.properties,
+    processedImageCanvasID,
+    parseFloat(getElement("maskAlphaSlider").value)
+  );
+}
+
+function setupUiEnhancements() {
+  document.querySelectorAll("[data-segmentation-mode]").forEach((button) => {
+    bindOnce(button, "click", () =>
+      setSegmentationMode(button.dataset.segmentationMode)
+    );
+  });
+  setSegmentationMode(window.segmentationEditMode || "add");
+
+  bindOnce(getElement("segmentationUndoButton"), "click", () => {
+    undo();
+    updateSegmentationStats();
+  });
+  bindOnce(getElement("segmentationRedoButton"), "click", () => {
+    redo();
+    updateSegmentationStats();
+  });
+  bindOnce(getElement("toggleSegmentationMaskButton"), "click", async (event) => {
+    const button = event.currentTarget;
+    const pressed = button.getAttribute("aria-pressed") !== "false";
+    button.setAttribute("aria-pressed", pressed ? "false" : "true");
+    button.textContent = pressed ? "Mask Off" : "Mask On";
+    getElement("maskAlphaSlider").value = pressed ? 0 : 0.2;
+    updateSliderUIText(window.state || {});
+    await redrawSegmentationPreviewOnly();
+  });
+
+  bindOnce(getElement("segmentationPresetSelect"), "change", (event) => {
+    applySegmentationPreset(event.currentTarget.value);
+  });
+
+  bindOnce(getElement("loadSampleImageBtn"), "click", () => {
+    const imageUrlInput = getElement("imageUrlInput");
+    if (imageUrlInput) {
+      imageUrlInput.value = SAMPLE_IMAGE_URL;
+    }
+    selectUploadMethod("url-upload");
+    handleLoadImageUrlClick();
+  });
+
+  [
+    "thresholdSlider",
+    "maskAlphaSlider",
+    "minAreaInput",
+    "maxAreaInput",
+    "disTransformMultiplierInput",
+  ].forEach((inputId) => {
+    bindOnce(getElement(inputId), "input", markSegmentationParametersDirty, "dirty");
+  });
+
+  bindOnce(getElement("toolbarAddCoreButton"), "click", () => {
+    getElement("osdViewerAddCoreBtn")?.click();
+  });
+  bindOnce(getElement("zoomInButton"), "click", () => {
+    window.viewer?.viewport.zoomBy(1.25);
+    window.viewer?.viewport.applyConstraints();
+  });
+  bindOnce(getElement("zoomOutButton"), "click", () => {
+    window.viewer?.viewport.zoomBy(0.8);
+    window.viewer?.viewport.applyConstraints();
+  });
+  bindOnce(getElement("fitImageButton"), "click", () => {
+    window.viewer?.viewport.goHome();
+  });
+  bindOnce(getElement("toggleGridLabelsButton"), "click", (event) => {
+    const button = event.currentTarget;
+    const labelsAreOn = button.getAttribute("aria-pressed") !== "false";
+    button.setAttribute("aria-pressed", labelsAreOn ? "false" : "true");
+    button.textContent = labelsAreOn ? "Labels Off" : "Labels On";
+    getElement("osdViewer")?.classList.toggle("hide-core-labels", labelsAreOn);
+  });
+  bindOnce(getElement("toggleGridLinesButton"), "click", (event) => {
+    const button = event.currentTarget;
+    const linesAreOn = button.getAttribute("aria-pressed") !== "false";
+    const checkbox = getElement("connectCoresCheckbox");
+    if (checkbox) {
+      checkbox.checked = !linesAreOn;
+    }
+    button.setAttribute("aria-pressed", linesAreOn ? "false" : "true");
+    button.textContent = linesAreOn ? "Lines Off" : "Lines On";
+    if (window.sortedCoresData?.length) {
+      redrawCoresForTravelingAlgorithm();
+    }
+  });
+
+  bindOnce(getElement("previousIssueButton"), "click", () => {
+    focusReviewIssue(currentReviewIssueIndex - 1);
+  });
+  bindOnce(getElement("nextIssueButton"), "click", () => {
+    focusReviewIssue(currentReviewIssueIndex + 1);
+  });
+  bindOnce(getElement("toggleReviewPanelButton"), "click", () => {
+    toggleReviewPanel();
+  });
+  bindOnce(getElement("resolveIssueButton"), "click", () => {
+    resolveReviewIssue();
+  });
+  bindOnce(getElement("resolveAllIssuesButton"), "click", () => {
+    resolveAllReviewIssues();
+  });
+  bindOnce(getElement("reviewIssueList"), "click", (event) => {
+    const resolveButton = event.target.closest("[data-resolve-index]");
+    if (resolveButton) {
+      resolveReviewIssue(parseInt(resolveButton.dataset.resolveIndex, 10));
+      return;
+    }
+
+    const focusButton = event.target.closest("[data-review-index]");
+    if (focusButton) {
+      focusReviewIssue(parseInt(focusButton.dataset.reviewIndex, 10));
+    }
+  });
+
+  updateUploadSummary();
+  updateSegmentationStats();
+  renderReviewPanel();
 }
 
 // Function to handle Box login and OAuth flow
@@ -1053,6 +1667,7 @@ function bindEventListeners() {
 const initSegmentation = async () => {
   const state = await loadDependencies();
   window.state = state;
+  setupUiEnhancements();
 
   document
     .getElementById("fileInput")
@@ -1082,6 +1697,8 @@ const initSegmentation = async () => {
       }
 
       window.actionHistory = [];
+      resolvedReviewIssueKeys = new Set();
+      setApplyStatus("Updating detection...", "neutral");
       await segmentImage();
     });
 
@@ -1097,12 +1714,10 @@ const initSegmentation = async () => {
       window.state = undefined;
       const getImageInfo = async () => {
         const checkExtension = (path) =>
-          path.endsWith(".png") ||
-          path.endsWith(".jpg") ||
-          path.endsWith(".jpeg") ||
-          path.endsWith(".ndpi") ||
-          path.endsWith(".tiff") ||
-          path.endsWith(".svs");
+          hasAnyExtension(path, [
+            ...SIMPLE_IMAGE_EXTENSIONS,
+            ...WSI_IMAGE_EXTENSIONS,
+          ]);
         const imageInfo = {
           url: "",
           type: "",
@@ -1129,11 +1744,8 @@ const initSegmentation = async () => {
           }
         } else if (getInputValue("imageUrlInput")) {
           const url = getInputValue("imageUrlInput");
-          imageInfo.type = "";
-          imageInfo.isSimpleImage =
-            url.endsWith(".png") ||
-            url.endsWith(".jpg") ||
-            url.endsWith(".jpeg");
+          imageInfo.type = getImageTypeFromUrl(url);
+          imageInfo.isSimpleImage = isSimpleImageUrl(url);
           imageInfo.isOperable = true;
           imageInfo.url = url;
         } else if (window.boxFileInfo) {
@@ -1151,6 +1763,7 @@ const initSegmentation = async () => {
 
       let tileSources = {};
 
+      installOpenSeadragonDecodeShim();
       const imageInfo = await getImageInfo();
       if (
         imageInfo.isSimpleImage ||
@@ -1284,6 +1897,7 @@ const initSegmentation = async () => {
             document.getElementById("rawDataTabButton").disabled = false;
             document.getElementById("rawDataTabButton").click();
             preprocessForTravelingAlgorithm();
+            setTimeout(renderReviewPanel, 0);
           });
       });
     });

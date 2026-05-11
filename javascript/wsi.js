@@ -1,7 +1,10 @@
 import Imagebox3 from "https://cdn.jsdelivr.net/gh/episphere/imagebox3/imagebox3.mjs"
 
 let imagebox3Instance;
-const numWorkers = Math.max(window.navigator.hardwareConcurrency/2, 1)
+const numWorkers = Math.max(
+  Math.floor((window.navigator.hardwareConcurrency || 2) / 2),
+  1
+)
 
 const createImagebox3Instance = async (imageSource) => {
   if (!imagebox3Instance?.getImageSource()) {
@@ -22,20 +25,13 @@ export const getPNGFromWSI = async (imageURL, maxDimension) => {
   await createImagebox3Instance(imageURL)
   
   const { width, height } = await getWSIInfo(imageURL)
-  const scalingFactor = Math.min(
-    1024 / width,
-    1024 / height
-  );
+  const scalingFactor = Math.min(maxDimension / width, maxDimension / height, 1);
   // Store the scaling factor
   window.scalingFactor = scalingFactor;
 
   // Store the scaling factor
-  let thumbnailWidthToRender, thumbnailHeightToRender
-  if (width >= height) {
-    thumbnailWidthToRender = maxDimension
-  } else {
-    thumbnailHeightToRender = maxDimension
-  }
+  const thumbnailWidthToRender = Math.max(1, Math.round(width * scalingFactor))
+  const thumbnailHeightToRender = Math.max(1, Math.round(height * scalingFactor))
   
   const imageThumbnail = await imagebox3Instance.getThumbnail(thumbnailWidthToRender, thumbnailHeightToRender)
   return imageThumbnail
