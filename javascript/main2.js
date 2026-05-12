@@ -43,38 +43,38 @@ const EXPORT_NON_EMPTY_FOLDER_MESSAGE =
   "The selected folder is not empty. Export Grid can only export to an empty folder.";
 const SEGMENTATION_PRESETS = {
   default: {
-    threshold: 0.5,
+    threshold: 0.05,
     minArea: 20,
     maxArea: 3000,
     distance: 0.5,
     maskAlpha: 0.2,
   },
   dense: {
-    threshold: 0.48,
+    threshold: 0.055,
     minArea: 15,
     maxArea: 2600,
-    distance: 0.55,
+    distance: 0.5,
     maskAlpha: 0.18,
   },
   sparse: {
-    threshold: 0.52,
+    threshold: 0.045,
     minArea: 30,
     maxArea: 4200,
-    distance: 0.48,
+    distance: 0.5,
     maskAlpha: 0.2,
   },
   damaged: {
-    threshold: 0.44,
+    threshold: 0.065,
     minArea: 12,
     maxArea: 4200,
-    distance: 0.42,
+    distance: 0.5,
     maskAlpha: 0.24,
   },
   noisy: {
-    threshold: 0.58,
+    threshold: 0.035,
     minArea: 35,
     maxArea: 2600,
-    distance: 0.58,
+    distance: 0.5,
     maskAlpha: 0.16,
   },
 };
