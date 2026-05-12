@@ -27,3 +27,19 @@ converter.css
 index_old.html
 __pycache__
 converter.css
+revised_methods_results.md
+# Node modules and common node-related files
+node_modules/
+*.node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnp/
+.pnp.js
+.npm/
+.npm-cache/
+revised_methods_results.md
