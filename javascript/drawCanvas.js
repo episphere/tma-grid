@@ -2758,109 +2758,6 @@ function alignMisalignedCores(coresData, imageRotation) {
   return coresData;
 }
 
-function getCoreCenterDistance(core, point) {
-  return Math.hypot(core.x - point.x, core.y - point.y);
-}
-
-function getRealGridCores(coresData) {
-  return coresData.filter(
-    (core) =>
-      !core.isMarker &&
-      core.isImaginary === false &&
-      Number.isFinite(core.row) &&
-      Number.isFinite(core.col) &&
-      Number.isFinite(core.x) &&
-      Number.isFinite(core.y)
-  );
-}
-
-function getGridIntersectionSupport(realCores) {
-  const rowSupport = {};
-  const colSupport = {};
-
-  realCores.forEach((core) => {
-    rowSupport[core.row] = (rowSupport[core.row] || 0) + 1;
-    colSupport[core.col] = (colSupport[core.col] || 0) + 1;
-  });
-
-  return { rowSupport, colSupport };
-}
-
-function recenterCoresToGridIntersections(
-  coresData,
-  imageRotation,
-  params = {}
-) {
-  const realCores = getRealGridCores(coresData);
-  if (realCores.length < 6) {
-    return coresData;
-  }
-
-  const medianValues = determineMedianRowColumnValues(realCores, imageRotation);
-  const { rowSupport, colSupport } = getGridIntersectionSupport(realCores);
-  const fallbackSpacing =
-    Number.isFinite(params.gridWidth) && params.gridWidth > 0
-      ? params.gridWidth
-      : calculateMedianNumber(
-          realCores
-            .map((core) => core.currentRadius)
-            .filter((radius) => Number.isFinite(radius) && radius > 0)
-        ) * 3;
-  let recenteredCount = 0;
-
-  coresData.forEach((core) => {
-    if (
-      core.isMarker ||
-      core.isImaginary !== false ||
-      !Number.isFinite(core.row) ||
-      !Number.isFinite(core.col)
-    ) {
-      return;
-    }
-
-    const rowMedian = medianValues.rows[core.row];
-    const colMedian = medianValues.columns[core.col];
-    if (
-      !rowMedian ||
-      !colMedian ||
-      rowSupport[core.row] < 2 ||
-      colSupport[core.col] < 2
-    ) {
-      return;
-    }
-
-    const targetPointArray = rotatePoint(
-      [colMedian.medianX, rowMedian.medianY],
-      imageRotation
-    );
-    const targetPoint = {
-      x: targetPointArray[0],
-      y: targetPointArray[1],
-    };
-    const currentRadius = Number.isFinite(core.currentRadius)
-      ? core.currentRadius
-      : 1;
-    const maxShift = Math.max(currentRadius * 1.15, fallbackSpacing * 0.28, 4);
-    const centerShift = getCoreCenterDistance(core, targetPoint);
-
-    if (centerShift <= 0.5 || centerShift > maxShift) {
-      return;
-    }
-
-    core.x = targetPoint.x;
-    core.y = targetPoint.y;
-    core.gridCenterAdjusted = true;
-    core.gridCenterShift = centerShift;
-    recenteredCount += 1;
-  });
-
-  window.gridCenterRefinementStats = {
-    recentered: recenteredCount,
-  };
-
-  return coresData;
-}
-
 function filterAndReassignCores(
   coresData,
   imageRotation,
@@ -2887,12 +2784,6 @@ function filterAndReassignCores(
     imageRotation,
     params,
     options
-  );
-
-  filteredCores = recenterCoresToGridIntersections(
-    filteredCores,
-    imageRotation,
-    params
   );
 
   filteredCores = flagMisalignedCores(filteredCores, imageRotation, false);
