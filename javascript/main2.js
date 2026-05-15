@@ -97,6 +97,21 @@ const getInputValue = (inputId) => document.getElementById(inputId).value;
 
 const getElement = (id) => document.getElementById(id);
 
+function getMedianNumber(values) {
+  const sortedValues = values
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => a - b);
+
+  if (!sortedValues.length) {
+    return null;
+  }
+
+  const middleIndex = Math.floor(sortedValues.length / 2);
+  return sortedValues.length % 2
+    ? sortedValues[middleIndex]
+    : (sortedValues[middleIndex - 1] + sortedValues[middleIndex]) / 2;
+}
+
 const getLowercasePath = (path = "") => {
   try {
     return new URL(path, window.location.href).pathname.toLowerCase();
@@ -446,6 +461,7 @@ function updateSegmentationStats() {
     <span>Rescued: ${diagnostics.rescued ?? "--"}</span>
     <span>Removed artifacts: ${getRemovedArtifactCount(rescueStats)}</span>
     <span>Recentered: ${rescueStats.recentered || 0}</span>
+    <span>Circle fit: ${rescueStats.circleAdjusted || 0}</span>
   `;
 }
 
@@ -1224,7 +1240,9 @@ async function segmentImage(initializeParams = false) {
         );
 
         const gridWidth = newParams.gridWidth;
-        const coreRadius = window.preprocessedCores[0].radius;
+        const coreRadius =
+          getMedianNumber(window.preprocessedCores.map((core) => core.radius)) ||
+          window.preprocessedCores[0].radius;
 
         const spacingBetweenCores = gridWidth - 2 * coreRadius;
 
@@ -2116,17 +2134,24 @@ const initSegmentation = async () => {
       addCoreDiv.style.display = "flex";
 
       window.viewer.addOnceHandler("open", () => {
-        window.viewer.world
-          .getItemAt(0)
-          .addOnceHandler("fully-loaded-change", () => {
-            document.getElementById("rawDataLoadingSpinner").style.display =
-              "none";
+        let gridStarted = false;
+        const startGrid = () => {
+          if (gridStarted) {
+            return;
+          }
 
-            document.getElementById("rawDataTabButton").disabled = false;
-            document.getElementById("rawDataTabButton").click();
-            preprocessForTravelingAlgorithm();
-            setTimeout(renderReviewPanel, 0);
-          });
+          gridStarted = true;
+          document.getElementById("rawDataLoadingSpinner").style.display =
+            "none";
+
+          document.getElementById("rawDataTabButton").disabled = false;
+          document.getElementById("rawDataTabButton").click();
+          preprocessForTravelingAlgorithm();
+          setTimeout(renderReviewPanel, 0);
+        };
+
+        window.viewer.addOnceHandler("tile-drawn", startGrid);
+        requestAnimationFrame(() => requestAnimationFrame(startGrid));
       });
     });
 

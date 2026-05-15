@@ -14,6 +14,35 @@ import { applyAndVisualizeTravelingAlgorithm } from "./drawCanvas.js";
 
 import { getHyperparametersFromUI } from "./UI.js";
 
+const travelingAlgorithmContextCache = new WeakMap();
+
+function getTravelingAlgorithmContext(normalizedCores, params) {
+  let cachedContexts = travelingAlgorithmContextCache.get(normalizedCores);
+  if (!cachedContexts) {
+    cachedContexts = new Map();
+    travelingAlgorithmContextCache.set(normalizedCores, cachedContexts);
+  }
+
+  const cacheKey = `${params.thresholdMultiplier}`;
+  if (cachedContexts.has(cacheKey)) {
+    return cachedContexts.get(cacheKey);
+  }
+
+  const delaunayTriangleEdges = getEdgesFromTriangulation(normalizedCores);
+  const lengthFilteredEdges = filterEdgesByLength(
+    delaunayTriangleEdges,
+    normalizedCores,
+    params.thresholdMultiplier
+  );
+  const context = {
+    delaunayTriangleEdges,
+    lengthFilteredEdges,
+  };
+
+  cachedContexts.set(cacheKey, context);
+  return context;
+}
+
 function rotatePoint(point, angle) {
   const pivotX = window.loadedImg.width / 2;
   const pivotY = window.loadedImg.height / 2;
@@ -164,6 +193,18 @@ function median(values) {
   }
 }
 
+function getPointKey(point) {
+  return `${Number(point[0]).toFixed(3)},${Number(point[1]).toFixed(3)}`;
+}
+
+function getMedianCoreRadius(cores, fallbackRadius = 1) {
+  const radii = cores
+    .map((core) => core.radius)
+    .filter((radius) => Number.isFinite(radius) && radius > 0);
+
+  return radii.length ? median(radii) : fallbackRadius;
+}
+
 function sortRowsByRotatedPoints(rows, originAngle) {
   // Rotate all points in each row and calculate the median Y value for sorting
   let sortingHelper = rows.map((row) => {
@@ -183,11 +224,9 @@ function sortRowsByRotatedPoints(rows, originAngle) {
 }
 
 async function runTravelingAlgorithm(normalizedCores, params) {
-  const delaunayTriangleEdges = getEdgesFromTriangulation(normalizedCores);
-  const lengthFilteredEdges = filterEdgesByLength(
-    delaunayTriangleEdges,
+  const { lengthFilteredEdges } = getTravelingAlgorithmContext(
     normalizedCores,
-    params.thresholdMultiplier
+    params
   );
 
   let bestEdgeSet = filterEdgesByAngle(
@@ -229,18 +268,31 @@ async function runTravelingAlgorithm(normalizedCores, params) {
     params.originAngle
   );
 
-  const userRadius = document.getElementById("userRadius").value;
+  const userRadius = parseFloat(document.getElementById("userRadius").value);
+  const sourceCoreByPoint = new Map(
+    normalizedCores.map((core) => [getPointKey([core.x, core.y]), core])
+  );
+  const fallbackRadius = Number.isFinite(userRadius)
+    ? userRadius
+    : getMedianCoreRadius(normalizedCores);
 
   let sortedData = [];
   sortedRows.forEach((row, rowIndex) => {
     row.forEach((core, colIndex) => {
+      const sourceCore = core.isImaginary
+        ? null
+        : sourceCoreByPoint.get(getPointKey(core.point));
+      const currentRadius =
+        Number.isFinite(sourceCore?.radius) && sourceCore.radius > 0
+          ? sourceCore.radius
+          : fallbackRadius;
       // Add the core or imaginary point to sortedData
       sortedData.push({
         x: core.point[0] + window.preprocessingData.minX,
         y: core.point[1] + window.preprocessingData.minY,
         row: rowIndex,
         col: colIndex,
-        currentRadius: parseInt(userRadius),
+        currentRadius,
         isImaginary: core.isImaginary,
         annotations: "",
       });
@@ -278,11 +330,9 @@ function updateSpacingInVirtualGrid(distance) {
 
 // Updated function to accept hyperparameters and cores data
 async function loadDataAndDetermineParams(normalizedCores, params) {
-  const delaunayTriangleEdges = getEdgesFromTriangulation(normalizedCores);
-  const lengthFilteredEdges = filterEdgesByLength(
-    delaunayTriangleEdges,
+  const { lengthFilteredEdges } = getTravelingAlgorithmContext(
     normalizedCores,
-    params.thresholdMultiplier
+    params
   );
 
   const bestEdgeSet = filterEdgesByAngle(
@@ -314,11 +364,9 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
   params.gamma = 0.25 * d;
 
   // Update radius
-  document.getElementById("userRadius").value =
-    window.preprocessedCores[0].radius;
-  document.getElementById("radiusValue").value = Math.round(
-    window.preprocessedCores[0].radius
-  );
+  const medianRadius = getMedianCoreRadius(window.preprocessedCores || normalizedCores);
+  document.getElementById("userRadius").value = medianRadius;
+  document.getElementById("radiusValue").value = Math.round(medianRadius);
 
   return params;
 }

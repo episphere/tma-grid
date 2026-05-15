@@ -5,7 +5,11 @@ import {
   updateSpacingInVirtualGrid,
 } from "./data_processing.js";
 
-import { preprocessCores } from "./delaunay_triangulation.js";
+import {
+  filterEdgesByLength,
+  getEdgesFromTriangulation,
+  preprocessCores,
+} from "./delaunay_triangulation.js";
 
 import { positionSidebarNextToCore, hideSidebar, showPopup } from "./UI.js";
 
@@ -283,18 +287,25 @@ function drawProperties(ctx, properties) {
 }
 
 async function processPredictions(predictions) {
-  return await tf.tidy(() => {
+  const resizedPredictions = tf.tidy(() => {
     const clippedPredictions = predictions.clipByValue(0, 1);
-    const resizedPredictions = tf.image.resizeBilinear(
+    return tf.image.resizeBilinear(
       clippedPredictions,
       [1024, 1024]
-    );
-    const squeezedPredictions = resizedPredictions.squeeze();
-    return squeezedPredictions.arraySync(); // Convert to a regular array for pixel manipulation
+    ).squeeze();
   });
+  const data = await resizedPredictions.data();
+  const [height, width] = resizedPredictions.shape;
+  resizedPredictions.dispose();
+
+  return { data, width, height };
 }
 
 function drawMask(ctx, mask, alpha, width, height) {
+  if (!mask || alpha <= 0) {
+    return;
+  }
+
   // Create a temporary canvas to draw the mask
   const maskCanvas = document.createElement("canvas");
   const maskCtx = maskCanvas.getContext("2d");
@@ -306,17 +317,25 @@ function drawMask(ctx, mask, alpha, width, height) {
   // Create ImageData to store mask pixels
   const maskImageData = maskCtx.createImageData(width, height);
   const maskData = maskImageData.data;
+  const sourceData = mask.data || [];
+  const sourceWidth = mask.width || width;
+  const sourceHeight = mask.height || height;
+  const shouldCropPaddedMask = width <= sourceWidth && height <= sourceHeight;
+  const scaleX = shouldCropPaddedMask ? 1 : sourceWidth / width;
+  const scaleY = shouldCropPaddedMask ? 1 : sourceHeight / height;
 
-  // Iterate over the mask array to set pixels on the mask canvas
-  mask.forEach((row, i) => {
-    row.forEach((maskValue, j) => {
-      const index = (i * width + j) * 4;
+  for (let y = 0; y < height; y++) {
+    const sourceY = Math.min(sourceHeight - 1, Math.floor(y * scaleY));
+    for (let x = 0; x < width; x++) {
+      const sourceX = Math.min(sourceWidth - 1, Math.floor(x * scaleX));
+      const maskValue = sourceData[sourceY * sourceWidth + sourceX] || 0;
+      const index = (y * width + x) * 4;
       maskData[index] = 255; // Red
       maskData[index + 1] = 0; // Green
       maskData[index + 2] = 0; // Blue
       maskData[index + 3] = maskValue * 255; // Alpha channel
-    });
-  });
+    }
+  }
 
   // Put the mask ImageData onto the mask canvas
   maskCtx.putImageData(maskImageData, 0, 0);
@@ -1374,6 +1393,82 @@ const addCoreHandler = (e) => {
   }
 };
 
+function normalizeAngleToGridAxis(angle) {
+  let normalizedAngle = angle;
+  while (normalizedAngle <= -90) normalizedAngle += 180;
+  while (normalizedAngle > 90) normalizedAngle -= 180;
+  return normalizedAngle;
+}
+
+function estimateDominantGridAngle(preprocessedCores, params, targetRange) {
+  if (!Array.isArray(preprocessedCores) || preprocessedCores.length < 2) {
+    return 0;
+  }
+
+  try {
+    const edges = filterEdgesByLength(
+      getEdgesFromTriangulation(preprocessedCores),
+      preprocessedCores,
+      params.thresholdMultiplier
+    );
+    const angles = edges
+      .map(([start, end]) => {
+        const startCore = preprocessedCores[start];
+        const endCore = preprocessedCores[end];
+        return normalizeAngleToGridAxis(
+          (Math.atan2(endCore.y - startCore.y, endCore.x - startCore.x) * 180) /
+            Math.PI
+        );
+      })
+      .filter(
+        (angle) => angle >= targetRange.start - 2 && angle <= targetRange.end + 2
+      )
+      .sort((a, b) => a - b);
+
+    if (!angles.length) {
+      return 0;
+    }
+
+    const middleIndex = Math.floor(angles.length / 2);
+    return angles.length % 2
+      ? angles[middleIndex]
+      : (angles[middleIndex - 1] + angles[middleIndex]) / 2;
+  } catch (error) {
+    console.warn("Could not estimate grid angle from core edges.", error);
+    return 0;
+  }
+}
+
+function getFastAngleCandidates(preprocessedCores, params, targetRange) {
+  const estimatedAngle = estimateDominantGridAngle(
+    preprocessedCores,
+    params,
+    targetRange
+  );
+  const rawCandidates = [
+    estimatedAngle,
+    estimatedAngle - 2,
+    estimatedAngle + 2,
+    estimatedAngle - 4,
+    estimatedAngle + 4,
+    0,
+  ];
+  const seenAngles = new Set();
+
+  return rawCandidates
+    .map((angle) =>
+      clampNumber(Math.round(angle), targetRange.start, targetRange.end)
+    )
+    .filter((angle) => {
+      if (seenAngles.has(angle)) {
+        return false;
+      }
+
+      seenAngles.add(angle);
+      return true;
+    });
+}
+
 // Function to find the optimal angle that minimizes imaginary cores
 async function findOptimalAngle(
   preprocessedCores,
@@ -1382,7 +1477,11 @@ async function findOptimalAngle(
   updateUI
 ) {
   let targetRange = { start: -10, end: 10 };
-  let searchIncrement = 1;
+  const angleCandidates = getFastAngleCandidates(
+    preprocessedCores,
+    getHyperparameters(0),
+    targetRange
+  );
   let optimalAnglesData = []; // Track angles and their stats for comparison
 
   // Function to evaluate each angle
@@ -1414,12 +1513,8 @@ async function findOptimalAngle(
   let minImaginaryCores = Infinity;
   let minRows = Infinity;
 
-  // Initial targeted search
-  for (
-    let angle = targetRange.start;
-    angle <= targetRange.end;
-    angle += searchIncrement
-  ) {
+  // Evaluate a compact edge-derived candidate set instead of every angle.
+  for (const angle of angleCandidates) {
     const evaluationResult = await evaluateAngle(angle);
 
     // // Update minimums and optimal angles based on primary and secondary goals
@@ -2663,6 +2758,109 @@ function alignMisalignedCores(coresData, imageRotation) {
   return coresData;
 }
 
+function getCoreCenterDistance(core, point) {
+  return Math.hypot(core.x - point.x, core.y - point.y);
+}
+
+function getRealGridCores(coresData) {
+  return coresData.filter(
+    (core) =>
+      !core.isMarker &&
+      core.isImaginary === false &&
+      Number.isFinite(core.row) &&
+      Number.isFinite(core.col) &&
+      Number.isFinite(core.x) &&
+      Number.isFinite(core.y)
+  );
+}
+
+function getGridIntersectionSupport(realCores) {
+  const rowSupport = {};
+  const colSupport = {};
+
+  realCores.forEach((core) => {
+    rowSupport[core.row] = (rowSupport[core.row] || 0) + 1;
+    colSupport[core.col] = (colSupport[core.col] || 0) + 1;
+  });
+
+  return { rowSupport, colSupport };
+}
+
+function recenterCoresToGridIntersections(
+  coresData,
+  imageRotation,
+  params = {}
+) {
+  const realCores = getRealGridCores(coresData);
+  if (realCores.length < 6) {
+    return coresData;
+  }
+
+  const medianValues = determineMedianRowColumnValues(realCores, imageRotation);
+  const { rowSupport, colSupport } = getGridIntersectionSupport(realCores);
+  const fallbackSpacing =
+    Number.isFinite(params.gridWidth) && params.gridWidth > 0
+      ? params.gridWidth
+      : calculateMedianNumber(
+          realCores
+            .map((core) => core.currentRadius)
+            .filter((radius) => Number.isFinite(radius) && radius > 0)
+        ) * 3;
+  let recenteredCount = 0;
+
+  coresData.forEach((core) => {
+    if (
+      core.isMarker ||
+      core.isImaginary !== false ||
+      !Number.isFinite(core.row) ||
+      !Number.isFinite(core.col)
+    ) {
+      return;
+    }
+
+    const rowMedian = medianValues.rows[core.row];
+    const colMedian = medianValues.columns[core.col];
+    if (
+      !rowMedian ||
+      !colMedian ||
+      rowSupport[core.row] < 2 ||
+      colSupport[core.col] < 2
+    ) {
+      return;
+    }
+
+    const targetPointArray = rotatePoint(
+      [colMedian.medianX, rowMedian.medianY],
+      imageRotation
+    );
+    const targetPoint = {
+      x: targetPointArray[0],
+      y: targetPointArray[1],
+    };
+    const currentRadius = Number.isFinite(core.currentRadius)
+      ? core.currentRadius
+      : 1;
+    const maxShift = Math.max(currentRadius * 1.15, fallbackSpacing * 0.28, 4);
+    const centerShift = getCoreCenterDistance(core, targetPoint);
+
+    if (centerShift <= 0.5 || centerShift > maxShift) {
+      return;
+    }
+
+    core.x = targetPoint.x;
+    core.y = targetPoint.y;
+    core.gridCenterAdjusted = true;
+    core.gridCenterShift = centerShift;
+    recenteredCount += 1;
+  });
+
+  window.gridCenterRefinementStats = {
+    recentered: recenteredCount,
+  };
+
+  return coresData;
+}
+
 function filterAndReassignCores(
   coresData,
   imageRotation,
@@ -2689,6 +2887,12 @@ function filterAndReassignCores(
     imageRotation,
     params,
     options
+  );
+
+  filteredCores = recenterCoresToGridIntersections(
+    filteredCores,
+    imageRotation,
+    params
   );
 
   filteredCores = flagMisalignedCores(filteredCores, imageRotation, false);

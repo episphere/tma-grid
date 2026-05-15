@@ -649,6 +649,379 @@ function calculateMaskComponentProperties(image, minArea, maxArea, options = {})
   return properties;
 }
 
+function getContourPoints(contour) {
+  const points = [];
+  const data = contour.data32S;
+
+  if (!data) {
+    return points;
+  }
+
+  for (let index = 0; index < data.length; index += 2) {
+    points.push({
+      x: data[index],
+      y: data[index + 1],
+    });
+  }
+
+  return points;
+}
+
+function fitCircleFromPoints(points) {
+  if (!points.length) {
+    return null;
+  }
+
+  const pointMatType = cv.CV_32FC2 || cv.CV_32SC2;
+  if (typeof cv.matFromArray !== "function" || !Number.isFinite(pointMatType)) {
+    const left = Math.min(...points.map((point) => point.x));
+    const top = Math.min(...points.map((point) => point.y));
+    const right = Math.max(...points.map((point) => point.x));
+    const bottom = Math.max(...points.map((point) => point.y));
+    const x = (left + right) / 2;
+    const y = (top + bottom) / 2;
+    const radius = Math.max(
+      ...points.map((point) => Math.hypot(point.x - x, point.y - y))
+    );
+    return { x, y, radius };
+  }
+
+  const pointData = [];
+  points.forEach((point) => {
+    pointData.push(point.x, point.y);
+  });
+
+  const pointMat = cv.matFromArray(points.length, 1, pointMatType, pointData);
+  const circle = cv.minEnclosingCircle(pointMat);
+  pointMat.delete();
+
+  return {
+    x: circle.center.x,
+    y: circle.center.y,
+    radius: circle.radius,
+  };
+}
+
+function solveLinearSystem3x3(matrix, values) {
+  const m = matrix.map((row) => [...row]);
+  const b = [...values];
+
+  for (let pivot = 0; pivot < 3; pivot++) {
+    let maxRow = pivot;
+    for (let row = pivot + 1; row < 3; row++) {
+      if (Math.abs(m[row][pivot]) > Math.abs(m[maxRow][pivot])) {
+        maxRow = row;
+      }
+    }
+
+    if (Math.abs(m[maxRow][pivot]) < 1e-9) {
+      return null;
+    }
+
+    if (maxRow !== pivot) {
+      [m[pivot], m[maxRow]] = [m[maxRow], m[pivot]];
+      [b[pivot], b[maxRow]] = [b[maxRow], b[pivot]];
+    }
+
+    const pivotValue = m[pivot][pivot];
+    for (let col = pivot; col < 3; col++) {
+      m[pivot][col] /= pivotValue;
+    }
+    b[pivot] /= pivotValue;
+
+    for (let row = 0; row < 3; row++) {
+      if (row === pivot) {
+        continue;
+      }
+
+      const factor = m[row][pivot];
+      for (let col = pivot; col < 3; col++) {
+        m[row][col] -= factor * m[pivot][col];
+      }
+      b[row] -= factor * b[pivot];
+    }
+  }
+
+  return b;
+}
+
+function fitLeastSquaresCircle(points) {
+  if (points.length < 3) {
+    return null;
+  }
+
+  const normalMatrix = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ];
+  const normalValues = [0, 0, 0];
+
+  points.forEach((point) => {
+    const features = [point.x, point.y, 1];
+    const target = -(point.x * point.x + point.y * point.y);
+
+    for (let i = 0; i < 3; i++) {
+      normalValues[i] += features[i] * target;
+      for (let j = 0; j < 3; j++) {
+        normalMatrix[i][j] += features[i] * features[j];
+      }
+    }
+  });
+
+  const coefficients = solveLinearSystem3x3(normalMatrix, normalValues);
+  if (!coefficients) {
+    return null;
+  }
+
+  const [a, b, c] = coefficients;
+  const x = -a / 2;
+  const y = -b / 2;
+  const radiusSquared = x * x + y * y - c;
+
+  if (!Number.isFinite(radiusSquared) || radiusSquared <= 0) {
+    return null;
+  }
+
+  return {
+    x,
+    y,
+    radius: Math.sqrt(radiusSquared),
+  };
+}
+
+function getPointDistancesFromCenter(points, center) {
+  return points.map((point) => Math.hypot(point.x - center.x, point.y - center.y));
+}
+
+function getMaximumPointDistance(points, center) {
+  return points.reduce(
+    (maxDistance, point) =>
+      Math.max(maxDistance, Math.hypot(point.x - center.x, point.y - center.y)),
+    0
+  );
+}
+
+function getRobustCircleBoundaryPoints(points, seedCircle, typicalRadius) {
+  if (!seedCircle || points.length < 8) {
+    return points;
+  }
+
+  let activePoints = points;
+  let circle = seedCircle;
+
+  for (let iteration = 0; iteration < 4; iteration++) {
+    const distances = getPointDistancesFromCenter(points, circle);
+    const medianRadius = calculateMedianNumber(distances) || circle.radius;
+    const residuals = distances.map((distance) =>
+      Math.abs(distance - medianRadius)
+    );
+    const residualMad = calculateMedianNumber(residuals) || 0;
+    const residualLimit = Math.max(typicalRadius * 0.18, residualMad * 3, 1.5);
+    const radiusLimit = Math.max(typicalRadius * 1.85, medianRadius * 1.45);
+    const nextPoints = points.filter((point, index) => {
+      const distance = distances[index];
+      return (
+        Math.abs(distance - medianRadius) <= residualLimit &&
+        distance <= radiusLimit
+      );
+    });
+    const minSupport = Math.max(8, Math.floor(points.length * 0.45));
+
+    if (nextPoints.length < minSupport) {
+      break;
+    }
+
+    const nextCircle = fitLeastSquaresCircle(nextPoints);
+    if (!nextCircle) {
+      break;
+    }
+
+    activePoints = nextPoints;
+    circle = nextCircle;
+  }
+
+  return activePoints;
+}
+
+function optimizeCircleCenterForPoints(points, seedCenter, anchorPoint, typicalRadius) {
+  if (!points.length || !seedCenter) {
+    return null;
+  }
+
+  const maxCenterShift = Math.max(typicalRadius * 1.15, 3);
+  const centerPenalty = 0.015;
+  const initialCenter =
+    getCoreDistance(seedCenter, anchorPoint) <= maxCenterShift
+      ? seedCenter
+      : anchorPoint;
+  let step = Math.max(typicalRadius * 0.22, 2);
+  let best = {
+    x: initialCenter.x,
+    y: initialCenter.y,
+    radius: getMaximumPointDistance(points, initialCenter),
+  };
+  let bestCost =
+    best.radius + getCoreDistance(best, anchorPoint) * centerPenalty;
+
+  for (let iteration = 0; iteration < 8; iteration++) {
+    let improved = false;
+
+    [-step, 0, step].forEach((dy) => {
+      [-step, 0, step].forEach((dx) => {
+        if (dx === 0 && dy === 0) {
+          return;
+        }
+
+        const candidate = {
+          x: best.x + dx,
+          y: best.y + dy,
+        };
+
+        if (getCoreDistance(candidate, anchorPoint) > maxCenterShift) {
+          return;
+        }
+
+        const radius = getMaximumPointDistance(points, candidate);
+        const cost = radius + getCoreDistance(candidate, anchorPoint) * centerPenalty;
+
+        if (cost < bestCost) {
+          best = {
+            ...candidate,
+            radius,
+          };
+          bestCost = cost;
+          improved = true;
+        }
+      });
+    });
+
+    if (!improved) {
+      step /= 2;
+    }
+
+    if (step < 0.2) {
+      break;
+    }
+  }
+
+  return best;
+}
+
+function fitPositionOptimizedCircle(points, property, typicalRadius) {
+  if (!points.length) {
+    return null;
+  }
+
+  const enclosingCircle = fitCircleFromPoints(points);
+  const leastSquaresCircle = fitLeastSquaresCircle(points) || enclosingCircle;
+  const boundaryPoints = getRobustCircleBoundaryPoints(
+    points,
+    leastSquaresCircle,
+    typicalRadius
+  );
+  const refinedSeed = fitLeastSquaresCircle(boundaryPoints) || leastSquaresCircle;
+  const optimizedCircle =
+    optimizeCircleCenterForPoints(
+      boundaryPoints,
+      refinedSeed,
+      property,
+      typicalRadius
+    ) || enclosingCircle;
+
+  if (!optimizedCircle) {
+    return null;
+  }
+
+  return {
+    ...optimizedCircle,
+    radius: optimizedCircle.radius + 0.75,
+    boundarySupport: boundaryPoints.length,
+    totalBoundaryPoints: points.length,
+  };
+}
+
+function calculateContourComponentProperties(image, minArea, maxArea, options = {}) {
+  const minAreaScale = options.minAreaScale || 0.08;
+  const maxAreaScale = options.maxAreaScale || 2.6;
+  const maxAspectRatio = options.maxAspectRatio || 3.2;
+  const minFillRatio = options.minFillRatio || 0.04;
+  const source = image.clone();
+  const contours = new cv.MatVector();
+  const hierarchy = new cv.Mat();
+  const properties = [];
+
+  cv.findContours(
+    source,
+    contours,
+    hierarchy,
+    cv.RETR_EXTERNAL,
+    cv.CHAIN_APPROX_NONE
+  );
+
+  for (let index = 0; index < contours.size(); index++) {
+    const contour = contours.get(index);
+    const area = cv.contourArea(contour);
+    const scaledArea = area * 4;
+
+    if (scaledArea < minArea * minAreaScale || scaledArea > maxArea * maxAreaScale) {
+      contour.delete();
+      continue;
+    }
+
+    const rect = cv.boundingRect(contour);
+    const aspectRatio = Math.max(
+      rect.width / Math.max(rect.height, 1),
+      rect.height / Math.max(rect.width, 1)
+    );
+    const fillRatio = area / Math.max(rect.width * rect.height, 1);
+
+    if (aspectRatio > maxAspectRatio || fillRatio < minFillRatio) {
+      contour.delete();
+      continue;
+    }
+
+    const points = getContourPoints(contour);
+    const circle = fitCircleFromPoints(points);
+    const moments = cv.moments(contour);
+    const x =
+      Math.abs(moments.m00) > 1e-9
+        ? moments.m10 / moments.m00
+        : rect.x + rect.width / 2;
+    const y =
+      Math.abs(moments.m00) > 1e-9
+        ? moments.m01 / moments.m00
+        : rect.y + rect.height / 2;
+
+    if (circle) {
+      properties.push({
+        x,
+        y,
+        area,
+        radius: circle.radius,
+        aspectRatio,
+        fillRatio,
+        left: rect.x,
+        top: rect.y,
+        width: rect.width,
+        height: rect.height,
+        centerX: rect.x + rect.width / 2,
+        centerY: rect.y + rect.height / 2,
+        enclosingCircle: circle,
+        points,
+      });
+    }
+
+    contour.delete();
+  }
+
+  source.delete();
+  contours.delete();
+  hierarchy.delete();
+
+  return properties;
+}
+
 function getRescueProperties(candidateProperties, existingProperties, options = {}) {
   const existing = sanitizeCoreProperties(existingProperties);
   const typicalRadius = getDetectionMedianRadius(
@@ -1243,6 +1616,160 @@ function getGridMaskRescueProperties(mask, existingProperties, typicalRadius) {
   return rescues;
 }
 
+function getCircleCandidateComponents(
+  property,
+  contourComponents,
+  existingProperties,
+  typicalRadius,
+  typicalSpacing
+) {
+  const searchDistance = Math.max(typicalRadius * 1.65, typicalSpacing * 0.42);
+  const maxEnvelopeDimension = Math.max(typicalRadius * 2.8, typicalSpacing * 0.92);
+  const minComponentArea = Math.max(4, typicalRadius * typicalRadius * 0.012);
+  const candidates = contourComponents
+    .map((component) => ({
+      component,
+      distance: getComponentDistanceToPoint(component, property),
+    }))
+    .filter(
+      ({ component, distance }) =>
+        component.area >= minComponentArea &&
+        distance <= searchDistance &&
+        component.points?.length
+    )
+    .sort((a, b) => a.distance - b.distance);
+
+  const anchors = candidates.filter(
+    ({ component, distance }) =>
+      distance <= typicalRadius * 0.6 ||
+      isPointInsideComponent(property, component, typicalRadius * 0.35)
+  );
+
+  if (!anchors.length) {
+    return [];
+  }
+
+  const selectedComponents = [];
+  const otherProperties = existingProperties.filter(
+    (existingProperty) => existingProperty !== property
+  );
+
+  candidates.forEach(({ component }) => {
+    const shouldSeed = anchors.some((anchor) => anchor.component === component);
+    if (!shouldSeed && selectedComponents.length === 0) {
+      return;
+    }
+
+    const envelope = getComponentEnvelope([...selectedComponents, component]);
+    if (!envelope) {
+      return;
+    }
+
+    const maxDimension = Math.max(envelope.width, envelope.height);
+    const overlapsOtherCore = otherProperties.some((otherProperty) =>
+      isPointInsideComponent(otherProperty, envelope, typicalRadius * 0.15)
+    );
+
+    if (
+      maxDimension <= maxEnvelopeDimension &&
+      envelope.aspectRatio <= 2.8 &&
+      !overlapsOtherCore
+    ) {
+      selectedComponents.push(component);
+    }
+  });
+
+  return selectedComponents;
+}
+
+function fitCircleForComponents(components, property, typicalRadius) {
+  const points = components.flatMap((component) => component.points || []);
+  return fitPositionOptimizedCircle(points, property, typicalRadius);
+}
+
+function shouldUseOptimizedCircle(circle, property, typicalRadius, typicalSpacing) {
+  if (!circle || !Number.isFinite(circle.radius) || circle.radius <= 0) {
+    return false;
+  }
+
+  const minimumRadius = Math.max(2, typicalRadius * 0.22);
+  const maximumRadius = Math.max(typicalRadius * 2.35, typicalSpacing * 0.62);
+  const maximumCenterShift = Math.max(typicalRadius * 1.2, typicalSpacing * 0.34);
+  const centerShift = getCoreDistance(property, circle);
+
+  return (
+    circle.radius >= minimumRadius &&
+    circle.radius <= maximumRadius &&
+    centerShift <= maximumCenterShift
+  );
+}
+
+function optimizeCoreCirclesAgainstMask(properties, contourComponents, typicalRadius) {
+  const existingProperties = sanitizeCoreProperties(properties);
+
+  if (!contourComponents.length || !existingProperties.length) {
+    return {
+      properties: existingProperties,
+      adjustedCount: 0,
+    };
+  }
+
+  const typicalSpacing = getTypicalCoreSpacing(existingProperties, typicalRadius);
+  let adjustedCount = 0;
+
+  const optimizedProperties = existingProperties.map((property) => {
+    const components = getCircleCandidateComponents(
+      property,
+      contourComponents,
+      existingProperties,
+      typicalRadius,
+      typicalSpacing
+    );
+    const fittedCircle = fitCircleForComponents(
+      components,
+      property,
+      typicalRadius
+    );
+
+    if (
+      !shouldUseOptimizedCircle(
+        fittedCircle,
+        property,
+        typicalRadius,
+        typicalSpacing
+      )
+    ) {
+      return property;
+    }
+
+    const radius = fittedCircle.radius;
+    const moved =
+      getCoreDistance(property, fittedCircle) > 0.5 ||
+      Math.abs(property.radius - radius) > 0.5;
+
+    if (moved) {
+      adjustedCount += 1;
+    }
+
+    return {
+      ...property,
+      x: fittedCircle.x,
+      y: fittedCircle.y,
+      radius,
+      area: radius * radius * Math.PI,
+      circleAdjusted: true,
+      circleAdjustmentMethod: "position-optimized-mask-circle",
+      circleBoundarySupport: fittedCircle.boundarySupport,
+      circleBoundaryPoints: fittedCircle.totalBoundaryPoints,
+    };
+  });
+
+  return {
+    properties: optimizedProperties,
+    adjustedCount,
+  };
+}
+
 function getRelaxedDistanceTransformRescues(
   filledOpening,
   existingProperties,
@@ -1351,6 +1878,11 @@ function segmentationAlgorithm(
       minFillRatio: 0.16,
     }
   );
+  const contourComponentProperties = calculateContourComponentProperties(
+    filledOpening,
+    minArea,
+    maxArea
+  );
   const maskRescues = getRescueProperties(maskProperties, centroidsFinal, {
     fallbackRadius: watershedRadius,
     method: "mask-component-rescue",
@@ -1407,6 +1939,11 @@ function segmentationAlgorithm(
     filledOpening.rows,
     typicalRadius
   );
+  const optimizedCircles = optimizeCoreCirclesAgainstMask(
+    finalProperties,
+    contourComponentProperties,
+    typicalRadius
+  );
   window.coreDetectionRescueStats = {
     maskRescued: maskRescues.length,
     relaxedRescued: relaxedRescues.length,
@@ -1419,6 +1956,7 @@ function segmentationAlgorithm(
       dedupedProperties.length -
       bridgeFilteredProperties.length,
     isolatedRemoved: bridgeFilteredProperties.length - finalProperties.length,
+    circleAdjusted: optimizedCircles.adjustedCount,
   };
 
   // Cleanup
@@ -1430,7 +1968,7 @@ function segmentationAlgorithm(
   markers.delete();
   segmented.delete();
 
-  return finalProperties;
+  return optimizedCircles.properties;
 }
 
 async function preprocessAndPredict(imageElement, model) {
@@ -1576,15 +2114,18 @@ function scaleCorePropertiesToImage(properties, imageElement) {
   const originalHeight = imageElement.height;
   const scaleX = ((originalWidth / 512) * 1024) / originalWidth;
   const scaleY = ((originalHeight / 512) * 1024) / originalHeight;
-  const scaledRadiusMultiplier = Math.sqrt(scaleX * scaleY) * 0.95;
+  const scaledRadiusMultiplier = Math.sqrt(scaleX * scaleY);
 
   return sanitizeCoreProperties(properties)
-    .map((property) => ({
-      ...property,
-      x: property.x * scaleX,
-      y: property.y * scaleY,
-      radius: property.radius * scaledRadiusMultiplier,
-    }))
+    .map((property) => {
+      const radiusPadding = property.circleAdjusted ? 1 : 0.95;
+      return {
+        ...property,
+        x: property.x * scaleX,
+        y: property.y * scaleY,
+        radius: property.radius * scaledRadiusMultiplier * radiusPadding,
+      };
+    })
     .map((property) => ({
       ...property,
       area: property.radius * property.radius * Math.PI,
