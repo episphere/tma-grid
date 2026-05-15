@@ -110,6 +110,25 @@ const setVirtualGridStatus = (state, title, detail = "") =>
   setWorkspaceStatus("virtualGridStatus", state, title, detail);
 const clearVirtualGridStatus = () => clearWorkspaceStatus("virtualGridStatus");
 
+const INTERNAL_METADATA_FIELDS = new Set([
+  "markerGridRow",
+  "markerGridSide",
+  "assignmentResidual",
+  "assignmentConfidence",
+]);
+
+function isExportedMetadataField(key, value) {
+  return !INTERNAL_METADATA_FIELDS.has(key) && value !== undefined;
+}
+
+function sanitizeCoreMetadata(core) {
+  return Object.fromEntries(
+    Object.entries(core).filter(([key, value]) =>
+      isExportedMetadataField(key, value)
+    )
+  );
+}
+
 const METADATA_FIELD_TOOLTIPS = {
   row: "The core's one-based row number in the exported grid.",
   col: "The core's one-based column number in the exported grid.",
@@ -2481,8 +2500,8 @@ function markOffGridMarker(core, targetRow, markerSide) {
 
 function clearOffGridMarkerStatus(core) {
   core.offGridMarker = false;
-  core.markerGridRow = undefined;
-  core.markerGridSide = undefined;
+  delete core.markerGridRow;
+  delete core.markerGridSide;
 }
 
 function getOffGridMarkerSide(core, targetRow, coresData, imageRotation, model) {
@@ -3149,14 +3168,14 @@ function finalizeSaveData() {
   const finalSaveData = window.sortedCoresData
     .filter((core) => !core.isMarker)
     .map((core) => {
-      return {
+      return sanitizeCoreMetadata({
         ...core,
         x: core.x / (window.ndpiScalingFactor ?? 1),
         y: core.y / (window.ndpiScalingFactor ?? 1),
         currentRadius: core.currentRadius / (window.ndpiScalingFactor ?? 1),
         row: core.row + 1,
         col: core.col + 1,
-      };
+      });
     });
 
   // Check if there's uploaded metadata to update
@@ -3183,6 +3202,9 @@ function finalizeSaveData() {
         delete core.col;
 
         for (let key in core) {
+          if (!isExportedMetadataField(key, core[key])) {
+            continue;
+          }
           // You might want to exclude some properties that should not be merged
           // if (key !== 'propertyToExclude') {
           metadataEntry[key] = core[key];
@@ -3193,7 +3215,7 @@ function finalizeSaveData() {
       }
     });
 
-    window.finalSaveData = userUploadedMetadata;
+    window.finalSaveData = window.userUploadedMetadata.map(sanitizeCoreMetadata);
   } else {
     // Return the finalSaveData
     window.finalSaveData = finalSaveData;
@@ -3451,6 +3473,12 @@ function populateAndEditMetadataForm(rowValue, colValue) {
   );
 
   if (metadataObj) {
+    Object.keys(metadataObj).forEach((key) => {
+      if (!isExportedMetadataField(key, metadataObj[key])) {
+        delete metadataObj[key];
+      }
+    });
+
     // Get the form element
     const form = document.getElementById("editMetadataForm");
 

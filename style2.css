@@ -1086,74 +1086,128 @@ svg {
 
 
 .instructions-container {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  border-left: 4px solid #5cb85c;
-  /* Bootstrap green */
-  background-color: #fdfdfd;
-  padding: 15px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  margin-left: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  color: #334155;
+  margin: 1rem 0 1.25rem;
+  overflow: hidden;
+  padding: 1rem 3.25rem 1rem 1.25rem;
   position: relative;
-  padding-right: 40px;
-  /* Give some space for the close button */
   display: none;
-  /* Hide by default */
+}
+
+.instructions-container::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #0f766e;
+}
+
+.instructions-container.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.65rem !important;
 }
 
 .instructions-container h2 {
-  font-size: 1.2em;
-  color: #333;
-  margin-top: 0;
+  align-items: center;
+  color: #111827;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 800;
+  gap: 0.5rem;
+  line-height: 1.3;
+  margin: 0 0 0.6rem !important;
+}
+
+.instructions-container h2::before {
+  align-items: center;
+  background: #ccfbf1;
+  border: 1px solid #99f6e4;
+  border-radius: 999px;
+  color: #0f766e;
+  content: "i";
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 900;
+  height: 1.45rem;
+  justify-content: center;
+  line-height: 1;
+  width: 1.45rem;
 }
 
 .instructions-container p {
-  font-size: 1em;
-  color: #666;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.instructions-container p::before {
+  background: #94a3b8;
+  border-radius: 999px;
+  content: "";
+  height: 5px;
+  left: 0;
+  position: absolute;
+  top: 0.78em;
+  width: 5px;
+}
+
+.instructions-container strong {
+  color: #0f172a;
+  font-weight: 800;
 }
 
 .instructions-container kbd {
-  padding: 2px 4px;
-  font-size: 90%;
   color: #fff;
-  background-color: #333;
-  border-radius: 3px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+  background: #334155;
+  border: 1px solid #0f172a;
+  border-radius: 6px;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+  display: inline-flex;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.86em;
+  font-weight: 800;
+  line-height: 1.2;
+  padding: 0.14rem 0.42rem;
+  vertical-align: baseline;
 }
 
 .close-instructions {
   position: absolute;
-  top: 10px;
-  /* Adjust as needed */
-  right: 25px;
-  /* Adjust as needed */
-  border: none;
-  background: #faf7f7;
-  border-radius: 50%;
-  /* Circular shape for the button */
-  padding: 5px 8px;
+  top: 0.9rem;
+  right: 0.9rem;
+  left: auto;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 0;
   font-size: 1rem;
-  color: #e14949;
+  color: #64748b;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  /* Aligns the close icon vertically */
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+  z-index: 1;
 }
 
 .close-instructions:hover,
 .close-instructions:focus {
-  background-color: #e14949;
-  /* Color change on hover/focus for feedback */
-  color: white;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
   outline: none;
-  /* Removes the outline to maintain the style on focus */
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.12);
 }
 
 .core-edit-container {
@@ -1373,10 +1427,6 @@ svg {
   outline: 2px solid #007bff;
 }
 
-[data-tooltip] {
-  position: relative;
-}
-
 .app-tooltip {
   position: fixed;
   z-index: 10000;
@@ -1516,33 +1566,46 @@ svg {
 
 /* Css for span tags that indicate file types */
 .span-file-type {
-  font-weight: bold;
-  color: #787879;
+  color: #475569;
+  font-weight: 800;
 }
-.span-button{
-  color: #ffffff;
-  cursor: pointer;
-  background-color: var(--primary-color);
-  border-radius: 10%;
-  padding: 4px;
 
+.instructions-container .span-file-type {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 0.88em;
+  line-height: 1.2;
+  padding: 0.12rem 0.38rem;
+  vertical-align: baseline;
 }
-.span-button-green{
-  color: #ffffff;
-  cursor: pointer;
-  background-color: var(--secondary-color);
-  border-radius: 10%;
-  padding: 4px;
 
-}
-/* Css for span tags that indicate buttons */
-
+.span-button,
+.span-button-green,
 .span-button-proceed {
-  color: #ffffff;
-  cursor: pointer;
-  background-color: var(--secondary-color);
-  border-radius: 10%;
-  padding: 4px;
+  border-radius: 6px;
+  cursor: default;
+  display: inline-flex;
+  font-size: 0.9em;
+  font-weight: 800;
+  line-height: 1.2;
+  padding: 0.14rem 0.45rem;
+  vertical-align: baseline;
+}
+
+.span-button {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.span-button-green,
+.span-button-proceed {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
 }
 
 #advanced-settings-content label, 
@@ -1952,7 +2015,7 @@ input[type="range"] {
 
   .instructions-container {
     margin-left: 0;
-    padding: 0.875rem 2.5rem 0.875rem 0.875rem;
+    padding: 0.95rem 3rem 0.95rem 1rem;
   }
 
   .flex.justify-between.items-center.mt-8,
@@ -2879,9 +2942,8 @@ fieldset.p-6 {
 }
 
 .instructions-container {
-  border-radius: 10px;
-  border-left-color: #0f766e;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
 }
 
 .btn-proceed,
