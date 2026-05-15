@@ -110,6 +110,115 @@ const setVirtualGridStatus = (state, title, detail = "") =>
   setWorkspaceStatus("virtualGridStatus", state, title, detail);
 const clearVirtualGridStatus = () => clearWorkspaceStatus("virtualGridStatus");
 
+const METADATA_FIELD_TOOLTIPS = {
+  row: "The core's one-based row number in the exported grid.",
+  col: "The core's one-based column number in the exported grid.",
+  column: "The core's one-based column number in the exported grid.",
+  x: "Horizontal center position of this core in source image pixels.",
+  y: "Vertical center position of this core in source image pixels.",
+  area: "Detected tissue region area from segmentation.",
+  radius: "Detected core radius used for outlines and crops.",
+  currentradius: "Core radius used for outlines and exported crops.",
+  annotations: "Free-text notes for this core.",
+  annotation: "Free-text notes for this core.",
+  isimaginary: "Marks a missing placeholder core used to preserve grid spacing.",
+  ismarker: "Marks an orientation or control marker instead of a specimen core.",
+  offgridmarker: "Marker core kept outside the main row and column lattice.",
+  autoassignedmarker: "Marker status or position was inferred automatically.",
+  needsreview: "This core was flagged for manual review after automatic placement.",
+};
+
+function normalizeMetadataKey(key) {
+  return String(key || "")
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
+}
+
+function getMetadataTooltip(key, rowKeyName, colKeyName) {
+  const normalizedKey = normalizeMetadataKey(key);
+  const normalizedRowKey = normalizeMetadataKey(rowKeyName || "row");
+  const normalizedColKey = normalizeMetadataKey(colKeyName || "col");
+
+  if (normalizedKey === normalizedRowKey) {
+    return "The core's one-based row number in the exported grid.";
+  }
+
+  if (normalizedKey === normalizedColKey) {
+    return "The core's one-based column number in the exported grid.";
+  }
+
+  if (METADATA_FIELD_TOOLTIPS[normalizedKey]) {
+    return METADATA_FIELD_TOOLTIPS[normalizedKey];
+  }
+
+  if (normalizedKey.includes("radius")) {
+    return "Core radius used for outlines and exported crops.";
+  }
+
+  if (normalizedKey.includes("marker")) {
+    return "Marker-related status used for orientation or grid review.";
+  }
+
+  if (normalizedKey.includes("imaginary") || normalizedKey.includes("missing")) {
+    return "Missing-core status used to preserve row and column spacing.";
+  }
+
+  if (normalizedKey.includes("review")) {
+    return "Review status used to flag cores that may need manual checking.";
+  }
+
+  if (normalizedKey.includes("annotation") || normalizedKey.includes("note")) {
+    return "Notes that will be included in exported metadata.";
+  }
+
+  if (
+    normalizedKey.includes("stain") ||
+    normalizedKey.includes("antibody") ||
+    normalizedKey.includes("biomarker")
+  ) {
+    return "Stain, antibody, or biomarker information for this core.";
+  }
+
+  if (
+    normalizedKey.includes("patient") ||
+    normalizedKey.includes("donor") ||
+    normalizedKey.includes("case") ||
+    normalizedKey.includes("subject")
+  ) {
+    return "Case or donor identifier associated with this core.";
+  }
+
+  if (
+    normalizedKey.includes("sample") ||
+    normalizedKey.includes("specimen") ||
+    normalizedKey.includes("tissue") ||
+    normalizedKey.includes("block")
+  ) {
+    return "Sample or specimen information associated with this core.";
+  }
+
+  if (
+    normalizedKey.includes("image") ||
+    normalizedKey.includes("slide") ||
+    normalizedKey.includes("file")
+  ) {
+    return "Source image, slide, or file information for this core.";
+  }
+
+  return "Metadata value for this selected core. It will be included in exports.";
+}
+
+function applyElementTooltip(element, text, options = {}) {
+  if (window.applyTooltip) {
+    window.applyTooltip(element, text, options);
+    return;
+  }
+
+  if (element && text) {
+    element.dataset.tooltip = text;
+  }
+}
+
 // Global variables to hold the history for undo and redo
 window.actionHistory = [];
 let currentActionIndex = -1;
@@ -3352,6 +3461,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     // Dynamically create form elements for each metadata property
     for (const key in metadataObj) {
       const value = metadataObj[key];
+      const tooltipText = getMetadataTooltip(key, rowKeyName, colKeyName);
 
       // Determine input type based on the value type
       let inputType = "text"; // Default input type
@@ -3372,12 +3482,14 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         input.id = key;
         input.name = key;
         input.checked = value;
+        applyElementTooltip(input, tooltipText);
 
         // Create the label element for the checkbox
         const label = document.createElement("label");
         label.setAttribute("for", key);
         label.className = "custom-checkbox-label";
         label.textContent = `${key}: `;
+        applyElementTooltip(label, tooltipText);
 
         // Create the custom checkmark span
         const checkmark = document.createElement("span");
@@ -3398,6 +3510,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         label.setAttribute("for", key);
         label.textContent = key + ": ";
         label.className = "mb-2 text-sm font-medium text-gray-900";
+        applyElementTooltip(label, tooltipText);
 
         // Create the text or number input
         const input = document.createElement("input");
@@ -3407,6 +3520,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         input.value = value;
         input.className =
           "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+        applyElementTooltip(input, tooltipText);
 
         // Create a wrapper div for non-checkbox inputs
         const inputDiv = document.createElement("div");
@@ -3427,6 +3541,10 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     submitButton.value = "Update Metadata";
     submitButton.className =
       "mt-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 w-full";
+    applyElementTooltip(
+      submitButton,
+      "Save the edited metadata values for the selected core."
+    );
     form.appendChild(submitButton);
 
     // Create a button to add custom properties
@@ -3435,6 +3553,10 @@ function populateAndEditMetadataForm(rowValue, colValue) {
     addPropertyButton.textContent = "Add Field";
     addPropertyButton.className =
       "mt-2 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 w-full";
+    applyElementTooltip(
+      addPropertyButton,
+      "Add a new metadata field to every core and set its value for this core."
+    );
     form.insertBefore(addPropertyButton, submitButton);
 
     // Handle adding custom properties
@@ -3451,6 +3573,10 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       customPropertyLabel.style.paddingBottom = "2px";
       customPropertyLabel.style.display = "inline-block";
       customPropertyLabel.style.minWidth = "100px";
+      applyElementTooltip(
+        customPropertyLabel,
+        "Name for the new metadata field that will be added to every core."
+      );
 
       // Add placeholder text
       customPropertyLabel.textContent = "Enter custom field name";
@@ -3479,6 +3605,10 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       customPropertyValueInput.placeholder = "Enter custom field value";
       customPropertyValueInput.className =
         "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
+      applyElementTooltip(
+        customPropertyValueInput,
+        "Value for this new field on the selected core."
+      );
 
       customPropertyDiv.appendChild(customPropertyLabel);
       customPropertyDiv.appendChild(customPropertyValueInput);

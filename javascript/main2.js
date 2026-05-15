@@ -2076,6 +2076,10 @@ const initSegmentation = async () => {
       addCoreBtn.className = "osdViewerControl";
       addCoreBtn.id = "osdViewerAddCoreBtn";
       addCoreBtn.textContent = "+ Add Core";
+      window.applyTooltip?.(
+        addCoreBtn,
+        "Add a core manually to the gridding viewer."
+      );
       addCoreDiv.appendChild(addCoreBtn);
 
       const autoAssignRowColDiv = document.createElement("div");
@@ -2091,6 +2095,11 @@ const initSegmentation = async () => {
       autoAssignRowColLabel.htmlFor = "editAutoUpdateRowsCheckbox";
       autoAssignRowColLabel.className = "osdViewerCheckboxLabel";
       autoAssignRowColLabel.innerText = "Auto Row/Col";
+      const autoAssignTooltip =
+        "Automatically infer row and column values while editing core placement.";
+      window.applyTooltip?.(autoAssignRowColDiv, autoAssignTooltip);
+      window.applyTooltip?.(autoAssignRowColCheckbox, autoAssignTooltip);
+      window.applyTooltip?.(autoAssignRowColLabel, autoAssignTooltip);
 
       autoAssignRowColCheckbox.addEventListener("change", toggleRowInput);
 

@@ -68,16 +68,28 @@ function initializeTooltipSystem() {
       return;
     }
 
+    if (activeTrigger === trigger) {
+      positionAppTooltip(trigger, tooltip);
+      return;
+    }
+
+    if (activeTrigger) {
+      hideTooltip();
+    }
+
     activeTrigger = trigger;
     previousDescription = trigger.getAttribute("aria-describedby");
+    const describedBy = previousDescription
+      ? previousDescription
+          .split(/\s+/)
+          .filter((id) => id && id !== "appTooltip")
+      : [];
     tooltip.textContent = text;
     tooltip.hidden = false;
     tooltip.classList.add("is-visible");
     trigger.setAttribute(
       "aria-describedby",
-      previousDescription
-        ? `${previousDescription} appTooltip`
-        : "appTooltip"
+      [...describedBy, "appTooltip"].join(" ")
     );
     window.requestAnimationFrame(() => positionAppTooltip(trigger, tooltip));
   };
