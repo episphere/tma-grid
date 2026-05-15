@@ -1687,6 +1687,95 @@ function fitCircleForComponents(components, property, typicalRadius) {
   return fitPositionOptimizedCircle(points, property, typicalRadius);
 }
 
+function getAssignedMaskPixelsForCore(
+  mask,
+  property,
+  existingProperties,
+  typicalRadius,
+  typicalSpacing
+) {
+  const searchRadius = clampNumber(
+    Math.max(property.radius * 1.45, typicalRadius * 1.65),
+    typicalRadius * 0.9,
+    Math.max(typicalRadius * 2.4, typicalSpacing * 0.54)
+  );
+  const searchRadiusSquared = searchRadius * searchRadius;
+  const ownershipSlackSquared = Math.max(1, typicalRadius * 0.08) ** 2;
+  const minX = Math.max(0, Math.floor(property.x - searchRadius));
+  const maxX = Math.min(mask.cols - 1, Math.ceil(property.x + searchRadius));
+  const minY = Math.max(0, Math.floor(property.y - searchRadius));
+  const maxY = Math.min(mask.rows - 1, Math.ceil(property.y + searchRadius));
+  const nearbyProperties = existingProperties.filter(
+    (candidate) =>
+      candidate !== property &&
+      getCoreDistance(candidate, property) <
+        Math.max(searchRadius + typicalRadius * 1.2, typicalSpacing * 0.72)
+  );
+  const points = [];
+
+  for (let row = minY; row <= maxY; row++) {
+    for (let col = minX; col <= maxX; col++) {
+      if (mask.ucharPtr(row, col)[0] === 0) {
+        continue;
+      }
+
+      const dx = col - property.x;
+      const dy = row - property.y;
+      const distanceSquared = dx * dx + dy * dy;
+      if (distanceSquared > searchRadiusSquared) {
+        continue;
+      }
+
+      const belongsToNeighbor = nearbyProperties.some((candidate) => {
+        const candidateDx = col - candidate.x;
+        const candidateDy = row - candidate.y;
+        const candidateDistanceSquared =
+          candidateDx * candidateDx + candidateDy * candidateDy;
+
+        return candidateDistanceSquared + ownershipSlackSquared < distanceSquared;
+      });
+
+      if (!belongsToNeighbor) {
+        points.push({ x: col, y: row });
+      }
+    }
+  }
+
+  return points;
+}
+
+function fitMinimumCircleForCoreMask(
+  mask,
+  property,
+  existingProperties,
+  typicalRadius,
+  typicalSpacing
+) {
+  const points = getAssignedMaskPixelsForCore(
+    mask,
+    property,
+    existingProperties,
+    typicalRadius,
+    typicalSpacing
+  );
+  const minPointCount = Math.max(18, Math.floor(typicalRadius * typicalRadius * 0.2));
+
+  if (points.length < minPointCount) {
+    return null;
+  }
+
+  const circle = fitCircleFromPoints(points);
+  if (!circle) {
+    return null;
+  }
+
+  return {
+    ...circle,
+    radius: circle.radius + 0.75,
+    assignedMaskPixels: points.length,
+  };
+}
+
 function shouldUseOptimizedCircle(circle, property, typicalRadius, typicalSpacing) {
   if (!circle || !Number.isFinite(circle.radius) || circle.radius <= 0) {
     return false;
@@ -1704,10 +1793,10 @@ function shouldUseOptimizedCircle(circle, property, typicalRadius, typicalSpacin
   );
 }
 
-function optimizeCoreCirclesAgainstMask(properties, contourComponents, typicalRadius) {
+function optimizeCoreCirclesAgainstMask(properties, mask, typicalRadius) {
   const existingProperties = sanitizeCoreProperties(properties);
 
-  if (!contourComponents.length || !existingProperties.length) {
+  if (!mask || !existingProperties.length) {
     return {
       properties: existingProperties,
       adjustedCount: 0,
@@ -1718,17 +1807,12 @@ function optimizeCoreCirclesAgainstMask(properties, contourComponents, typicalRa
   let adjustedCount = 0;
 
   const optimizedProperties = existingProperties.map((property) => {
-    const components = getCircleCandidateComponents(
+    const fittedCircle = fitMinimumCircleForCoreMask(
+      mask,
       property,
-      contourComponents,
       existingProperties,
       typicalRadius,
       typicalSpacing
-    );
-    const fittedCircle = fitCircleForComponents(
-      components,
-      property,
-      typicalRadius
     );
 
     if (
@@ -1758,9 +1842,8 @@ function optimizeCoreCirclesAgainstMask(properties, contourComponents, typicalRa
       radius,
       area: radius * radius * Math.PI,
       circleAdjusted: true,
-      circleAdjustmentMethod: "position-optimized-mask-circle",
-      circleBoundarySupport: fittedCircle.boundarySupport,
-      circleBoundaryPoints: fittedCircle.totalBoundaryPoints,
+      circleAdjustmentMethod: "minimum-assigned-mask-circle",
+      circleAssignedMaskPixels: fittedCircle.assignedMaskPixels,
     };
   });
 
@@ -1878,11 +1961,6 @@ function segmentationAlgorithm(
       minFillRatio: 0.16,
     }
   );
-  const contourComponentProperties = calculateContourComponentProperties(
-    filledOpening,
-    minArea,
-    maxArea
-  );
   const maskRescues = getRescueProperties(maskProperties, centroidsFinal, {
     fallbackRadius: watershedRadius,
     method: "mask-component-rescue",
@@ -1941,7 +2019,7 @@ function segmentationAlgorithm(
   );
   const optimizedCircles = optimizeCoreCirclesAgainstMask(
     finalProperties,
-    contourComponentProperties,
+    filledOpening,
     typicalRadius
   );
   window.coreDetectionRescueStats = {

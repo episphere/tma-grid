@@ -431,7 +431,49 @@ function drawCoresOnCanvasForTravelingAlgorithm() {
     .addEventListener("click", addCoreHandler);
   drawCores();
 }
-function connectAdjacentCores(core, updateSurroundings = false) {
+function getCoreGridKey(row, col) {
+  return `${row}:${col}`;
+}
+
+function buildCoreGridIndex(coresData) {
+  const coreGridIndex = new Map();
+
+  coresData.forEach((core) => {
+    if (core.isMarker) {
+      return;
+    }
+
+    const row = Number(core.row);
+    const col = Number(core.col);
+    if (!Number.isFinite(row) || !Number.isFinite(col)) {
+      return;
+    }
+
+    const key = getCoreGridKey(row, col);
+    const existingCore = coreGridIndex.get(key);
+    if (!existingCore || (existingCore.isImaginary && !core.isImaginary)) {
+      coreGridIndex.set(key, core);
+    }
+  });
+
+  return coreGridIndex;
+}
+
+function findCoreByGridPosition(row, col, coreGridIndex = null) {
+  if (coreGridIndex) {
+    return coreGridIndex.get(getCoreGridKey(row, col));
+  }
+
+  return window.sortedCoresData.find(
+    (core) => Number(core.row) === row && Number(core.col) === col
+  );
+}
+
+function connectAdjacentCores(
+  core,
+  updateSurroundings = false,
+  coreGridIndex = null
+) {
   if (
     !document.getElementById("connectCoresCheckbox").checked ||
     core.isMarker
@@ -440,7 +482,9 @@ function connectAdjacentCores(core, updateSurroundings = false) {
     return;
   }
 
-  if (isNaN(parseInt(core.row)) || isNaN(parseInt(core.col))) {
+  const coreRow = Number(core.row);
+  const coreCol = Number(core.col);
+  if (!Number.isFinite(coreRow) || !Number.isFinite(coreCol)) {
     return;
   }
   // Find adjacent cores based on row and column
@@ -455,8 +499,10 @@ function connectAdjacentCores(core, updateSurroundings = false) {
   }
 
   adjacentPositions.forEach((pos) => {
-    const adjacentCore = window.sortedCoresData.find(
-      (c) => c.row === core.row + pos[0] && c.col === core.col + pos[1]
+    const adjacentCore = findCoreByGridPosition(
+      coreRow + pos[0],
+      coreCol + pos[1],
+      coreGridIndex
     );
     if (adjacentCore) {
       const startCore =
@@ -757,9 +803,11 @@ function drawCores() {
         );
       });
   });
+  const coreGridIndex = buildCoreGridIndex(window.sortedCoresData);
+
   window.sortedCoresData.forEach(drawCore);
   window.sortedCoresData.forEach((core) => {
-    connectAdjacentCores(core, false);
+    connectAdjacentCores(core, false, coreGridIndex);
   });
 }
 
@@ -1445,12 +1493,11 @@ function getFastAngleCandidates(preprocessedCores, params, targetRange) {
     params,
     targetRange
   );
+  const roundedEstimate = Math.round(estimatedAngle);
   const rawCandidates = [
-    estimatedAngle,
-    estimatedAngle - 2,
-    estimatedAngle + 2,
-    estimatedAngle - 4,
-    estimatedAngle + 4,
+    roundedEstimate,
+    roundedEstimate - 1,
+    roundedEstimate + 1,
     0,
   ];
   const seenAngles = new Set();
@@ -1496,7 +1543,7 @@ async function findOptimalAngle(
       sortedCoresData,
       angle,
       hyperparameters,
-      { updateStatus: false }
+      { updateStatus: false, fastAngleEvaluation: true }
     );
     const imaginaryCoresCount = sortedCoresData.filter(
       (core) => core.isImaginary
@@ -2643,7 +2690,63 @@ function flagMisalignedCores(coresData, imageRotation, checkMarker = false) {
   return coresData;
 }
 
-function reassignCoreIndices(coresData) {
+function getRotatedXByCore(coresData, imageRotation) {
+  const rotatedXByCore = new Map();
+
+  coresData.forEach((core) => {
+    rotatedXByCore.set(
+      core,
+      rotatePoint([core.x, core.y], -imageRotation)[0]
+    );
+  });
+
+  return rotatedXByCore;
+}
+
+function enforceLeftToRightColumnOrder(coresData, imageRotation) {
+  const rowGroups = new Map();
+  const rotatedXByCore = getRotatedXByCore(coresData, imageRotation);
+
+  coresData.forEach((core) => {
+    if (core.isMarker) {
+      return;
+    }
+
+    const row = Number(core.row);
+    const col = Number(core.col);
+    if (!Number.isFinite(row) || !Number.isFinite(col) || row < 0 || col < 0) {
+      return;
+    }
+
+    if (!rowGroups.has(row)) {
+      rowGroups.set(row, []);
+    }
+    rowGroups.get(row).push(core);
+  });
+
+  rowGroups.forEach((rowCores) => {
+    if (rowCores.length < 2) {
+      return;
+    }
+
+    const sortedByX = [...rowCores].sort(
+      (a, b) =>
+        rotatedXByCore.get(a) - rotatedXByCore.get(b) ||
+        Number(a.col) - Number(b.col)
+    );
+    const sortedCols = rowCores
+      .map((core) => Number(core.col))
+      .sort((a, b) => a - b);
+
+    sortedByX.forEach((core, index) => {
+      core.col = sortedCols[index];
+    });
+  });
+
+  return coresData;
+}
+
+function reassignCoreIndices(coresData, imageRotation = 0) {
   const markerCores = coresData.filter((core) => core.isMarker);
   const gridCores = coresData.filter((core) => !core.isMarker);
 
@@ -2652,7 +2755,7 @@ function reassignCoreIndices(coresData) {
     core.col = -1;
   });
 
-  // Sort by row and col for consistent processing
+  // Sort by row first for consistent row remapping.
   gridCores.sort((a, b) => a.row - b.row || a.col - b.col);
 
   // Reassign row indices
@@ -2675,7 +2778,15 @@ function reassignCoreIndices(coresData) {
     core.row = rowMap[core.row]; // Update row to new mapping
   });
 
-  // For each row, assign consecutive col indices starting from 0
+  const rotatedXByCore = getRotatedXByCore(gridCores, imageRotation);
+  gridCores.sort(
+    (a, b) =>
+      a.row - b.row ||
+      rotatedXByCore.get(a) - rotatedXByCore.get(b) ||
+      a.col - b.col
+  );
+
+  // For each row, assign consecutive col indices from left to right.
   let lastRow = -1;
   let colIndex = 0;
   gridCores.forEach((core) => {
@@ -2770,7 +2881,11 @@ function filterAndReassignCores(
 
   filteredCores = removeImaginaryCoresFilledColumns(filteredCores);
 
-  filteredCores = reassignCoreIndices(filteredCores);
+  filteredCores = reassignCoreIndices(filteredCores, imageRotation);
+
+  if (options.fastAngleEvaluation) {
+    return flagMisalignedCores(filteredCores, imageRotation, false);
+  }
 
   filteredCores = assignMarkerCoresToGrid(
     filteredCores,
@@ -2785,6 +2900,8 @@ function filterAndReassignCores(
     params,
     options
   );
+
+  filteredCores = enforceLeftToRightColumnOrder(filteredCores, imageRotation);
 
   filteredCores = flagMisalignedCores(filteredCores, imageRotation, false);
 
