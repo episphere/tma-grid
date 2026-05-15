@@ -97,6 +97,15 @@ const getInputValue = (inputId) => document.getElementById(inputId).value;
 
 const getElement = (id) => document.getElementById(id);
 
+function createTextElement(tagName, textContent, className = "") {
+  const element = document.createElement(tagName);
+  if (className) {
+    element.className = className;
+  }
+  element.textContent = textContent;
+  return element;
+}
+
 function getMedianNumber(values) {
   const sortedValues = values
     .filter((value) => Number.isFinite(value))
@@ -456,13 +465,16 @@ function updateSegmentationStats() {
 
   const diagnostics = window.coreDetectionDiagnostics || {};
   const rescueStats = diagnostics.rescueStats || {};
-  statsEl.innerHTML = `
-    <span>Detected: ${diagnostics.total ?? "--"}</span>
-    <span>Rescued: ${diagnostics.rescued ?? "--"}</span>
-    <span>Removed artifacts: ${getRemovedArtifactCount(rescueStats)}</span>
-    <span>Recentered: ${rescueStats.recentered || 0}</span>
-    <span>Circle fit: ${rescueStats.circleAdjusted || 0}</span>
-  `;
+  statsEl.replaceChildren(
+    createTextElement("span", `Detected: ${diagnostics.total ?? "--"}`),
+    createTextElement("span", `Rescued: ${diagnostics.rescued ?? "--"}`),
+    createTextElement(
+      "span",
+      `Removed artifacts: ${getRemovedArtifactCount(rescueStats)}`
+    ),
+    createTextElement("span", `Recentered: ${rescueStats.recentered || 0}`),
+    createTextElement("span", `Circle fit: ${rescueStats.circleAdjusted || 0}`)
+  );
 }
 
 function collectReviewIssues() {
@@ -552,20 +564,30 @@ function renderReviewPanel() {
   summary.textContent = currentReviewIssues.length
     ? `${currentReviewIssues.length} flagged item${currentReviewIssues.length === 1 ? "" : "s"} ready for triage.`
     : "No flagged marker or row/column issues.";
-  list.innerHTML = "";
+  list.replaceChildren();
 
   currentReviewIssues.forEach((issue, index) => {
     const item = document.createElement("li");
     item.className = "review-issue-item";
-    item.innerHTML = `
-      <button type="button" class="review-issue-focus" data-review-index="${index}">
-        <span>
-          <strong>${issue.title}</strong>
-          <small>${issue.detail}</small>
-        </span>
-      </button>
-      <button type="button" class="review-issue-resolve" data-resolve-index="${index}">Resolve</button>
-    `;
+    const focusButton = document.createElement("button");
+    const issueText = document.createElement("span");
+    const resolveButton = document.createElement("button");
+
+    focusButton.type = "button";
+    focusButton.className = "review-issue-focus";
+    focusButton.dataset.reviewIndex = `${index}`;
+    issueText.append(
+      createTextElement("strong", issue.title),
+      createTextElement("small", issue.detail)
+    );
+    focusButton.appendChild(issueText);
+
+    resolveButton.type = "button";
+    resolveButton.className = "review-issue-resolve";
+    resolveButton.dataset.resolveIndex = `${index}`;
+    resolveButton.textContent = "Resolve";
+
+    item.append(focusButton, resolveButton);
     list.appendChild(item);
   });
   if (currentReviewIssues.length === 0) {
@@ -748,20 +770,6 @@ const handleSVSFile = async (file, processCallback) => {
     window.loadedImg = originalImageContainer;
     updateUploadSummary(getImageTypeFromName(file.name));
     document.getElementById("loadingSpinner").style.display = "none";
-
-    // Get the name of the file 
-    const fileName = document.getElementById("file-name").innerHTML.split(".")[0];
-    // Create a download link
-    const downloadLink = document.createElement('a');
-    downloadLink.href = originalImageContainer.src;
-    downloadLink.download = 'CK56_' + fileName + '.png'; // You can change the filename here
-    downloadLink.textContent = 'Download Image';
-    downloadLink.style.display = 'block';
-    downloadLink.style.marginTop = '10px';
-
-    // Append the download link to the document body or a specific container
-    document.body.appendChild(downloadLink);
-
   };
 };
 
@@ -956,12 +964,12 @@ function validateMetadata(data, fileType = "csv") {
   window.metadataRowName = rowName;
   window.metadataColName = colName;
 
-  if (fileType == "csv") {
+  if (fileType === "csv") {
     window.userUploadedMetadata = [];
 
     let keys = [];
     data.forEach((row, index) => {
-      if (index == 0) {
+      if (index === 0) {
         keys = row;
       } else {
         let obj = {};
@@ -1068,7 +1076,6 @@ const handleLoadImageUrlClick = async () => {
           document.getElementById("loadingSpinner").style.display = "none";
           return;
         }
-        console.log("imageInfo", imageInfo);
         window.loadedWSIInfo = imageInfo;
         width = imageInfo.width;
         height = imageInfo.height;
@@ -1262,7 +1269,12 @@ async function segmentImage(initializeParams = false) {
         }
       }
     } catch (error) {
-      console.error("Error processing image:", error);
+      window.lastSegmentationError = {
+        name: error?.name || "Error",
+        message: error?.message || String(error),
+        stack: error?.stack || "",
+      };
+      console.error("Error processing image:", window.lastSegmentationError);
       setApplyStatus("Detection failed. Check parameters and try again.", "error");
     } finally {
       if (thresholdedPredictions && preprocessedCores) {
@@ -1683,12 +1695,12 @@ function initializeBoxPicker(accessToken, folderId = "0") {
         console.error("Error processing file from Box:", error);
       }
     } else {
-      console.log("Selected file is not available for download.");
+      console.warn("Selected file is not available for download.");
     }
   });
 
   filePicker.addListener("cancel", () => {
-    console.log("Box file selection was canceled.");
+    console.info("Box file selection was canceled.");
   });
 
   // Go to box tab by clicking the Box Integration button
@@ -2018,7 +2030,7 @@ const initSegmentation = async () => {
       if (
         imageInfo.isSimpleImage ||
         (window.uploadedImageFileType === "ndpi" &&
-          window.ndpiScalingFactor != undefined)
+          window.ndpiScalingFactor !== undefined)
       ) {
         tileSources = {
           type: "image",
@@ -2063,7 +2075,7 @@ const initSegmentation = async () => {
       const addCoreBtn = document.createElement("button");
       addCoreBtn.className = "osdViewerControl";
       addCoreBtn.id = "osdViewerAddCoreBtn";
-      addCoreBtn.innerHTML = "+ Add Core";
+      addCoreBtn.textContent = "+ Add Core";
       addCoreDiv.appendChild(addCoreBtn);
 
       const autoAssignRowColDiv = document.createElement("div");

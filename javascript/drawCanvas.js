@@ -62,6 +62,54 @@ const actionDebounceInterval = 500; // milliseconds
 // Pure function to get input values
 const getInputValue = (inputId) => document.getElementById(inputId).value;
 
+const WORKSPACE_STATUS_STATES = [
+  "is-empty",
+  "is-error",
+  "is-loading",
+  "is-success",
+];
+
+function setWorkspaceStatus(elementId, state, title, detail = "") {
+  const statusElement = document.getElementById(elementId);
+  if (!statusElement) {
+    return;
+  }
+
+  statusElement.hidden = false;
+  statusElement.classList.remove(...WORKSPACE_STATUS_STATES);
+  statusElement.classList.add(`is-${state}`);
+  statusElement.setAttribute(
+    "aria-busy",
+    state === "loading" ? "true" : "false"
+  );
+
+  const titleElement = statusElement.querySelector("[data-status-title]");
+  const detailElement = statusElement.querySelector("[data-status-detail]");
+  if (titleElement) {
+    titleElement.textContent = title;
+  }
+  if (detailElement) {
+    detailElement.textContent = detail;
+  }
+}
+
+function clearWorkspaceStatus(elementId) {
+  const statusElement = document.getElementById(elementId);
+  if (!statusElement) {
+    return;
+  }
+
+  statusElement.hidden = true;
+  statusElement.setAttribute("aria-busy", "false");
+}
+
+const setGriddingStatus = (state, title, detail = "") =>
+  setWorkspaceStatus("griddingStatus", state, title, detail);
+const clearGriddingStatus = () => clearWorkspaceStatus("griddingStatus");
+const setVirtualGridStatus = (state, title, detail = "") =>
+  setWorkspaceStatus("virtualGridStatus", state, title, detail);
+const clearVirtualGridStatus = () => clearWorkspaceStatus("virtualGridStatus");
+
 // Global variables to hold the history for undo and redo
 window.actionHistory = [];
 let currentActionIndex = -1;
@@ -105,7 +153,7 @@ function getCoreFromOverlayElement(overlayElement) {
   const col = parseInt(overlayElement.dataset.col, 10);
   if (Number.isInteger(row) && Number.isInteger(col)) {
     const fallbackIndex = window.sortedCoresData?.findIndex(
-      (core) => core.row === row && core.col === col
+      (core) => Number(core.row) === row && Number(core.col) === col
     );
 
     if (fallbackIndex >= 0) {
@@ -154,7 +202,7 @@ function handleCanvasClick(event) {
 
 // Function to update or create the properties download link
 function updatePropertiesDownloadLink() {
-  const fileName = document.getElementById("file-name").innerHTML.split(".")[0];
+  const fileName = document.getElementById("file-name").textContent.split(".")[0];
 
   
   let propertiesDownloadLink = document.getElementById('propertiesDownloadLink');
@@ -201,7 +249,6 @@ function addCore(x, y) {
 
   const newCore = { x, y, radius: firstCoreRadius }; // Set radius as needed
   window.properties.push(newCore);
-  console.log("Added core:", newCore);
   window.preprocessedCores = preprocessCores(window.properties);
   recordAction({ type: "add", core: newCore });
   redrawCanvas();
@@ -213,7 +260,6 @@ function removeCore(x, y) {
   const indexToRemove = findNearestCoreIndex(x, y);
   if (indexToRemove !== -1) {
     const removedCore = window.properties.splice(indexToRemove, 1)[0];
-    console.log("Removed core:", removedCore);
     window.preprocessedCores = preprocessCores(window.properties);
     recordAction({ type: "remove", core: removedCore });
     redrawCanvas();
@@ -1236,38 +1282,62 @@ function saveCore(core) {
 
 // Picks the row with the closest rotated median Y value to the rotated median Y value of the core
 function determineCoreRow(core, sortedCoresData) {
-  // Filter only sortedcores that don't have a NaN row or column and don't have -1 as a row or column
+  const placedCores = sortedCoresData.filter((candidate) => {
+    const row = Number(candidate.row);
+    const col = Number(candidate.col);
+    return (
+      !candidate.isMarker &&
+      Number.isFinite(row) &&
+      Number.isFinite(col) &&
+      row >= 0 &&
+      col >= 0
+    );
+  });
+  const rowsByIndex = new Map();
 
-  sortedCoresData = sortedCoresData.filter(
-    (core) => !isNaN(core.row) && !isNaN(core.col)
-  );
-
-  // Filter out rows in sortedCoresData that only have one core
-  sortedCoresData = sortedCoresData.filter((core) => {
-    const coresInRow = sortedCoresData.filter((c) => c.row === core.row);
-    return coresInRow.length > 0;
+  placedCores.forEach((candidate) => {
+    const row = Number(candidate.row);
+    if (!rowsByIndex.has(row)) {
+      rowsByIndex.set(row, []);
+    }
+    rowsByIndex.get(row).push(candidate);
   });
 
-  let imageRotation = parseFloat(document.getElementById("originAngle").value);
-
-  // Determine rotated median Y value of each row
-  const medianRows = Object.values(
-    determineMedianRowColumnValues(sortedCoresData, imageRotation).rows
+  const multiCoreRows = [...rowsByIndex.values()].filter(
+    (rowCores) => rowCores.length > 1
   );
+  const rowReferenceCores =
+    multiCoreRows.length > 0 ? multiCoreRows.flat() : placedCores;
+  const imageRotation =
+    parseFloat(document.getElementById("originAngle").value) || 0;
+  const medianRows = Object.entries(
+    determineMedianRowColumnValues(rowReferenceCores, imageRotation).rows
+  )
+    .map(([row, values]) => ({
+      row: Number(row),
+      medianY: values.medianY,
+    }))
+    .filter(
+      (entry) => Number.isFinite(entry.row) && Number.isFinite(entry.medianY)
+    );
 
-  // Determine the rotated Y value of the core
+  if (medianRows.length === 0) {
+    const currentRow = Number(core.row);
+    return Number.isFinite(currentRow) && currentRow >= 0 ? currentRow : 0;
+  }
+
   const rotatedY = rotatePoint([core.x, core.y], -imageRotation)[1];
 
-  // Determine the row with the closest rotated median Y value to the rotated median Y value of the core
-  let closestRow = 0;
+  let closestRow = medianRows[0].row;
   let closestDistance = Infinity;
-  for (let i = 0; i < medianRows.length; i++) {
-    const distance = Math.abs(medianRows[i].medianY - rotatedY);
+  medianRows.forEach((rowEntry) => {
+    const distance = Math.abs(rowEntry.medianY - rotatedY);
     if (distance < closestDistance) {
       closestDistance = distance;
-      closestRow = i;
+      closestRow = rowEntry.row;
     }
-  }
+  });
+
   return closestRow;
 }
 
@@ -1297,7 +1367,7 @@ function updateRowsInGridAfterRemoval(modifiedRow) {
 }
 
 function updateRowsInGridAfterMovement(oldRow, newRow) {
-  if (oldRow != -1) {
+  if (Number(oldRow) !== -1) {
     updateRowsInGridAfterRemoval(oldRow);
   }
   updateColumnsInRowAfterModification(newRow);
@@ -1313,7 +1383,7 @@ function removeCoreFromGrid(core) {
   }
 
   if (coreIndex === -1) {
-    console.log("Core not found in sortedCoresData");
+    console.warn("Core not found in sortedCoresData");
     return;
   }
 
@@ -1617,65 +1687,109 @@ async function findOptimalAngle(
 async function applyAndVisualizeTravelingAlgorithm(e, firstRun = false) {
   if (!window.preprocessedCores) {
     console.error("No cores data available. Please load a file first.");
+    setGriddingStatus(
+      "error",
+      "No detected cores available",
+      "Run core detection before applying the gridding algorithm."
+    );
     return;
   }
-  let hyperparameters;
-  if (firstRun) {
-    // Helper function to update the angle in the UI and return updated hyperparameters
-    const updateUIAndHyperparameters = (angle) => {
-      document.getElementById("originAngle").value = angle.toString();
-      document.getElementById("originAngleValue").innerText = angle.toString();
 
-      // Update OSD viewer to be rotated with the optimal angle
-      window.viewer.viewport.setRotation(-angle);
-      return {
-        ...getHyperparametersFromUI(),
-        originAngle: angle,
+  setGriddingStatus(
+    "loading",
+    "Building grid markers",
+    "Optimizing grid angle and assigning cores to rows and columns."
+  );
+
+  try {
+    let hyperparameters;
+    if (firstRun) {
+      // Helper function to update the angle in the UI and return updated hyperparameters
+      const updateUIAndHyperparameters = (angle) => {
+        document.getElementById("originAngle").value = angle.toString();
+        document.getElementById("originAngleValue").innerText =
+          angle.toString();
+
+        // Update OSD viewer to be rotated with the optimal angle
+        window.viewer.viewport.setRotation(-angle);
+        return {
+          ...getHyperparametersFromUI(),
+          originAngle: angle,
+        };
       };
-    };
 
-    // Find the optimal angle
-    const optimalAngle = await findOptimalAngle(
-      window.preprocessedCores,
-      updateUIAndHyperparameters,
-      runTravelingAlgorithm,
-      (angle) =>
-        (document.getElementById("originAngle").value = angle.toString())
+      // Find the optimal angle
+      const optimalAngle = await findOptimalAngle(
+        window.preprocessedCores,
+        updateUIAndHyperparameters,
+        runTravelingAlgorithm,
+        (angle) => {
+          document.getElementById("originAngle").value = angle.toString();
+          setGriddingStatus(
+            "loading",
+            "Testing grid angle",
+            `Checking ${angle} degrees against detected cores.`
+          );
+        }
+      );
+
+      // Update UI with the optimal angle
+      hyperparameters = updateUIAndHyperparameters(optimalAngle);
+    } else {
+      hyperparameters = getHyperparametersFromUI();
+    }
+
+    setGriddingStatus(
+      "loading",
+      "Placing grid markers",
+      "Filtering, reassigning, and drawing core overlays."
     );
 
-    // Update UI with the optimal angle
-    hyperparameters = updateUIAndHyperparameters(optimalAngle);
-  } else {
-    hyperparameters = getHyperparametersFromUI();
+    // Run the algorithm with the optimal angle found
+    let sortedCoresData = await runTravelingAlgorithm(
+      window.preprocessedCores,
+      hyperparameters
+    );
+
+    sortedCoresData = filterAndReassignCores(
+      sortedCoresData,
+      hyperparameters.originAngle,
+      hyperparameters
+    );
+
+    updateSpacingInVirtualGrid(hyperparameters.gridWidth * 1.5);
+
+    // Function to scale core data
+    const scaleCoreData = (core) => ({
+      ...core,
+      x: core.x / window.scalingFactor,
+      y: core.y / window.scalingFactor,
+      currentRadius: core.currentRadius / window.scalingFactor,
+    });
+
+    // Scale and update the cores data
+    window.sortedCoresData = sortedCoresData.map(scaleCoreData);
+
+    if (window.sortedCoresData.length === 0) {
+      setGriddingStatus(
+        "empty",
+        "No grid markers were generated",
+        "Try adjusting detection or gridding parameters, then apply again."
+      );
+      return;
+    }
+
+    // Visualize the cores
+    drawCoresOnCanvasForTravelingAlgorithm();
+    clearGriddingStatus();
+  } catch (error) {
+    console.error("Error applying gridding algorithm:", error);
+    setGriddingStatus(
+      "error",
+      "Grid markers could not be built",
+      "Check the detected cores and gridding parameters, then apply again."
+    );
   }
-
-  // Run the algorithm with the optimal angle found
-  let sortedCoresData = await runTravelingAlgorithm(
-    window.preprocessedCores,
-    hyperparameters
-  );
-
-  sortedCoresData = filterAndReassignCores(
-    sortedCoresData,
-    hyperparameters.originAngle,
-    hyperparameters
-  );
-
-  updateSpacingInVirtualGrid(hyperparameters.gridWidth * 1.5);
-
-  // Function to scale core data
-  const scaleCoreData = (core) => ({
-    ...core,
-    x: core.x / window.scalingFactor,
-    y: core.y / window.scalingFactor,
-    currentRadius: core.currentRadius / window.scalingFactor,
-  });
-
-  // Scale and update the cores data
-  window.sortedCoresData = sortedCoresData.map(scaleCoreData);
-
-  // Visualize the cores
-  drawCoresOnCanvasForTravelingAlgorithm();
 }
 
 function removeImaginaryCoresFilledColumns(coresData) {
@@ -2766,7 +2880,7 @@ function reassignCoreIndices(coresData, imageRotation = 0) {
     .filter((value, index, self) => self.indexOf(value) === index)
     .sort((a, b) => a - b)
     .forEach((originalRow) => {
-      if (originalRow != -1) {
+      if (Number(originalRow) !== -1) {
         rowMap[originalRow] = rowIndex++;
       } else {
         rowMap[originalRow] = originalRow;
@@ -2908,6 +3022,19 @@ function filterAndReassignCores(
   return filteredCores;
 }
 
+function metadataValuesMatch(left, right) {
+  const normalizedLeft = String(left ?? "").trim();
+  const normalizedRight = String(right ?? "").trim();
+  const numericLeft = Number(normalizedLeft);
+  const numericRight = Number(normalizedRight);
+
+  if (Number.isFinite(numericLeft) && Number.isFinite(numericRight)) {
+    return numericLeft === numericRight;
+  }
+
+  return normalizedLeft === normalizedRight;
+}
+
 function finalizeSaveData() {
   // Create finalSaveData by mapping over sortedCoresData
   const finalSaveData = window.sortedCoresData
@@ -2932,14 +3059,11 @@ function finalizeSaveData() {
     // Update userUploadedMetadata with sortedCoresData information
     finalSaveData.forEach((core) => {
       // Finding the matching metadata entry by row and column values
-      const metadataEntry = window.userUploadedMetadata.find((entry) => {
-        // Ensure both row and column values match
-        // Using double equals (==) to allow for type coercion in case one is a string and the other is a number
-        return (
-          entry[metadataRowName] == core.row &&
-          entry[metadataColName] == core.col
-        );
-      });
+      const metadataEntry = window.userUploadedMetadata.find(
+        (entry) =>
+          metadataValuesMatch(entry[metadataRowName], core.row) &&
+          metadataValuesMatch(entry[metadataColName], core.col)
+      );
 
       if (metadataEntry) {
         // Merge the core data into the metadata entry
@@ -2967,7 +3091,7 @@ function finalizeSaveData() {
   }
 }
 
-function obtainHyperparametersAndDrawVirtualGrid() {
+async function obtainHyperparametersAndDrawVirtualGrid() {
   // Check if there are marker cores and if there are, alert the user to assign indices to them, or they will not show up in the virtual grid
   const sortedCoresData = window.sortedCoresData || [];
   const markerCores = sortedCoresData.filter(
@@ -2975,7 +3099,11 @@ function obtainHyperparametersAndDrawVirtualGrid() {
   );
 
   if (sortedCoresData.length === 0) {
-    alert("Please wait for cores to finish loading.");
+    setGriddingStatus(
+      "loading",
+      "Grid markers are still loading",
+      "Wait for gridding to finish before creating the virtual grid."
+    );
     return;
   }
 
@@ -3004,16 +3132,33 @@ function obtainHyperparametersAndDrawVirtualGrid() {
   const startingX = parseInt(document.getElementById("startingX").value, 10);
   const startingY = parseInt(document.getElementById("startingY").value, 10);
 
-  createVirtualGrid(
-    window.finalSaveData,
-    horizontalSpacing,
-    verticalSpacing,
-    startingX,
-    startingY,
-    true
-  );
   document.getElementById("virtualGridTabButton").disabled = false;
   document.getElementById("virtualGridTabButton").click();
+
+  setVirtualGridStatus(
+    "loading",
+    "Building virtual grid",
+    `Preparing previews for ${window.finalSaveData.length} cores.`
+  );
+
+  try {
+    await createVirtualGrid(
+      window.finalSaveData,
+      horizontalSpacing,
+      verticalSpacing,
+      startingX,
+      startingY,
+      true
+    );
+    clearVirtualGridStatus();
+  } catch (error) {
+    console.error("Error creating virtual grid:", error);
+    setVirtualGridStatus(
+      "error",
+      "Virtual grid could not be built",
+      "Try creating the virtual grid again or check source image access."
+    );
+  }
 
   // If an element with id of popupGridding exists, show the popup
 
@@ -3032,6 +3177,15 @@ async function createVirtualGrid(
   startingY,
   firstRun = false
 ) {
+  if (!Array.isArray(sortedCoresData) || sortedCoresData.length === 0) {
+    setVirtualGridStatus(
+      "empty",
+      "No cores are available for the virtual grid",
+      "Return to gridding and make sure at least one core is placed."
+    );
+    return;
+  }
+
   const imageSrc = document.getElementById("imageUrlInput").value
     ? document.getElementById("imageUrlInput").value
     : document.getElementById("fileInput").files.length > 0
@@ -3049,6 +3203,12 @@ async function createVirtualGrid(
     // Hide the virtual grid canvas
     const virtualGridCanvas = document.getElementById("virtualGridCanvas");
     virtualGridCanvas.style.display = "none";
+    document.getElementById("VirtualGridSVSContainer").style.display = "grid";
+    setVirtualGridStatus(
+      "loading",
+      "Loading core previews",
+      `Fetching ${sortedCoresData.filter((core) => !core.isMarker).length} core image tiles.`
+    );
 
     // Update the grid spacing and starting position
     updateGridSpacingInVirtualGridForSVS(
@@ -3071,6 +3231,12 @@ async function createVirtualGrid(
     // Hide the virtual grid container
     const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
     virtualGridDiv.style.display = "none";
+    document.getElementById("virtualGridCanvas").style.display = "block";
+    setVirtualGridStatus(
+      "loading",
+      "Drawing virtual grid",
+      "Cropping cores from the loaded image preview."
+    );
 
     await drawVirtualGridFromPNG(
       sortedCoresData,
@@ -3169,16 +3335,18 @@ function populateAndEditMetadataForm(rowValue, colValue) {
   const colKeyName = window.metadataColName || "col";
 
   // Find the metadata object with the matching row and column values
-  const metadataObj = window.finalSaveData.find((metadata) => {
-    return metadata[rowKeyName] == rowValue && metadata[colKeyName] == colValue;
-  });
+  const metadataObj = (window.finalSaveData || []).find(
+    (metadata) =>
+      metadataValuesMatch(metadata[rowKeyName], rowValue) &&
+      metadataValuesMatch(metadata[colKeyName], colValue)
+  );
 
   if (metadataObj) {
     // Get the form element
     const form = document.getElementById("editMetadataForm");
 
     // Clear existing form contents
-    form.innerHTML = "";
+    form.replaceChildren();
     form.className = "space-y-4";
 
     // Dynamically create form elements for each metadata property
@@ -3285,12 +3453,12 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       customPropertyLabel.style.minWidth = "100px";
 
       // Add placeholder text
-      customPropertyLabel.innerHTML = "Enter custom field name";
+      customPropertyLabel.textContent = "Enter custom field name";
 
       // Remove placeholder text when the label is focused
       customPropertyLabel.addEventListener("focus", function () {
-        if (this.innerHTML === "Enter custom field name") {
-          this.innerHTML = "";
+        if (this.textContent === "Enter custom field name") {
+          this.textContent = "";
           this.classList.remove("text-gray-400");
           this.classList.add("text-gray-900");
         }
@@ -3298,8 +3466,8 @@ function populateAndEditMetadataForm(rowValue, colValue) {
 
       // Add placeholder text when the label is empty and loses focus
       customPropertyLabel.addEventListener("blur", function () {
-        if (this.innerHTML.trim() === "") {
-          this.innerHTML = "Enter custom field name";
+        if (this.textContent.trim() === "") {
+          this.textContent = "Enter custom field name";
           this.classList.remove("text-gray-900");
           this.classList.add("text-gray-400");
         }
@@ -3385,9 +3553,6 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         updateVirtualGridSpacing();
       }
 
-      // Log the updated object for verification
-      console.log("Metadata updated successfully:", metadataObj);
-      // Implement any follow-up action here
     };
 
     adjustSidebarHeight();
@@ -3408,7 +3573,7 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
   // Create overlay div for displaying row and column
   const overlay = document.createElement("div");
   overlay.classList.add("image-overlay");
-  overlay.innerHTML = `(${core.row}, ${core.col})`;
+  overlay.textContent = `(${core.row}, ${core.col})`;
 
   // Double-click event for initiating download
   container.ondblclick = () => {
@@ -3501,10 +3666,15 @@ async function drawVirtualGridFromWSI(
   // Do not draw the markers
   sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
   const virtualGridDiv = document.getElementById("VirtualGridSVSContainer");
-  virtualGridDiv.innerHTML = ""; // Clear existing content
+  virtualGridDiv.replaceChildren();
   coreContainers.length = 0;
 
   if (sortedCoresData.length === 0) {
+    setVirtualGridStatus(
+      "empty",
+      "No non-marker cores are available",
+      "Marker-only grids cannot create core previews."
+    );
     return;
   }
 
@@ -3546,6 +3716,20 @@ async function drawVirtualGridFromWSI(
 
   const concurrencyLimit = 1;
   let activePromises = [];
+  let loadedCoreCount = 0;
+  let renderedCoreCount = 0;
+  const appendLoadedImages = (images) => {
+    const loadedImages = images.filter(Boolean);
+    loadedCoreCount += images.length;
+    renderedCoreCount += loadedImages.length;
+    loadedImages.forEach((img) => virtualGridDiv.appendChild(img));
+    setVirtualGridStatus(
+      "loading",
+      "Loading core previews",
+      `${loadedCoreCount}/${sortedCoresData.length} cores checked; ${renderedCoreCount} previews loaded.`
+    );
+  };
+
   for (const core of sortedCoresData) {
     const promise = createImageForCore(svsImageURL, core, coreSize).then(
       (img) => {
@@ -3565,15 +3749,20 @@ async function drawVirtualGridFromWSI(
     activePromises.push(promise);
 
     if (activePromises.length >= concurrencyLimit) {
-      await Promise.all(activePromises).then((images) => {
-        images.filter(Boolean).forEach((img) => virtualGridDiv.appendChild(img));
-      });
+      await Promise.all(activePromises).then(appendLoadedImages);
       activePromises = [];
     }
   }
-  await Promise.all(activePromises).then((images) => {
-    images.filter(Boolean).forEach((img) => virtualGridDiv.appendChild(img));
-  });
+  await Promise.all(activePromises).then(appendLoadedImages);
+
+  if (renderedCoreCount === 0) {
+    setVirtualGridStatus(
+      "error",
+      "No core previews could be loaded",
+      "Check source image access and try building the virtual grid again."
+    );
+    throw new Error("No core previews could be loaded.");
+  }
 }
 
 function drawVirtualGridFromPNG(
@@ -3585,6 +3774,14 @@ function drawVirtualGridFromPNG(
 ) {
   // filter out cores with isMarker
   sortedCoresData = sortedCoresData.filter((core) => !core.isMarker);
+  if (sortedCoresData.length === 0) {
+    setVirtualGridStatus(
+      "empty",
+      "No non-marker cores are available",
+      "Marker-only grids cannot create core previews."
+    );
+    return Promise.resolve();
+  }
 
   let imageSrc = null;
   if (window.uploadedImageFileType === "ndpi") {
@@ -3619,76 +3816,81 @@ function drawVirtualGridFromPNG(
 
   let selectedCore = null; // Keep track of the selected core
 
-  img.onload = () => {
-    vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
+  return new Promise((resolve, reject) => {
+    img.onload = () => {
+      vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
 
-    // Draw row markers
-    for (let i = 1; i < rows; i++) {
-      vctx.font = "bold 16px Arial";
+      // Draw row markers
+      for (let i = 1; i < rows; i++) {
+        vctx.font = "bold 16px Arial";
 
-      vctx.fillText(i, 10, startingY + i * verticalSpacing + 10);
-    }
-
-    // Draw column markers
-    for (let j = 1; j < cols; j++) {
-      vctx.font = "bold 16px Arial";
-      vctx.fillText(j, startingX + j * horizontalSpacing, 20);
-    }
-
-    sortedCoresData.forEach((core) => {
-      const idealX = startingX + core.col * horizontalSpacing;
-      const idealY = startingY + core.row * verticalSpacing;
-      const userRadius = core.currentRadius * window.scalingFactor;
-
-      vctx.save();
-      vctx.beginPath();
-      vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
-      vctx.closePath();
-
-      // Highlight the selected core
-      if (
-        selectedCore &&
-        selectedCore.row === core.row &&
-        selectedCore.col === core.col
-      ) {
-        vctx.strokeStyle = "#FFD700"; // Gold color for selection
-        vctx.lineWidth = 4; // Thicker border for selected core
-        vctx.shadowBlur = 10; // Glow effect
-        vctx.shadowColor = "#FFD700"; // Glow color matches the border
-      } else {
-        // Default style for non-selected cores
-        vctx.strokeStyle = core.isImaginary ? "red" : "green";
-        vctx.lineWidth = 2;
-        vctx.shadowBlur = 0;
+        vctx.fillText(i, 10, startingY + i * verticalSpacing + 10);
       }
 
-      vctx.stroke();
+      // Draw column markers
+      for (let j = 1; j < cols; j++) {
+        vctx.font = "bold 16px Arial";
+        vctx.fillText(j, startingX + j * horizontalSpacing, 20);
+      }
 
-      vctx.clip();
+      sortedCoresData.forEach((core) => {
+        const idealX = startingX + core.col * horizontalSpacing;
+        const idealY = startingY + core.row * verticalSpacing;
+        const userRadius = core.currentRadius * window.scalingFactor;
 
-      const sourceX = core.x * window.scalingFactor - userRadius;
-      const sourceY = core.y * window.scalingFactor - userRadius;
+        vctx.save();
+        vctx.beginPath();
+        vctx.arc(idealX, idealY, userRadius, 0, Math.PI * 2, true);
+        vctx.closePath();
 
-      vctx.drawImage(
-        img,
-        sourceX,
-        sourceY,
-        userRadius * 2,
-        userRadius * 2,
-        idealX - userRadius,
-        idealY - userRadius,
-        userRadius * 2,
-        userRadius * 2
-      );
+        // Highlight the selected core
+        if (
+          selectedCore &&
+          selectedCore.row === core.row &&
+          selectedCore.col === core.col
+        ) {
+          vctx.strokeStyle = "#FFD700"; // Gold color for selection
+          vctx.lineWidth = 4; // Thicker border for selected core
+          vctx.shadowBlur = 10; // Glow effect
+          vctx.shadowColor = "#FFD700"; // Glow color matches the border
+        } else {
+          // Default style for non-selected cores
+          vctx.strokeStyle = core.isImaginary ? "red" : "green";
+          vctx.lineWidth = 2;
+          vctx.shadowBlur = 0;
+        }
 
-      vctx.restore();
-    });
-  };
+        vctx.stroke();
 
-  virtualGridCanvas.addEventListener("click", function (event) {
-    const rect = virtualGridCanvas.getBoundingClientRect();
+        vctx.clip();
+
+        const sourceX = core.x * window.scalingFactor - userRadius;
+        const sourceY = core.y * window.scalingFactor - userRadius;
+
+        vctx.drawImage(
+          img,
+          sourceX,
+          sourceY,
+          userRadius * 2,
+          userRadius * 2,
+          idealX - userRadius,
+          idealY - userRadius,
+          userRadius * 2,
+          userRadius * 2
+        );
+
+        vctx.restore();
+      });
+      resolve();
+    };
+
+    img.onerror = () => {
+      reject(new Error("Image failed to load."));
+    };
+  });
+
+  virtualGridCanvas.onclick = (event) => {
     const [x, y] = getMousePosition(event, "virtualGridCanvas");
-
     sortedCoresData.forEach((core) => {
       const idealX = startingX + core.col * horizontalSpacing;
       const idealY = startingY + core.row * verticalSpacing;
@@ -3699,19 +3901,14 @@ function drawVirtualGridFromPNG(
 
       if (distance < userRadius) {
         selectedCore = core; // Update the selected core
-        console.log("Core clicked:", selectedCore);
         populateAndEditMetadataForm(selectedCore.row, selectedCore.col);
         img.onload(); // Redraw the canvas to show the selection
       }
     });
-  });
-
-  img.onerror = () => {
-    console.error("Image failed to load.");
   };
 }
 
-function updateVirtualGridSpacing(
+async function updateVirtualGridSpacing(
   horizontalSpacing,
   verticalSpacing,
   startingX,
@@ -3719,18 +3916,45 @@ function updateVirtualGridSpacing(
 ) {
   const virtualGridCanvas = document.getElementById("virtualGridCanvas");
   const vctx = virtualGridCanvas.getContext("2d");
+  const nextHorizontalSpacing = Number.isFinite(horizontalSpacing)
+    ? horizontalSpacing
+    : parseInt(document.getElementById("horizontalSpacing").value, 10);
+  const nextVerticalSpacing = Number.isFinite(verticalSpacing)
+    ? verticalSpacing
+    : parseInt(document.getElementById("verticalSpacing").value, 10);
+  const nextStartingX = Number.isFinite(startingX)
+    ? startingX
+    : parseInt(document.getElementById("startingX").value, 10);
+  const nextStartingY = Number.isFinite(startingY)
+    ? startingY
+    : parseInt(document.getElementById("startingY").value, 10);
+  setVirtualGridStatus(
+    "loading",
+    "Updating virtual grid",
+    "Applying spacing changes to the current core layout."
+  );
 
   // Clear the existing grid
   vctx.clearRect(0, 0, virtualGridCanvas.width, virtualGridCanvas.height);
 
   // Redraw the grid with new spacings
-  createVirtualGrid(
-    window.finalSaveData,
-    horizontalSpacing * 1.25,
-    verticalSpacing * 1.25,
-    startingX,
-    startingY
-  );
+  try {
+    await createVirtualGrid(
+      window.finalSaveData,
+      nextHorizontalSpacing * 1.25,
+      nextVerticalSpacing * 1.25,
+      nextStartingX,
+      nextStartingY
+    );
+    clearVirtualGridStatus();
+  } catch (error) {
+    console.error("Error updating virtual grid:", error);
+    setVirtualGridStatus(
+      "error",
+      "Virtual grid could not be updated",
+      "Try applying the grid settings again."
+    );
+  }
 }
 
 // Function to redraw the cores on the canvas

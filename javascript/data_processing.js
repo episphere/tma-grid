@@ -372,11 +372,11 @@ async function loadDataAndDetermineParams(normalizedCores, params) {
 }
 
 function saveUpdatedCores(format) {
-  if (!window.finalSaveData) {
+  if (!Array.isArray(window.finalSaveData) || window.finalSaveData.length === 0) {
     alert("No data available to save.");
     return;
   }
-  
+
   // Save data as JSON or CSV
   if (format === "json") {
     const dataStr = JSON.stringify(window.finalSaveData);
@@ -390,33 +390,44 @@ function saveUpdatedCores(format) {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   } else if (format === "csv") {
-    let csvStr = convertToCSV(window.finalSaveData);
-    let blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" });
-    let url = URL.createObjectURL(blob);
+    const csvStr = convertToCSV(window.finalSaveData);
+    const blob = new Blob([csvStr], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
 
-    let downloadLink = document.createElement("a");
+    const downloadLink = document.createElement("a");
     downloadLink.href = url;
     downloadLink.download = "data.csv";
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
+}
+
+function escapeCSVValue(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return `"${String(value).replace(/"/g, '""')}"`;
 }
 
 // Function to convert JSON to CSV
 function convertToCSV(objArray) {
-  const array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-  let str = `${Object.keys(array[0]).map(value => `"${value}"`).join(",")}\r\n`;
-
-  for (let i = 0; i < array.length; i++) {
-    let line = '';
-    for (let index in array[i]) {
-      if (line != '') line += ','
-      line += `"${array[i][index]}"`;
-    }
-    str += line + '\r\n';
+  const array = typeof objArray !== "object" ? JSON.parse(objArray) : objArray;
+  if (!Array.isArray(array) || array.length === 0) {
+    return "";
   }
-  return str;
+
+  const headers = Array.from(
+    new Set(array.flatMap((row) => Object.keys(row || {})))
+  );
+  const headerRow = headers.map(escapeCSVValue).join(",");
+  const dataRows = array.map((row) =>
+    headers.map((header) => escapeCSVValue(row?.[header])).join(",")
+  );
+
+  return [headerRow, ...dataRows].join("\r\n") + "\r\n";
 }
 
 export {

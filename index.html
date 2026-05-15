@@ -648,6 +648,12 @@
                         </div>
                         <div class="viewer-scroll" id="main-container">
                             <!-- Image Viewer or other main content -->
+                            <div id="griddingStatus" class="workspace-status-panel" role="status"
+                                aria-live="polite" aria-busy="false">
+                                <span class="workspace-status-spinner" aria-hidden="true"></span>
+                                <strong data-status-title>Grid markers are not ready yet</strong>
+                                <span data-status-detail>Apply gridding parameters to place cores on the image.</span>
+                            </div>
                             <div id="osdViewer" style="margin:auto"></div>
                         </div>
                         <div class="edit-sidebar" id="editSidebar">
@@ -827,6 +833,12 @@
                         <div id="VirtualGrid" class="tabcontent">
 
                             <div class="virtual-grid-stage">
+                                <div id="virtualGridStatus" class="workspace-status-panel" role="status"
+                                    aria-live="polite" aria-busy="false">
+                                    <span class="workspace-status-spinner" aria-hidden="true"></span>
+                                    <strong data-status-title>Virtual grid is not ready yet</strong>
+                                    <span data-status-detail>Proceed from gridding to build the core preview grid.</span>
+                                </div>
                                 <button type="button" id="virtualGridSidebarIcon"
                                     class="toolbar-button parameterSidebar workspace-panel-toggle virtual-panel-toggle"
                                     onclick="toggleSidebarVirtual()" aria-controls="virtual-grid-sidebar"
