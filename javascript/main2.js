@@ -195,21 +195,21 @@ function installOpenSeadragonDecodeShim() {
     window.OffscreenCanvas,
     window.ImageBitmap,
   ].forEach((constructor) => {
-      try {
-        if (
-          constructor?.prototype &&
-          typeof constructor.prototype.decode !== "function"
-        ) {
-          Object.defineProperty(constructor.prototype, "decode", {
-            value: decode,
-            configurable: true,
-          });
-        }
-      } catch {
-        // Some browser-provided prototypes are not extensible. OpenSeadragon can
-        // still use the native image path in those browsers.
+    try {
+      if (
+        constructor?.prototype &&
+        typeof constructor.prototype.decode !== "function"
+      ) {
+        Object.defineProperty(constructor.prototype, "decode", {
+          value: decode,
+          configurable: true,
+        });
       }
-    });
+    } catch {
+      // Some browser-provided prototypes are not extensible. OpenSeadragon can
+      // still use the native image path in those browsers.
+    }
+  });
 
   openSeadragonDecodeShimInstalled = true;
 }
@@ -2066,7 +2066,7 @@ const initSegmentation = async () => {
         showZoomControl: false,
         showHomeControl: false,
         showFullPageControl: false,
-        timeout: 60 * 1000,
+        timeout: 120 * 1000,
       });
       // viewer.open(tileSources)
       const addCoreDiv = document.createElement("div");
