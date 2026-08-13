@@ -113,7 +113,7 @@
         </header>
         <div id="app">
 
-            <section id="upload" class="py-5 ">
+            <section id="upload" class="py-2 ">
 
                 <div class="instructions-container space-y-4">
                     <button class="close-instructions text-right">✕</button>
@@ -132,7 +132,7 @@
                         button to continue to image segmentation.</p>
                 </div>
 
-                <div class="tool-panel bg-white p-6 rounded-lg shadow-lg">
+                <div class="tool-panel bg-white rounded-lg">
 
                     <nav class="upload-tabs flex mb-5 border-b justify-center" aria-label="Upload method">
                         <button
@@ -276,7 +276,7 @@
                 </div>
             </section>
 
-            <section id="segmentation" class="hidden py-12">
+            <section id="segmentation" class="hidden py-2">
                 <div class="instructions-container space-y-4">
                     <button class="close-instructions text-right">✕</button>
                     <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
@@ -294,12 +294,20 @@
                     <p><kbd>Shift-click</kbd> a core to remove it.</p>
                 </div>
                 <div class="workspace-layout segmentation-workspace">
-                    <!-- Sidebar -->
-                    <aside id="segmentation-sidebar"
+                    <div class="workspace-sidebar-column">
+                        <button type="button" id="segmentationSidebarIcon"
+                            class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle"
+                            onclick="toggleSidebarSegmentation()" aria-controls="segmentation-sidebar"
+                            aria-expanded="false" aria-label="Show segmentation parameters" title="Parameters">
+                            <span class="panel-toggle-icon" aria-hidden="true">
+                                <span></span><span></span><span></span>
+                            </span>
+                        </button>
+                        <aside id="segmentation-sidebar"
                         class="bg-gray-50 rounded-lg shadow-lg p-1 transition-all duration-300 transform md:translate-x-0 sm:block collapsed">
                         <fieldset>
 
-                            <div class="text-xl font-semibold mb-4 parameters-header">
+                            <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
                                 <h2 class="title">Segmentation Parameters</h2>
                                 <div class="window-controls">
                                     <button type="button" class="close-button" onclick="toggleSidebarSegmentation()">×</button>
@@ -346,6 +354,12 @@
                                         Multiplier:</label>
                                     <input type="number" id="disTransformMultiplierInput" value="0.5" step="0.025"
                                         min="0.025" max="1" class="w-full border-gray-300 rounded-md shadow-sm">
+
+                                    <label for="probabilityHeatmapToggle"
+                                        class="text-sm font-medium text-gray-700 block">
+                                        <input type="checkbox" id="probabilityHeatmapToggle">
+                                        Show raw probability heatmap
+                                    </label>
                                 </details>
                             </div>
 
@@ -355,38 +369,12 @@
                             </button>
                             <p id="segmentationApplyStatus" class="apply-status" aria-live="polite">Parameters are current.</p>
                         </fieldset>
-                    </aside>
+                        </aside>
+                    </div>
                     <div id="ImageSegmentation" class="flex-grow sm:block sm:w-full">
                         <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
-                        <button type="button" class="mobile-workspace-controls-toggle"
-                            data-mobile-controls-target="segmentationToolbar" aria-controls="segmentationToolbar"
-                            aria-expanded="false">Show tools</button>
-                        <div id="segmentationToolbar"
-                            class="viewer-toolbar segmentation-toolbar mobile-controls-panel mobile-controls-collapsed"
-                            aria-label="Segmentation tools">
-                            <button type="button" id="segmentationSidebarIcon"
-                                class="toolbar-button parameterSidebar workspace-panel-toggle"
-                                onclick="toggleSidebarSegmentation()" aria-controls="segmentation-sidebar"
-                                aria-expanded="false">
-                                <span class="panel-toggle-icon" aria-hidden="true">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </span>
-                                <span>Parameters</span>
-                            </button>
-                            <div class="segmented-control" role="group" aria-label="Edit mode">
-                                <button type="button" class="toolbar-button active" data-segmentation-mode="add"
-                                    aria-pressed="true">Add</button>
-                                <button type="button" class="toolbar-button" data-segmentation-mode="remove"
-                                    aria-pressed="false">Remove</button>
-                                <button type="button" class="toolbar-button" data-segmentation-mode="inspect"
-                                    aria-pressed="false">Inspect</button>
-                            </div>
-                            <button type="button" id="segmentationUndoButton" class="toolbar-button">Undo</button>
-                            <button type="button" id="segmentationRedoButton" class="toolbar-button">Redo</button>
-                            <button type="button" id="toggleSegmentationMaskButton" class="toolbar-button"
-                                aria-pressed="true">Mask On</button>
+                        <div class="segmentation-viewer-stage">
+                            <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="mx-auto w-4/5"></canvas>
                         </div>
                         <div id="segmentationStats" class="stats-strip" aria-live="polite">
                             <span>Detected: --</span>
@@ -394,8 +382,20 @@
                             <span>Removed artifacts: --</span>
                             <span>Recentered: --</span>
                         </div>
-                        <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="mx-auto w-4/5"></canvas>
                     </div>
+                    <aside id="segmentationToolbar" class="segmentation-tools-sidebar"
+                        aria-label="Segmentation tools">
+                        <div class="segmented-control" role="group" aria-label="Edit mode">
+                            <button type="button" class="toolbar-button active" data-segmentation-mode="add"
+                                aria-pressed="true">Add</button>
+                            <button type="button" class="toolbar-button" data-segmentation-mode="remove"
+                                aria-pressed="false">Remove</button>
+                        </div>
+                        <button type="button" id="segmentationUndoButton" class="toolbar-button">Undo</button>
+                        <button type="button" id="segmentationRedoButton" class="toolbar-button">Redo</button>
+                        <button type="button" id="toggleSegmentationMaskButton" class="toolbar-button"
+                            aria-pressed="true">Mask On</button>
+                    </aside>
                 </div>
 
                 <div class="flex justify-between items-center mt-8">
@@ -457,32 +457,20 @@
                 <div id="markerAutoStatus" class="marker-auto-status" aria-live="polite">
                     Marker core placement will be checked after gridding runs.
                 </div>
-                <section id="reviewPanel" class="review-panel review-panel-collapsed" aria-live="polite">
-                    <div class="review-panel-header">
-                        <div class="review-panel-title">
-                            <h2>Review Queue <span id="reviewIssueCount" class="review-count-badge">0</span></h2>
-                            <p id="reviewSummary">No issues detected yet.</p>
-                        </div>
-                        <div class="review-actions">
-                            <button type="button" id="toggleReviewPanelButton" class="toolbar-button"
-                                aria-expanded="false">Open Review</button>
-                            <button type="button" id="previousIssueButton" class="toolbar-button">Previous</button>
-                            <button type="button" id="nextIssueButton" class="toolbar-button">Next</button>
-                            <button type="button" id="resolveIssueButton" class="toolbar-button">Resolve</button>
-                            <button type="button" id="resolveAllIssuesButton" class="toolbar-button">Resolve All</button>
-                        </div>
-                    </div>
-                    <div id="reviewIssueDrawer" class="review-issue-drawer hidden">
-                        <ul id="reviewIssueList" class="review-issue-list"></ul>
-                    </div>
-                </section>
-
                 <div class="workspace-layout gridding-workspace">
-                    <!-- Sidebar -->
-                    <aside id="gridding-sidebar"
+                    <div class="workspace-sidebar-column">
+                        <button type="button" id="griddingSidebarIcon"
+                            class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle"
+                            onclick="toggleSidebarGridding()" aria-controls="gridding-sidebar"
+                            aria-expanded="false" aria-label="Show gridding parameters" title="Parameters">
+                            <span class="panel-toggle-icon" aria-hidden="true">
+                                <span></span><span></span><span></span>
+                            </span>
+                        </button>
+                        <aside id="gridding-sidebar"
                         class="w-1/3 sm:w-full md:w-1/4 lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
-                        <form id="hyperparameters-form" class="space-y-6 gridding-sidebar-content" novalidate>
-                            <div class="text-xl font-semibold mb-4 parameters-header">
+                        <form id="hyperparameters-form" class="space-y-2 gridding-sidebar-content" novalidate>
+                            <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
                                 <h2 class="title">Configure Parameters</h2>
                                 <div class="window-controls">
                                     <button type="button" class="close-button" onclick="toggleSidebarGridding()">×</button>
@@ -490,30 +478,30 @@
                             </div>
 
                             <!-- Image Parameters Section -->
-                            <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                <legend class="font-semibold text-l text-gray-900 mb-4">Image Parameters</legend>
-                                <div class="flex-col space-y-4 mt-2">
+                            <fieldset class="p-2 bg-gray-100 rounded-lg shadow-sm">
+                                <legend class="font-semibold text-l text-gray-900">Image Parameters</legend>
+                                <div class="flex-col space-y-4 mb-2">
                                     <label for="userRadius" class="block">
                                         Core Radius: <output id="radiusValue" for="userRadius">20</output>
                                     </label>
-                                    <input type="range" id="userRadius" name="userRadius" min="1" max="100" value="20"
+                                    <input type="range" id="userRadius" class="mt-2 mb-2" name="userRadius" min="1" max="100" value="20"
                                         class="w-full">
                                 </div>
                             </fieldset>
                             <!-- Traveling Algorithm Section -->
-                            <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm Parameters
+                            <fieldset class="p-2 bg-gray-100 rounded-lg shadow-sm">
+                                <legend class="font-semibold text-l text-gray-900">Traveling Algorithm Parameters
                                 </legend>
-                                <div class="flex-col space-y-4 mt-2">
+                                <div class="flex-col space-y-4 mb-2">
                                     <label for="originAngle" title="Rotation of the image in degrees">
                                         Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
                                     </label>
-                                    <input type="range" id="originAngle" name="originAngle" min="-90" max="90" value="0"
+                                    <input type="range" id="originAngle" class="mt-2 mb-2" name="originAngle" min="-90" max="90" value="0"
                                         class="w-full">
                                 </div>
                             </fieldset>
                             <fieldset>
-                                <legend class="font-semibold text-l text-gray-900 mb-4">Display Parameters</legend>
+                                <legend class="font-semibold text-l text-gray-900 mb-2">Display Parameters</legend>
                                 <!-- Check box for whether adjacent cores should be connected by lines -->
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
@@ -615,37 +603,12 @@
                             <button type="button" id="apply-hyperparameters"
                                 class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Apply</button>
                         </form>
-                    </aside>
+                        </aside>
+                    </div>
 
                     <!-- Main Content -->
                     <main class="viewer-panel mx-auto w-full">
                         <!-- Main content goes here -->
-                        <button type="button" class="mobile-workspace-controls-toggle"
-                            data-mobile-controls-target="griddingToolbar" aria-controls="griddingToolbar"
-                            aria-expanded="false">Show tools</button>
-                        <div id="griddingToolbar"
-                            class="viewer-toolbar gridding-toolbar mobile-controls-panel mobile-controls-collapsed"
-                            aria-label="Gridding tools">
-                            <button type="button" id="griddingSidebarIcon"
-                                class="toolbar-button parameterSidebar workspace-panel-toggle"
-                                onclick="toggleSidebarGridding()" aria-controls="gridding-sidebar"
-                                aria-expanded="false">
-                                <span class="panel-toggle-icon" aria-hidden="true">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </span>
-                                <span>Parameters</span>
-                            </button>
-                            <button type="button" id="toolbarAddCoreButton" class="toolbar-button">Add Core</button>
-                            <button type="button" id="zoomInButton" class="toolbar-button">Zoom In</button>
-                            <button type="button" id="zoomOutButton" class="toolbar-button">Zoom Out</button>
-                            <button type="button" id="fitImageButton" class="toolbar-button">Fit</button>
-                            <button type="button" id="toggleGridLabelsButton" class="toolbar-button"
-                                aria-pressed="true">Labels On</button>
-                            <button type="button" id="toggleGridLinesButton" class="toolbar-button"
-                                aria-pressed="true">Lines On</button>
-                        </div>
                         <div class="viewer-scroll" id="main-container">
                             <!-- Image Viewer or other main content -->
                             <div id="griddingStatus" class="workspace-status-panel" role="status"
@@ -706,10 +669,24 @@
                             </form>
                         </div>
                     </main>
+
+                    <aside id="reviewPanel" class="review-panel review-sidebar" aria-live="polite">
+                        <div class="review-panel-header">
+                            <div class="review-panel-title">
+                                <h2>Review Queue <span id="reviewIssueCount" class="review-count-badge">0</span></h2>
+                                <p id="reviewSummary">No issues detected yet.</p>
+                            </div>
+                            <button type="button" id="minimizeReviewPanelButton" class="review-minimize-button"
+                                aria-expanded="true" aria-label="Minimize review panel" title="Minimize review panel">−</button>
+                        </div>
+                        <div id="reviewIssueDrawer" class="review-issue-drawer">
+                            <ul id="reviewIssueList" class="review-issue-list"></ul>
+                        </div>
+                    </aside>
                 </div>
 
 
-                <section style="padding-top: 10px;">
+                <section style="padding-top: 4px;">
                     <h2 class="text-lg font-semibold">Core Color Legend</h2>
                     <div class="flex flex-wrap justify-around">
                         <div class="flex items-center m-2">
@@ -790,13 +767,23 @@
 
 
                 <div class="virtual-grid-layout">
-                    <aside id="virtual-grid-sidebar"
+                    <div class="virtual-grid-sidebar-column">
+                        <button type="button" id="virtualGridSidebarIcon"
+                            class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle"
+                            onclick="toggleSidebarVirtual()" aria-controls="virtual-grid-sidebar"
+                            aria-expanded="true" aria-label="Toggle metadata editor" title="Metadata">
+                            <span class="panel-toggle-icon" aria-hidden="true">
+                                <span></span><span></span><span></span>
+                            </span>
+                            <span>Metadata</span>
+                        </button>
+                        <aside id="virtual-grid-sidebar"
                         class="w-full md:w-2/3 lg:w-1/3 bg-gray-50 p-4 rounded-lg shadow-lg mr-2 overflow-y-auto"
-                        style="max-height: 90vh;">
-                        <div class="flex justify-between items-center">
+                        >
+                        <div class="workspace-sidebar-header flex justify-between items-center">
                             <h2 class="text-lg md:text-xl font-semibold">Edit Metadata</h2>
-                            <button class="close-button" style="display:none"
-                                onclick="toggleSidebarVirtual()">×</button>
+                            <button type="button" class="close-button metadata-sidebar-close"
+                                onclick="toggleSidebarVirtual()" aria-label="Close metadata editor">×</button>
                         </div>
                         <form id="editMetadataForm" class="mt-4" novalidate>
                             Please select a core to begin editing.
@@ -825,7 +812,8 @@
                             <button type="button" id="applyVirtualGridSettings"
                                 class="mt-4 w-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 transition duration-150 ease-in-out">Apply</button>
                         </fieldset>
-                    </aside>
+                        </aside>
+                    </div>
 
 
                     <!-- Virtual Grid Display and Interaction -->
@@ -839,18 +827,6 @@
                                     <strong data-status-title>Virtual grid is not ready yet</strong>
                                     <span data-status-detail>Proceed from gridding to build the core preview grid.</span>
                                 </div>
-                                <button type="button" id="virtualGridSidebarIcon"
-                                    class="toolbar-button parameterSidebar workspace-panel-toggle virtual-panel-toggle"
-                                    onclick="toggleSidebarVirtual()" aria-controls="virtual-grid-sidebar"
-                                    aria-expanded="true">
-                                    <span class="panel-toggle-icon" aria-hidden="true">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </span>
-                                    <span>Metadata</span>
-                                </button>
-
                                 <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"
                                     class="w-full"></canvas>
                                 <!-- Put other virtual grid related content here -->

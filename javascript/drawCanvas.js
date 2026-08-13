@@ -315,7 +315,7 @@ function handleCanvasClick(event) {
   );
   const editMode = window.segmentationEditMode || "add";
 
-  if (editMode === "inspect") {
+  if (editMode === "inspect" || editMode === "none") {
     return;
   }
 
@@ -380,7 +380,7 @@ function addCore(x, y) {
   window.preprocessedCores = preprocessCores(window.properties);
   recordAction({ type: "add", core: newCore });
   redrawCanvas();
-  updatePropertiesDownloadLink();
+  // updatePropertiesDownloadLink();
 }
 
 // Function to remove the nearest core
@@ -392,7 +392,7 @@ function removeCore(x, y) {
     recordAction({ type: "remove", core: removedCore });
     redrawCanvas();
   }
-  updatePropertiesDownloadLink();
+  // updatePropertiesDownloadLink();
 }
 
 // Function to record actions for undo/redo
@@ -457,15 +457,29 @@ function drawProperties(ctx, properties) {
     ctx.arc(prop.x, prop.y, 5, 0, 2 * Math.PI);
     ctx.fillStyle = "blue";
     ctx.fill();
+
+    if (prop === window.focusedSegmentationReviewProperty) {
+      const highlightRadius = Math.max(12, (prop.radius || 10) * 1.25);
+      ctx.beginPath();
+      ctx.arc(prop.x, prop.y, highlightRadius, 0, 2 * Math.PI);
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = Math.max(4, highlightRadius * 0.09);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(prop.x, prop.y, highlightRadius + 8, 0, 2 * Math.PI);
+      ctx.strokeStyle = "rgba(220, 38, 38, 0.9)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
   });
 }
 
-async function processPredictions(predictions) {
+async function processPredictions(predictions, targetWidth, targetHeight) {
   const resizedPredictions = tf.tidy(() => {
     const clippedPredictions = predictions.clipByValue(0, 1);
     return tf.image.resizeBilinear(
       clippedPredictions,
-      [1024, 1024]
+      [targetHeight, targetWidth]
     ).squeeze();
   });
   const data = await resizedPredictions.data();
@@ -473,6 +487,48 @@ async function processPredictions(predictions) {
   resizedPredictions.dispose();
 
   return { data, width, height };
+}
+
+function drawProbabilityHeatmap(ctx, mask, alpha, width, height) {
+  if (!mask || alpha <= 0) return;
+
+  const heatmapCanvas = document.createElement("canvas");
+  const heatmapCtx = heatmapCanvas.getContext("2d");
+  heatmapCanvas.width = width;
+  heatmapCanvas.height = height;
+  const heatmapImage = heatmapCtx.createImageData(width, height);
+
+  const sourceWidth = mask.width || width;
+  const sourceHeight = mask.height || height;
+  const scaleX = width <= sourceWidth ? 1 : sourceWidth / width;
+  const scaleY = height <= sourceHeight ? 1 : sourceHeight / height;
+
+  for (let y = 0; y < height; y++) {
+    const sourceY = Math.min(sourceHeight - 1, Math.floor(y * scaleY));
+    for (let x = 0; x < width; x++) {
+      const sourceX = Math.min(sourceWidth - 1, Math.floor(x * scaleX));
+      const probability = Math.max(
+        0,
+        Math.min(1, mask.data[sourceY * sourceWidth + sourceX] || 0)
+      );
+      const offset = (y * width + x) * 4;
+      heatmapImage.data[offset] = Math.round(
+        255 * Math.min(1, probability * 2)
+      );
+      heatmapImage.data[offset + 1] = Math.round(
+        255 * (1 - Math.abs(probability * 2 - 1))
+      );
+      heatmapImage.data[offset + 2] = Math.round(
+        255 * Math.min(1, (1 - probability) * 2)
+      );
+      heatmapImage.data[offset + 3] = 255;
+    }
+  }
+
+  heatmapCtx.putImageData(heatmapImage, 0, 0);
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(heatmapCanvas, 0, 0);
+  ctx.globalAlpha = 1;
 }
 
 function drawMask(ctx, mask, alpha, width, height) {
@@ -571,9 +627,24 @@ async function visualizeSegmentationResults(
 
   ctx.drawImage(originalImage, 0, 0, width, height);
 
-  const segmentationOutput = await processPredictions(predictions);
+  const showProbabilityHeatmap =
+    document.getElementById("probabilityHeatmapToggle")?.checked &&
+    window.neuralNetworkResult;
+  const displayedPredictions = showProbabilityHeatmap
+    ? window.neuralNetworkResult
+    : predictions;
+  const geometry = window.segmentationGeometry || {};
+  const segmentationOutput = await processPredictions(
+    displayedPredictions,
+    geometry.trainingWidth || 1024,
+    geometry.trainingHeight || 1024
+  );
 
-  drawMask(ctx, segmentationOutput, alpha, width, height);
+  if (showProbabilityHeatmap) {
+    drawProbabilityHeatmap(ctx, segmentationOutput, alpha, width, height);
+  } else {
+    drawMask(ctx, segmentationOutput, alpha, width, height);
+  }
   drawProperties(ctx, properties);
 
   addSegmentationCanvasEventListeners(canvas);
@@ -1026,6 +1097,15 @@ function drawCore(core, index = -1) {
 
   if (core.needsReview) {
     overlayElement.classList.add("needs-review");
+  }
+
+  if (
+    core === window.focusedGridReviewCore ||
+    (window.focusedGridReviewCore &&
+      Number(core.row) === Number(window.focusedGridReviewCore.row) &&
+      Number(core.col) === Number(window.focusedGridReviewCore.col))
+  ) {
+    overlayElement.classList.add("review-focus-target");
   }
 
   if (document.getElementById("flagMisalignmentCheckbox").checked) {
@@ -3407,6 +3487,7 @@ async function initiateDownload(
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(downloadLink.href)
   } else if (window.uploadedImageFileType === "ndpi") {
     // Construct the URL for the imageboxv2 API
     const imageUrl = encodeURIComponent(svsImageURL); // Ensure the URL is properly encoded
@@ -3450,12 +3531,12 @@ async function initiateDownload(
 const coreContainers = [];
 
 function adjustSidebarHeight() {
-  const virtualGrid = document.getElementById("VirtualGrid");
   const sidebar = document.getElementById("virtual-grid-sidebar");
 
-  if (virtualGrid && sidebar) {
-    const virtualGridHeight = virtualGrid.offsetHeight; // Get the current height of the VirtualGrid
-    sidebar.style.height = `${virtualGridHeight}px`; // Set the sidebar's height to match
+  if (sidebar) {
+    // The flex layout now stretches the editor to the available grid height.
+    // Remove any legacy inline height so it can follow its parent responsively.
+    sidebar.style.removeProperty("height");
   }
 }
 

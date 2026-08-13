@@ -1,4 +1,5 @@
 import Imagebox3 from "https://cdn.jsdelivr.net/gh/episphere/imagebox3/imagebox3.mjs"
+import { createTileSource } from "https://prafulb.github.io/WSITileSource/wsiTileSource.js"
 
 let imagebox3Instance;
 const numWorkers = Math.max(
@@ -43,4 +44,21 @@ export const getRegionFromWSI = async (imageURL, tileParams) => {
   const imageTile = await imagebox3Instance.getTile( tileX, tileY, tileWidth, tileHeight, tileSize )
   return imageTile
 
+}
+
+export const createImageboxTileSource = async (imageURL) => {
+  let numWorkers = Math.min(Math.floor(window.navigator.hardwareConcurrency/2), 2)
+  await createImagebox3Instance(imageURL)
+
+  let tileSources = {}
+  try {
+      tileSources = await createTileSource(imageURL, numWorkers, { tileSize: 256 })
+  }
+  catch (e) {
+      console.error(e)
+      alert("An error occurred while loading the image. Please check the web browser's Console for more information.")
+      return undefined
+  }
+  console.log(tileSources)
+  return tileSources
 }

@@ -30,7 +30,7 @@ import {
   visualizeSegmentationResults,
 } from "./core_detection.js";
 
-import { getWSIInfo, getPNGFromWSI, getRegionFromWSI } from "./wsi.js";
+import { getWSIInfo, getPNGFromWSI, getRegionFromWSI, createImageboxTileSource } from "./wsi.js";
 
 const MAX_DIMENSION_FOR_DOWNSAMPLING = 1024;
 const SAMPLE_IMAGE_URL =
@@ -214,121 +214,122 @@ function installOpenSeadragonDecodeShim() {
   openSeadragonDecodeShimInstalled = true;
 }
 
-function createImageboxTileSource(imageUrl, imageInfo) {
-  const tileSize = 512;
-  const width = Math.max(1, Math.round(imageInfo.width));
-  const height = Math.max(1, Math.round(imageInfo.height));
-  const maxLevel = Math.ceil(Math.log2(Math.max(width, height)));
-  const tileSource = new OpenSeadragon.TileSource({
-    width,
-    height,
-    tileSize,
-    tileOverlap: 0,
-    minLevel: 0,
-    maxLevel,
-  });
+// function createImageboxTileSource(imageUrl, imageInfo) {
 
-  tileSource.getTileUrl = function (level, x, y) {
-    return `${level}/${x}_${y}`;
-  };
+//   // const tileSize = 512;
+//   // const width = Math.max(1, Math.round(imageInfo.width));
+//   // const height = Math.max(1, Math.round(imageInfo.height));
+//   // const maxLevel = Math.ceil(Math.log2(Math.max(width, height)));
+//   // const tileSource = new OpenSeadragon.TileSource({
+//   //   width,
+//   //   height,
+//   //   tileSize,
+//   //   tileOverlap: 0,
+//   //   minLevel: 0,
+//   //   maxLevel,
+//   // });
 
-  tileSource.hasTransparency = function () {
-    return false;
-  };
+//   // tileSource.getTileUrl = function (level, x, y) {
+//   //   return `${level}/${x}_${y}`;
+//   // };
 
-  const finishBlankTile = (context, request, blankWidth = tileSize, blankHeight = tileSize) => {
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(blankWidth));
-    canvas.height = Math.max(1, Math.round(blankHeight));
-    const image = new Image();
-    image.onload = () => context.finish(image, request);
-    image.onerror = () =>
-      context.finish(null, request, "Imagebox3 fallback tile failed to load.");
-    image.src = canvas.toDataURL("image/png");
-  };
+//   // tileSource.hasTransparency = function () {
+//   //   return false;
+//   // };
 
-  tileSource.downloadTileStart = function (context) {
-    const tile = context.tile;
-    const levelScale = this.getLevelScale(tile.level);
-    const scaledWidth = this.dimensions.x * levelScale;
-    const scaledHeight = this.dimensions.y * levelScale;
-    const scaledTileX = tile.x * tileSize;
-    const scaledTileY = tile.y * tileSize;
-    const scaledTileWidth = Math.min(tileSize, scaledWidth - scaledTileX);
-    const scaledTileHeight = Math.min(tileSize, scaledHeight - scaledTileY);
-    const request = context.src;
+//   // const finishBlankTile = (context, request, blankWidth = tileSize, blankHeight = tileSize) => {
+//   //   const canvas = document.createElement("canvas");
+//   //   canvas.width = Math.max(1, Math.round(blankWidth));
+//   //   canvas.height = Math.max(1, Math.round(blankHeight));
+//   //   const image = new Image();
+//   //   image.onload = () => context.finish(image, request);
+//   //   image.onerror = () =>
+//   //     context.finish(null, request, "Imagebox3 fallback tile failed to load.");
+//   //   image.src = canvas.toDataURL("image/png");
+//   // };
 
-    if (scaledTileWidth <= 0 || scaledTileHeight <= 0) {
-      finishBlankTile(context, request);
-      return;
-    }
+//   // tileSource.downloadTileStart = function (context) {
+//   //   const tile = context.tile;
+//   //   const levelScale = this.getLevelScale(tile.level);
+//   //   const scaledWidth = this.dimensions.x * levelScale;
+//   //   const scaledHeight = this.dimensions.y * levelScale;
+//   //   const scaledTileX = tile.x * tileSize;
+//   //   const scaledTileY = tile.y * tileSize;
+//   //   const scaledTileWidth = Math.min(tileSize, scaledWidth - scaledTileX);
+//   //   const scaledTileHeight = Math.min(tileSize, scaledHeight - scaledTileY);
+//   //   const request = context.src;
 
-    const tileLeft = Math.max(0, Math.floor(scaledTileX / levelScale));
-    const tileTop = Math.max(0, Math.floor(scaledTileY / levelScale));
-    const tileRight = Math.min(
-      width,
-      Math.ceil((scaledTileX + scaledTileWidth) / levelScale)
-    );
-    const tileBottom = Math.min(
-      height,
-      Math.ceil((scaledTileY + scaledTileHeight) / levelScale)
-    );
+//   //   if (scaledTileWidth <= 0 || scaledTileHeight <= 0) {
+//   //     finishBlankTile(context, request);
+//   //     return;
+//   //   }
 
-    if (tileRight <= tileLeft || tileBottom <= tileTop) {
-      finishBlankTile(context, request, scaledTileWidth, scaledTileHeight);
-      return;
-    }
+//   //   const tileLeft = Math.max(0, Math.floor(scaledTileX / levelScale));
+//   //   const tileTop = Math.max(0, Math.floor(scaledTileY / levelScale));
+//   //   const tileRight = Math.min(
+//   //     width,
+//   //     Math.ceil((scaledTileX + scaledTileWidth) / levelScale)
+//   //   );
+//   //   const tileBottom = Math.min(
+//   //     height,
+//   //     Math.ceil((scaledTileY + scaledTileHeight) / levelScale)
+//   //   );
 
-    const tileParams = {
-      tileX: tileLeft,
-      tileY: tileTop,
-      tileWidth: tileRight - tileLeft,
-      tileHeight: tileBottom - tileTop,
-      tileSize: Math.max(
-        1,
-        Math.ceil(Math.max(scaledTileWidth, scaledTileHeight))
-      ),
-    };
-    context.userData = context.userData || {};
-    context.userData.abortRequested = false;
+//   //   if (tileRight <= tileLeft || tileBottom <= tileTop) {
+//   //     finishBlankTile(context, request, scaledTileWidth, scaledTileHeight);
+//   //     return;
+//   //   }
 
-    getRegionFromWSI(imageUrl, tileParams)
-      .then((imageResponse) => coerceImageResponseToBlob(imageResponse))
-      .then((blob) => {
-        if (context.userData.abortRequested) {
-          context.finish(null, request, "Tile load aborted.");
-          return;
-        }
+//   //   const tileParams = {
+//   //     tileX: tileLeft,
+//   //     tileY: tileTop,
+//   //     tileWidth: tileRight - tileLeft,
+//   //     tileHeight: tileBottom - tileTop,
+//   //     tileSize: Math.max(
+//   //       1,
+//   //       Math.ceil(Math.max(scaledTileWidth, scaledTileHeight))
+//   //     ),
+//   //   };
+//   //   context.userData = context.userData || {};
+//   //   context.userData.abortRequested = false;
 
-        const objectUrl = URL.createObjectURL(blob);
-        const image = new Image();
-        image.onload = () => {
-          URL.revokeObjectURL(objectUrl);
-          context.finish(image, request);
-        };
-        image.onerror = image.onabort = () => {
-          URL.revokeObjectURL(objectUrl);
-          context.finish(null, request, "Imagebox3 tile image failed to load.");
-        };
-        image.src = objectUrl;
-      })
-      .catch((error) => {
-        console.warn(
-          `Imagebox3 tile request failed for ${request}; using a blank tile.`,
-          error
-        );
-        finishBlankTile(context, request, scaledTileWidth, scaledTileHeight);
-      });
-  };
+//   //   getRegionFromWSI(imageUrl, tileParams)
+//   //     .then((imageResponse) => coerceImageResponseToBlob(imageResponse))
+//   //     .then((blob) => {
+//   //       if (context.userData.abortRequested) {
+//   //         context.finish(null, request, "Tile load aborted.");
+//   //         return;
+//   //       }
 
-  tileSource.downloadTileAbort = function (context) {
-    if (context.userData) {
-      context.userData.abortRequested = true;
-    }
-  };
+//   //       const objectUrl = URL.createObjectURL(blob);
+//   //       const image = new Image();
+//   //       image.onload = () => {
+//   //         URL.revokeObjectURL(objectUrl);
+//   //         context.finish(image, request);
+//   //       };
+//   //       image.onerror = image.onabort = () => {
+//   //         URL.revokeObjectURL(objectUrl);
+//   //         context.finish(null, request, "Imagebox3 tile image failed to load.");
+//   //       };
+//   //       image.src = objectUrl;
+//   //     })
+//   //     .catch((error) => {
+//   //       console.warn(
+//   //         `Imagebox3 tile request failed for ${request}; using a blank tile.`,
+//   //         error
+//   //       );
+//   //       finishBlankTile(context, request, scaledTileWidth, scaledTileHeight);
+//   //     });
+//   // };
 
-  return tileSource;
-}
+//   // tileSource.downloadTileAbort = function (context) {
+//   //   if (context.userData) {
+//   //     context.userData.abortRequested = true;
+//   //   }
+//   // };
+
+//   // return tileSource;
+// }
 
 const bindOnce = (element, eventName, handler, bindingName = eventName) => {
   if (!element) {
@@ -470,6 +471,10 @@ function updateSegmentationStats() {
     createTextElement("span", `Rescued: ${diagnostics.rescued ?? "--"}`),
     createTextElement(
       "span",
+      `Otsu/grid: ${rescueStats.otsuGridRescued || 0}`
+    ),
+    createTextElement(
+      "span",
       `Removed artifacts: ${getRemovedArtifactCount(rescueStats)}`
     ),
     createTextElement("span", `Recentered: ${rescueStats.recentered || 0}`),
@@ -489,21 +494,98 @@ function collectReviewIssues() {
     });
   }
 
-  (window.sortedCoresData || []).forEach((core, index) => {
-    if (core.needsReview || core.offGridMarker) {
+  const gridCores = window.sortedCoresData || [];
+  const matchedReviewCoreIndexes = new Set();
+
+  if (gridCores.length > 0) {
+    const scale = Number.isFinite(window.scalingFactor) && window.scalingFactor > 0
+      ? window.scalingFactor
+      : 1;
+    const rescueProperties = (window.properties || []).filter(
+      (property) =>
+        property.needsReview ||
+        property.detectionMethod === "otsu-grid-rescue"
+    );
+
+    rescueProperties.forEach((property) => {
+      const targetX = property.x / scale;
+      const targetY = property.y / scale;
+      let closestIndex = -1;
+      let closestDistance = Infinity;
+
+      gridCores.forEach((core, index) => {
+        if (core.isImaginary || core.isMarker) {
+          return;
+        }
+
+        const distance = Math.hypot(core.x - targetX, core.y - targetY);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      const maximumMatchDistance = Math.max(
+        10,
+        ((property.radius || 10) * 2.5) / scale
+      );
+      if (closestIndex < 0 || closestDistance > maximumMatchDistance) {
+        return;
+      }
+
+      const core = gridCores[closestIndex];
+      matchedReviewCoreIndexes.add(closestIndex);
       issues.push({
         type: "core",
-        title: core.offGridMarker
-          ? `Off-grid marker ${core.row + 1 || "?"},${core.col + 1 || "?"}`
-          : `Review core ${core.row + 1 || "?"},${core.col + 1 || "?"}`,
-        detail: core.offGridMarker
-          ? "Off-grid marker kept separate from the main row/column lattice."
-          : "Needs review after automatic row/column assignment.",
+        title: `Otsu/grid candidate ${core.row + 1 || "?"},${core.col + 1 || "?"}`,
+        detail: "Inferred from tissue evidence at a missing grid position. Select to inspect it.",
+        core,
+        property,
+        index: closestIndex,
+      });
+    });
+  }
+
+  gridCores.forEach((core, index) => {
+    if (
+      !matchedReviewCoreIndexes.has(index) &&
+      (core.needsReview || core.offGridMarker)
+    ) {
+      const isOtsuGridRescue = core.detectionMethod === "otsu-grid-rescue";
+      issues.push({
+        type: "core",
+        title: isOtsuGridRescue
+          ? `Otsu/grid candidate ${core.row + 1 || "?"},${core.col + 1 || "?"}`
+          : core.offGridMarker
+            ? `Off-grid marker ${core.row + 1 || "?"},${core.col + 1 || "?"}`
+            : `Review core ${core.row + 1 || "?"},${core.col + 1 || "?"}`,
+        detail: isOtsuGridRescue
+          ? "Inferred from tissue evidence at a missing grid position. Select to inspect it."
+          : core.offGridMarker
+            ? "Off-grid marker kept separate from the main row/column lattice."
+            : "Needs review after automatic row/column assignment.",
         core,
         index,
       });
     }
   });
+
+  if (gridCores.length === 0) {
+    (window.properties || []).forEach((property, index) => {
+      if (
+        property.needsReview ||
+        property.detectionMethod === "otsu-grid-rescue"
+      ) {
+        issues.push({
+          type: "property",
+          title: `Otsu/grid candidate ${issues.length + 1}`,
+          detail: `Inferred near image position (${Math.round(property.x)}, ${Math.round(property.y)}). Select to inspect it.`,
+          property,
+          index,
+        });
+      }
+    });
+  }
 
   return issues
     .map((issue) => ({
@@ -531,23 +613,21 @@ function getReviewIssueKey(issue) {
     ].join(":");
   }
 
+  if (issue.type === "property") {
+    const property = issue.property || {};
+    return [
+      "property",
+      property.detectionMethod || "review",
+      Math.round(property.x || 0),
+      Math.round(property.y || 0),
+    ].join(":");
+  }
+
   return `${issue.type}:${issue.index}:${issue.title}`;
 }
 
 function setReviewControlsState() {
-  const hasIssues = currentReviewIssues.length > 0;
-  [
-    "previousIssueButton",
-    "nextIssueButton",
-    "resolveIssueButton",
-    "resolveAllIssuesButton",
-    "toggleReviewPanelButton",
-  ].forEach((buttonId) => {
-    const button = getElement(buttonId);
-    if (button) {
-      button.disabled = !hasIssues;
-    }
-  });
+  // Per-item controls are rendered with their corresponding review issues.
 }
 
 function renderReviewPanel() {
@@ -585,14 +665,13 @@ function renderReviewPanel() {
     resolveButton.type = "button";
     resolveButton.className = "review-issue-resolve";
     resolveButton.dataset.resolveIndex = `${index}`;
-    resolveButton.textContent = "Resolve";
+    resolveButton.textContent = "✅";
+    resolveButton.setAttribute("aria-label", `Resolve ${issue.title}`);
+    resolveButton.title = `Resolve ${issue.title}`;
 
     item.append(focusButton, resolveButton);
     list.appendChild(item);
   });
-  if (currentReviewIssues.length === 0) {
-    toggleReviewPanel(false);
-  }
   setReviewControlsState();
 }
 
@@ -609,7 +688,17 @@ function focusReviewIssue(index) {
     item.classList.toggle("active", itemIndex === currentReviewIssueIndex);
   });
 
-  if (issue.core && window.viewer) {
+  document
+    .querySelectorAll(".core-overlay-for-gridding.review-focus-target")
+    .forEach((overlay) => overlay.classList.remove("review-focus-target"));
+
+  const viewerIsReady =
+    issue.core &&
+    window.viewer &&
+    window.viewer.world?.getItemCount?.() > 0;
+
+  if (viewerIsReady) {
+    window.focusedGridReviewCore = issue.core;
     const point = new OpenSeadragon.Point(issue.core.x, issue.core.y);
     window.viewer.viewport.panTo(
       window.viewer.viewport.imageToViewportCoordinates(point),
@@ -620,7 +709,14 @@ function focusReviewIssue(index) {
       null,
       false
     );
+
+    const overlay = document.querySelector(
+      `[data-core-index="${issue.index}"]`
+    );
+    overlay?.classList.add("review-focus-target");
   } else if (issue.property) {
+    window.focusedSegmentationReviewProperty = issue.property;
+    redrawSegmentationPreviewOnly();
     getElement("segmentationResultsCanvas")?.scrollIntoView({
       block: "center",
       behavior: "smooth",
@@ -629,6 +725,15 @@ function focusReviewIssue(index) {
 }
 
 function clearCoreReviewFlag(issue) {
+  if (issue?.type === "property" && issue.property) {
+    issue.property.needsReview = false;
+    if (window.focusedSegmentationReviewProperty === issue.property) {
+      window.focusedSegmentationReviewProperty = null;
+      redrawSegmentationPreviewOnly();
+    }
+    return;
+  }
+
   if (issue?.type !== "core" || !issue.core) {
     return;
   }
@@ -636,11 +741,17 @@ function clearCoreReviewFlag(issue) {
   if (issue.core.needsReview) {
     issue.core.needsReview = false;
   }
+  if (issue.property?.needsReview) {
+    issue.property.needsReview = false;
+  }
+  if (window.focusedGridReviewCore === issue.core) {
+    window.focusedGridReviewCore = null;
+  }
 
   const overlay = document.querySelector(
     `[data-core-index="${issue.index}"]`
   );
-  overlay?.classList.remove("needs-review");
+  overlay?.classList.remove("needs-review", "review-focus-target");
 }
 
 function resolveReviewIssue(index = currentReviewIssueIndex) {
@@ -665,19 +776,24 @@ function resolveAllReviewIssues() {
 
 function toggleReviewPanel(forceOpen = null) {
   const panel = getElement("reviewPanel");
-  const drawer = getElement("reviewIssueDrawer");
-  const button = getElement("toggleReviewPanelButton");
+  const button = getElement("minimizeReviewPanelButton");
 
-  if (!panel || !drawer || !button) {
+  if (!panel || !button) {
     return;
   }
 
   const shouldOpen =
-    forceOpen === null ? panel.classList.contains("review-panel-collapsed") : forceOpen;
-  panel.classList.toggle("review-panel-collapsed", !shouldOpen);
-  drawer.classList.toggle("hidden", !shouldOpen);
+    forceOpen === null
+      ? panel.classList.contains("review-sidebar-minimized")
+      : forceOpen;
+  panel.classList.toggle("review-sidebar-minimized", !shouldOpen);
   button.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
-  button.textContent = shouldOpen ? "Close Review" : "Open Review";
+  button.setAttribute(
+    "aria-label",
+    shouldOpen ? "Minimize review panel" : "Restore review panel"
+  );
+  button.title = shouldOpen ? "Minimize review panel" : "Restore review panel";
+  button.textContent = shouldOpen ? "−" : "‹";
 }
 
 // Helper functions to abstract operations
@@ -1319,13 +1435,78 @@ async function redrawSegmentationPreviewOnly() {
   );
 }
 
+function setupWorkspaceSidebarHeightSync() {
+  if (window.workspaceSidebarHeightSyncInitialized) {
+    return;
+  }
+  window.workspaceSidebarHeightSyncInitialized = true;
+
+  const desktopQuery = window.matchMedia("(min-width: 901px)");
+  const sidebarPairs = [
+    ["segmentation-sidebar", "segmentationResultsCanvas"],
+    ["gridding-sidebar", "osdViewer"],
+    ["virtual-grid-sidebar", "virtualGridCanvas"],
+  ];
+
+  const syncHeights = () => {
+    sidebarPairs.forEach(([sidebarId, imageId]) => {
+      const sidebar = getElement(sidebarId);
+      const image = getElement(imageId);
+      const column = sidebar?.parentElement;
+      const toggle = column?.querySelector(".workspace-sidebar-trigger");
+
+      if (!sidebar || !image || !column) {
+        return;
+      }
+
+      if (!desktopQuery.matches) {
+        column.style.removeProperty("height");
+        column.style.removeProperty("max-height");
+        sidebar.style.removeProperty("height");
+        sidebar.style.removeProperty("max-height");
+        return;
+      }
+
+      const imageHeight = Math.round(image.getBoundingClientRect().height);
+      if (imageHeight <= 0) {
+        return;
+      }
+
+      const columnStyles = window.getComputedStyle(column);
+      const gap = parseFloat(columnStyles.rowGap || columnStyles.gap) || 0;
+      const toggleHeight = toggle?.getBoundingClientRect().height || 0;
+      const sidebarHeight = Math.max(0, imageHeight - toggleHeight - gap);
+
+      column.style.height = `${imageHeight}px`;
+      column.style.maxHeight = `${imageHeight}px`;
+      sidebar.style.height = `${sidebarHeight}px`;
+      sidebar.style.maxHeight = `${sidebarHeight}px`;
+    });
+  };
+
+  const resizeObserver = new ResizeObserver(syncHeights);
+  sidebarPairs.forEach(([, imageId]) => {
+    const image = getElement(imageId);
+    if (image) {
+      resizeObserver.observe(image);
+    }
+  });
+  desktopQuery.addEventListener("change", syncHeights);
+  window.addEventListener("resize", syncHeights);
+  requestAnimationFrame(syncHeights);
+}
+
 function setupUiEnhancements() {
   setupMobileWorkspaceControls();
+  setupWorkspaceSidebarHeightSync();
 
   document.querySelectorAll("[data-segmentation-mode]").forEach((button) => {
-    bindOnce(button, "click", () =>
-      setSegmentationMode(button.dataset.segmentationMode)
-    );
+    bindOnce(button, "click", () => {
+      const requestedMode = button.dataset.segmentationMode;
+      setSegmentationMode(
+        window.segmentationEditMode === requestedMode ? "none" : requestedMode
+      );
+    });
   });
   setSegmentationMode(window.segmentationEditMode || "add");
 
@@ -1351,6 +1532,10 @@ function setupUiEnhancements() {
     applySegmentationPreset(event.currentTarget.value);
   });
 
+  bindOnce(getElement("probabilityHeatmapToggle"), "change", async () => {
+    await redrawSegmentationPreviewOnly();
+  });
+
   bindOnce(getElement("loadSampleImageBtn"), "click", () => {
     const imageUrlInput = getElement("imageUrlInput");
     if (imageUrlInput) {
@@ -1370,29 +1555,13 @@ function setupUiEnhancements() {
     bindOnce(getElement(inputId), "input", markSegmentationParametersDirty, "dirty");
   });
 
-  bindOnce(getElement("toolbarAddCoreButton"), "click", () => {
-    getElement("osdViewerAddCoreBtn")?.click();
-  });
-  bindOnce(getElement("zoomInButton"), "click", () => {
-    window.viewer?.viewport.zoomBy(1.25);
-    window.viewer?.viewport.applyConstraints();
-  });
-  bindOnce(getElement("zoomOutButton"), "click", () => {
-    window.viewer?.viewport.zoomBy(0.8);
-    window.viewer?.viewport.applyConstraints();
-  });
-  bindOnce(getElement("fitImageButton"), "click", () => {
-    window.viewer?.viewport.goHome();
-  });
-  bindOnce(getElement("toggleGridLabelsButton"), "click", (event) => {
-    const button = event.currentTarget;
+  const toggleGridLabels = (button) => {
     const labelsAreOn = button.getAttribute("aria-pressed") !== "false";
     button.setAttribute("aria-pressed", labelsAreOn ? "false" : "true");
     button.textContent = labelsAreOn ? "Labels Off" : "Labels On";
     getElement("osdViewer")?.classList.toggle("hide-core-labels", labelsAreOn);
-  });
-  bindOnce(getElement("toggleGridLinesButton"), "click", (event) => {
-    const button = event.currentTarget;
+  };
+  const toggleGridLines = (button) => {
     const linesAreOn = button.getAttribute("aria-pressed") !== "false";
     const checkbox = getElement("connectCoresCheckbox");
     if (checkbox) {
@@ -1403,22 +1572,13 @@ function setupUiEnhancements() {
     if (window.sortedCoresData?.length) {
       redrawCoresForTravelingAlgorithm();
     }
-  });
+  };
 
-  bindOnce(getElement("previousIssueButton"), "click", () => {
-    focusReviewIssue(currentReviewIssueIndex - 1);
-  });
-  bindOnce(getElement("nextIssueButton"), "click", () => {
-    focusReviewIssue(currentReviewIssueIndex + 1);
-  });
-  bindOnce(getElement("toggleReviewPanelButton"), "click", () => {
+  window.toggleGridLabels = toggleGridLabels;
+  window.toggleGridLines = toggleGridLines;
+
+  bindOnce(getElement("minimizeReviewPanelButton"), "click", () => {
     toggleReviewPanel();
-  });
-  bindOnce(getElement("resolveIssueButton"), "click", () => {
-    resolveReviewIssue();
-  });
-  bindOnce(getElement("resolveAllIssuesButton"), "click", () => {
-    resolveAllReviewIssues();
   });
   bindOnce(getElement("reviewIssueList"), "click", (event) => {
     const resolveButton = event.target.closest("[data-resolve-index]");
@@ -2037,7 +2197,7 @@ const initSegmentation = async () => {
           url: imageInfo.url,
         };
       } else if (imageInfo.width && imageInfo.height) {
-        tileSources = createImageboxTileSource(imageInfo.url, imageInfo);
+        tileSources = await createImageboxTileSource(imageInfo.url, imageInfo);
       } else {
         document.getElementById("rawDataLoadingSpinner").style.display = "none";
         alert(
@@ -2054,8 +2214,8 @@ const initSegmentation = async () => {
       window.viewer?.destroy();
       window.viewer = OpenSeadragon({
         id: "osdViewer",
-        visibilityRatio: 1,
-        minZoomImageRatio: 1,
+        visibilityRatio: 0.4,
+        minZoomImageRatio: 0.4,
         tileSources,
         // prefixUrl: "https://episphere.github.io/svs/openseadragon/images/images_new/",
         gestureSettingsMouse: {
@@ -2066,7 +2226,7 @@ const initSegmentation = async () => {
         showZoomControl: false,
         showHomeControl: false,
         showFullPageControl: false,
-        timeout: 120 * 1000,
+        timeout: 120 * 1000
       });
       // viewer.open(tileSources)
       const addCoreDiv = document.createElement("div");
@@ -2081,6 +2241,24 @@ const initSegmentation = async () => {
         "Add a core manually to the gridding viewer."
       );
       addCoreDiv.appendChild(addCoreBtn);
+
+      const labelsButton = document.createElement("button");
+      labelsButton.type = "button";
+      labelsButton.id = "toggleGridLabelsButton";
+      labelsButton.className = "osdViewerControl";
+      labelsButton.setAttribute("aria-pressed", "true");
+      labelsButton.textContent = "Labels On";
+      labelsButton.addEventListener("click", () => window.toggleGridLabels(labelsButton));
+      addCoreDiv.appendChild(labelsButton);
+
+      const linesButton = document.createElement("button");
+      linesButton.type = "button";
+      linesButton.id = "toggleGridLinesButton";
+      linesButton.className = "osdViewerControl";
+      linesButton.setAttribute("aria-pressed", "true");
+      linesButton.textContent = "Lines On";
+      linesButton.addEventListener("click", () => window.toggleGridLines(linesButton));
+      addCoreDiv.appendChild(linesButton);
 
       const autoAssignRowColDiv = document.createElement("div");
       autoAssignRowColDiv.className = "osdViewerControl";
@@ -2224,6 +2402,8 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
 });
 
 async function downloadAllCores(cores) {
+  const {default: JSZip} = await import("https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm")
+
   if (!cores || cores.length === 0) {
     alert("No placed cores are available to export.");
     return;
@@ -2243,48 +2423,84 @@ async function downloadAllCores(cores) {
   const progressText = document.getElementById("progressText");
 
   // Allow user to choose the download folder
-  let downloadFolder;
-  try {
-    downloadFolder = await window.showDirectoryPicker();
-  } catch (error) {
-    console.error("User cancelled folder selection:", error);
-    return;
-  }
+  // let downloadFolder;
+  // try {
+  //   downloadFolder = await window.showDirectoryPicker();
+  // } catch (error) {
+  //   console.error("User cancelled folder selection:", error);
+  //   return;
+  // }
 
-  let selectedFolderHasEntries = false;
-  try {
-    selectedFolderHasEntries = await directoryHasEntries(downloadFolder);
-  } catch (error) {
-    console.warn("Could not verify whether the export folder is empty:", error);
-  }
+  // let selectedFolderHasEntries = false;
+  // try {
+  //   selectedFolderHasEntries = await directoryHasEntries(downloadFolder);
+  // } catch (error) {
+  //   console.warn("Could not verify whether the export folder is empty:", error);
+  // }
 
-  if (selectedFolderHasEntries) {
-    showExportGridWarning(EXPORT_NON_EMPTY_FOLDER_MESSAGE);
-    alert(EXPORT_NON_EMPTY_FOLDER_MESSAGE);
-    return;
-  }
+  // if (selectedFolderHasEntries) {
+  //   showExportGridWarning(EXPORT_NON_EMPTY_FOLDER_MESSAGE);
+  //   alert(EXPORT_NON_EMPTY_FOLDER_MESSAGE);
+  //   return;
+  // }
 
   overlay.style.display = "flex";
   progressBar.style.width = "0%";
   progressText.innerText = "Starting download...";
 
   // Function to download a single core
-  async function downloadCore(core, index) {
-    const topLeftX = parseInt(core.x - core.currentRadius);
-    const topLeftY = parseInt(core.y - core.currentRadius);
-    const tileWidth = parseInt(core.currentRadius * 2);
-    const tileHeight = parseInt(core.currentRadius * 2);
+  // async function downloadCore(core, index) {
+  //   const topLeftX = parseInt(core.x - core.currentRadius);
+  //   const topLeftY = parseInt(core.y - core.currentRadius);
+  //   const tileWidth = parseInt(core.currentRadius * 2);
+  //   const tileHeight = parseInt(core.currentRadius * 2);
 
-    if (window.uploadedImageFileType === "ndpi") {
-      const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(tileWidth, 3192)},/0/default.jpg`;
-      const response = await fetch(apiURL);
-      const blob = await response.blob();
-      const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`;
-      const fileHandle = await downloadFolder.getFileHandle(fileName, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-    } else {
+  //   // if (window.uploadedImageFileType === "ndpi") {
+  //   //   const apiURL = `https://imageboxv2-oxxe7c4jbq-uc.a.run.app/iiif/?format=ndpi&iiif=${svsImageURL}/${topLeftX},${topLeftY},${tileWidth},${tileHeight}/${Math.min(tileWidth, 3192)},/0/default.jpg`;
+  //   //   const response = await fetch(apiURL);
+  //   //   const blob = await response.blob();
+  //   //   const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`;
+  //   //   const fileHandle = await downloadFolder.getFileHandle(fileName, { create: true });
+  //   //   const writable = await fileHandle.createWritable();
+  //   //   await writable.write(blob);
+  //   //   await writable.close();
+  //   // } else {
+  //     const fullResTileParams = {
+  //       tileX: topLeftX,
+  //       tileY: topLeftY,
+  //       tileWidth: tileWidth,
+  //       tileHeight: tileHeight,
+  //       tileSize: tileWidth,
+  //     };
+  //     const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+  //     const blob = await coerceImageResponseToBlob(fullSizeImageResp);
+  //     const blobURL = URL.createObjectURL(blob)
+  //     const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`;
+  //     // const fileHandle = await downloadFolder.getFileHandle(fileName, { create: true });
+  //     // const writable = await fileHandle.createWritable();
+  //     // await writable.write(blob);
+  //     // await writable.close();
+  //     const downloadElement = document.createElement("a")
+  //     downloadElement.setAttribute("href", blobURL)
+  //     downloadElement.setAttribute("download", fileName)
+  //     downloadElement.click()
+  //     URL.revokeObjectURL(blobURL)
+
+  //   // }
+  // }
+
+  async function downloadCoreRow(row, rowCores) {
+
+    const zip = new JSZip();
+
+    for (let index = 0; index < rowCores.length; index++) {
+      const core = rowCores[index];
+
+      const topLeftX = parseInt(core.x - core.currentRadius);
+      const topLeftY = parseInt(core.y - core.currentRadius);
+      const tileWidth = parseInt(core.currentRadius * 2);
+      const tileHeight = parseInt(core.currentRadius * 2);
+
       const fullResTileParams = {
         tileX: topLeftX,
         tileY: topLeftY,
@@ -2292,22 +2508,72 @@ async function downloadAllCores(cores) {
         tileHeight: tileHeight,
         tileSize: tileWidth,
       };
-      const fullSizeImageResp = await getRegionFromWSI(svsImageURL, fullResTileParams);
+
+      const fullSizeImageResp = await getRegionFromWSI(
+        svsImageURL,
+        fullResTileParams
+      );
+
       const blob = await coerceImageResponseToBlob(fullSizeImageResp);
+
       const fileName = `core_${core.row + 1}_${core.col + 1}.jpg`;
-      const fileHandle = await downloadFolder.getFileHandle(fileName, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
+
+      zip.file(fileName, blob);
+
+      const progress = ((index + 1) / rowCores.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressText.innerText =
+        `Preparing row ${row + 1}... (${index + 1}/${rowCores.length})`;
     }
+
+    const zipBlob = await zip.generateAsync({
+      type: "blob",
+      compression: "STORE"
+    });
+
+    const blobURL = URL.createObjectURL(zipBlob);
+
+    const downloadElement = document.createElement("a");
+    downloadElement.href = blobURL;
+    downloadElement.download = `row_${row + 1}.zip`;
+
+    document.body.appendChild(downloadElement);
+    downloadElement.click();
+    downloadElement.remove();
+
+    setTimeout(() => URL.revokeObjectURL(blobURL), 1000);
   }
 
-  // Download cores sequentially
-  for (let index = 0; index < cores.length; index++) {
-    await downloadCore(cores[index], index);
-    const progress = ((index + 1) / cores.length) * 100;
+  // // Download cores sequentially
+  // for (let index = 0; index < cores.length; index++) {
+  //   await downloadCore(cores[index], index);
+  //   const progress = ((index + 1) / cores.length) * 100;
+  //   progressBar.style.width = `${progress}%`;
+  //   progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+  // }
+
+  const coresByRow = cores.reduce((groups, core) => {
+    if (!groups[core.row]) {
+      groups[core.row] = [];
+    }
+
+    groups[core.row].push(core);
+    return groups;
+  }, {});
+
+  const rows = Object.keys(coresByRow)
+    .sort((a, b) => Number(a) - Number(b));
+
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    const row = rows[rowIndex];
+    const rowCores = coresByRow[row];
+
+    await downloadCoreRow(row, rowCores);
+
+    const progress = ((rowIndex + 1) / rows.length) * 100;
     progressBar.style.width = `${progress}%`;
-    progressText.innerText = `Downloading... (${index + 1}/${cores.length})`;
+    progressText.innerText =
+      `Downloading... (${rowIndex + 1}/${rows.length} rows)`;
   }
 
   // Hide progress overlay and reset progress bar

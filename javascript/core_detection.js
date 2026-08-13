@@ -1326,7 +1326,12 @@ function filterCrowdedBridgeArtifacts(properties, typicalRadius) {
   });
 }
 
-function getGridMaskRescueProperties(mask, existingProperties, typicalRadius) {
+function getGridMaskRescueProperties(
+  mask,
+  existingProperties,
+  typicalRadius,
+  options = {}
+) {
   const existing = sanitizeCoreProperties(existingProperties);
   if (existing.length < 12) {
     return [];
@@ -1363,21 +1368,125 @@ function getGridMaskRescueProperties(mask, existingProperties, typicalRadius) {
         return;
       }
 
-      const evidence = getMaskEvidenceAtPoint(mask, candidate.x, candidate.y, typicalRadius * 1.05);
-      if (evidence.ratio < 0.18 || evidence.foregroundPixels < typicalRadius * typicalRadius * 0.45) {
+      const evidence = getMaskEvidenceAtPoint(
+        mask,
+        candidate.x,
+        candidate.y,
+        typicalRadius * (options.evidenceRadiusScale || 1.05)
+      );
+      const minEvidenceRatio = options.minEvidenceRatio || 0.18;
+      const minForegroundFactor = options.minForegroundFactor || 0.45;
+      if (
+        evidence.ratio < minEvidenceRatio ||
+        evidence.foregroundPixels <
+          typicalRadius * typicalRadius * minForegroundFactor
+      ) {
         return;
       }
 
       rescues.push({
         ...candidate,
-        detectionMethod: "grid-mask-rescue",
-        confidence: clampNumber(0.48 + evidence.ratio * 0.45, 0.5, 0.82),
+        detectionMethod: options.method || "grid-mask-rescue",
+        confidence: clampNumber(
+          (options.confidenceBase || 0.48) + evidence.ratio * 0.45,
+          options.minConfidence || 0.5,
+          options.maxConfidence || 0.82
+        ),
         maskEvidence: Number(evidence.ratio.toFixed(3)),
+        needsReview: Boolean(options.needsReview),
       });
     });
   });
 
   return rescues;
+}
+
+function createOtsuTissueMask(imageElement) {
+  const width = imageElement.naturalWidth || imageElement.width;
+  const height = imageElement.naturalHeight || imageElement.height;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+
+  if (!context || width < 1 || height < 1) {
+    return null;
+  }
+
+  context.drawImage(imageElement, 0, 0, width, height);
+  const source = cv.imread(canvas);
+  const gray = new cv.Mat();
+  const blurred = new cv.Mat();
+  const tissueMask = new cv.Mat();
+  const cleanedMask = new cv.Mat();
+  const kernel = cv.Mat.ones(3, 3, cv.CV_8U);
+
+  try {
+    cv.cvtColor(source, gray, cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0, 0, cv.BORDER_DEFAULT);
+    cv.threshold(
+      blurred,
+      tissueMask,
+      0,
+      255,
+      cv.THRESH_BINARY_INV | cv.THRESH_OTSU
+    );
+    cv.morphologyEx(tissueMask, cleanedMask, cv.MORPH_OPEN, kernel);
+    return cleanedMask.clone();
+  } finally {
+    source.delete();
+    gray.delete();
+    blurred.delete();
+    tissueMask.delete();
+    cleanedMask.delete();
+    kernel.delete();
+  }
+}
+
+function addOtsuGridRescues(properties, imageElement) {
+  const existing = sanitizeCoreProperties(properties);
+  const typicalRadius = getDetectionMedianRadius(existing, null);
+
+  if (existing.length < 12 || !Number.isFinite(typicalRadius)) {
+    return { properties: existing, rescuedCount: 0 };
+  }
+
+  let otsuMask = null;
+  try {
+    otsuMask = createOtsuTissueMask(imageElement);
+    if (!otsuMask) {
+      return { properties: existing, rescuedCount: 0 };
+    }
+
+    const rescues = getGridMaskRescueProperties(
+      otsuMask,
+      existing,
+      typicalRadius,
+      {
+        method: "otsu-grid-rescue",
+        minEvidenceRatio: 0.12,
+        minForegroundFactor: 0.28,
+        confidenceBase: 0.42,
+        minConfidence: 0.48,
+        maxConfidence: 0.74,
+        needsReview: true,
+      }
+    );
+    const combined = dedupeCoreProperties(
+      [...existing, ...rescues],
+      typicalRadius
+    );
+    const rescuedCount = combined.filter(
+      (property) => property.detectionMethod === "otsu-grid-rescue"
+    ).length;
+
+    return { properties: combined, rescuedCount };
+  } catch (error) {
+    console.warn("Skipping Otsu/grid rescue", error);
+    return { properties: existing, rescuedCount: 0 };
+  } finally {
+    otsuMask?.delete();
+  }
 }
 
 function getAssignedMaskPixelsForCore(
@@ -1767,56 +1876,33 @@ function segmentationAlgorithm(
 }
 
 async function preprocessAndPredict(imageElement, model) {
-  // Function to crop the image if it's larger than 1024x1024
-  function cropImageIfNecessary(imgElement) {
-    const maxWidth = 1024;
-    const maxHeight = 1024;
-    let [cropWidth, cropHeight] = [imgElement.width, imgElement.height];
-    let [startX, startY] = [0, 0];
+  const trainingWidth = 1024;
+  const trainingHeight = 1024;
+  const modelWidth = 512;
+  const modelHeight = 512;
 
-    if (cropWidth > maxWidth || cropHeight > maxHeight) {
-      startX = cropWidth > maxWidth ? (cropWidth - maxWidth) / 2 : 0;
-      startY = cropHeight > maxHeight ? (cropHeight - maxHeight) / 2 : 0;
-      cropWidth = Math.min(cropWidth, maxWidth);
-      cropHeight = Math.min(cropHeight, maxHeight);
-    }
-
-    const canvasCrop = document.createElement("canvas");
-    canvasCrop.width = cropWidth;
-    canvasCrop.height = cropHeight;
-    const ctxCrop = canvasCrop.getContext("2d");
-    ctxCrop.drawImage(
-      imgElement,
-      startX,
-      startY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      cropWidth,
-      cropHeight
-    );
-
-    return canvasCrop;
+  // Trying to reproduce the training method exactly, but
+  // TODO: need to verify if this resizing from 1024 to 512 is causing issues
+  // re the bottom left being prioritized heavily by the segmentation model.
+  // Not touching now, but possibly a major rework later.
+  function placeImageOnTrainingCanvas(imgElement) {
+    const canvas = document.createElement("canvas");
+    canvas.width = trainingWidth;
+    canvas.height = trainingHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, trainingWidth, trainingHeight);
+    ctx.drawImage(imgElement, 0, 0);
+    return canvas;
   }
 
-  // Function to pad the image to 1024x1024
-  function padImageToSize(canvas, targetWidth, targetHeight) {
-    const canvasPadded = document.createElement("canvas");
-    canvasPadded.width = targetWidth;
-    canvasPadded.height = targetHeight;
-    const ctxPadded = canvasPadded.getContext("2d");
-    ctxPadded.drawImage(canvas, 0, 0, canvas.width, canvas.height);
-    return canvasPadded;
-  }
-
-  // Function to resize the image to 512x512
-  function resizeImage(canvas, targetWidth, targetHeight) {
+  function resizeImage(imgElement, targetWidth, targetHeight) {
     const canvasResized = document.createElement("canvas");
     canvasResized.width = targetWidth;
     canvasResized.height = targetHeight;
     const ctxResized = canvasResized.getContext("2d");
-    ctxResized.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+    ctxResized.imageSmoothingEnabled = false;
+    ctxResized.drawImage(imgElement, 0, 0, targetWidth, targetHeight);
     return canvasResized;
   }
 
@@ -1829,10 +1915,18 @@ async function preprocessAndPredict(imageElement, model) {
       .expandDims();
   }
 
-  const croppedCanvas = cropImageIfNecessary(imageElement);
-  const paddedCanvas = padImageToSize(croppedCanvas, 1024, 1024);
-  const resizedCanvas = resizeImage(paddedCanvas, 512, 512);
+  const trainingCanvas = placeImageOnTrainingCanvas(imageElement);
+  const resizedCanvas = resizeImage(trainingCanvas, modelWidth, modelHeight);
   const tensor = convertCanvasToTensor(resizedCanvas);
+
+  window.segmentationGeometry = {
+    trainingWidth,
+    trainingHeight,
+    modelWidth,
+    modelHeight,
+    imageWidth: imageElement.naturalWidth || imageElement.width,
+    imageHeight: imageElement.naturalHeight || imageElement.height,
+  };
 
   // Predict the mask from the model
   const predictions = await model.predict(tensor);
@@ -1905,10 +1999,13 @@ function tensorToCvMat(tensor) {
 }
 
 function scaleCorePropertiesToImage(properties, imageElement) {
-  const originalWidth = imageElement.width;
-  const originalHeight = imageElement.height;
-  const scaleX = ((originalWidth / 512) * 1024) / originalWidth;
-  const scaleY = ((originalHeight / 512) * 1024) / originalHeight;
+  const originalWidth = imageElement.naturalWidth || imageElement.width;
+  const originalHeight = imageElement.naturalHeight || imageElement.height;
+  const geometry = window.segmentationGeometry || {};
+  const scaleX =
+    (geometry.trainingWidth || 1024) / (geometry.modelWidth || 512);
+  const scaleY =
+    (geometry.trainingHeight || 1024) / (geometry.modelHeight || 512);
   const scaledRadiusMultiplier = Math.sqrt(scaleX * scaleY);
 
   return sanitizeCoreProperties(properties)
@@ -2230,7 +2327,15 @@ async function runSegmentationAndObtainCoreProperties(
     scaledProperties,
     imageElement
   );
-  const finalProperties = tissueFiltered.properties;
+  const otsuGridResult = addOtsuGridRescues(
+    tissueFiltered.properties,
+    imageElement
+  );
+  const finalTissueFiltered = filterNonTissueCoreArtifacts(
+    otsuGridResult.properties,
+    imageElement
+  );
+  const finalProperties = finalTissueFiltered.properties;
   srcMat.delete();
 
   if (
@@ -2243,7 +2348,11 @@ async function runSegmentationAndObtainCoreProperties(
 
   window.coreDetectionRescueStats = {
     ...(window.coreDetectionRescueStats || {}),
-    nonTissueRemoved: tissueFiltered.removedCount,
+    otsuGridRescued: finalProperties.filter(
+      (property) => property.detectionMethod === "otsu-grid-rescue"
+    ).length,
+    nonTissueRemoved:
+      tissueFiltered.removedCount + finalTissueFiltered.removedCount,
   };
   window.properties = finalProperties;
   window.thresholdedPredictions = thresholdedPredictions;
