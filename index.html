@@ -4,7 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tissue Microarray De-Arraying Tool</title>
+    <title>TMA-Grid | Tissue Microarray De-Arraying Tool</title>
+    <meta name="description"
+        content="TMA-Grid is a free, serverless web application for tissue microarray de-arraying: segment cores, build the virtual grid, edit metadata, and export cores from whole-slide images in your browser.">
+    <meta name="theme-color" content="#1d4ed8">
+    <link rel="icon" type="image/webp" href="./icons/Logo.webp">
+    <meta property="og:title" content="TMA-Grid | Tissue Microarray De-Arraying Tool">
+    <meta property="og:description"
+        content="Segment, grid, and export tissue microarray cores from whole-slide images, entirely in your browser.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://episphere.github.io/tma-grid/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
     <link href="./style2.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
@@ -28,17 +40,17 @@
                         <img src="./icons/Logo.webp" alt="" class="brand-logo">
                     </span>
                     <span class="brand-copy">
-                        <span class="app-title">TMA-Grid</span>
+                        <h1 class="app-title">TMA-Grid</h1>
                         <span class="app-subtitle">Tissue microarray de-arraying</span>
                     </span>
                 </a>
                 <!-- Desktop Navigation Menu -->
                 <nav class="app-nav hidden md:flex" aria-label="Primary navigation">
                     <a href="./" class="app-nav-link active">Home</a>
-                    <a href="https://github.com/episphere/tma-grid" class="app-nav-link">GitHub</a>
-                    <a href="https://github.com/episphere/tma-grid/issues" class="app-nav-link">Issues</a>
-                    <a href="https://youtu.be/miajqyw4BVk" class="app-nav-link">Tutorial</a>
-                    <a href="#" class="app-nav-link">Manuscript</a>
+                    <a href="https://github.com/episphere/tma-grid" class="app-nav-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://github.com/episphere/tma-grid/issues" class="app-nav-link" target="_blank" rel="noopener noreferrer">Issues</a>
+                    <a href="https://youtu.be/miajqyw4BVk" class="app-nav-link" target="_blank" rel="noopener noreferrer">Tutorial</a>
+                    <a href="https://link.springer.com/article/10.1186/s12859-026-06638-2" class="app-nav-link" target="_blank" rel="noopener noreferrer">Manuscript</a>
                 </nav>
                 <div class="app-actions">
                     <button id="helpButton" class="help-button hidden md:inline-flex" type="button">Help</button>
@@ -57,10 +69,10 @@
                 <!-- Mobile Dropdown Menu -->
                 <div id="navMenuMobile" class="app-mobile-menu hidden">
                     <a href="./" class="app-mobile-link">Home</a>
-                    <a href="https://github.com/episphere/tma-grid" class="app-mobile-link">GitHub</a>
-                    <a href="https://github.com/episphere/tma-grid/issues" class="app-mobile-link">Issues</a>
-                    <a href="https://youtu.be/miajqyw4BVk" class="app-mobile-link">Tutorial</a>
-                    <a href="#" class="app-mobile-link">Manuscript</a>
+                    <a href="https://github.com/episphere/tma-grid" class="app-mobile-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://github.com/episphere/tma-grid/issues" class="app-mobile-link" target="_blank" rel="noopener noreferrer">Issues</a>
+                    <a href="https://youtu.be/miajqyw4BVk" class="app-mobile-link" target="_blank" rel="noopener noreferrer">Tutorial</a>
+                    <a href="https://link.springer.com/article/10.1186/s12859-026-06638-2" class="app-mobile-link" target="_blank" rel="noopener noreferrer">Manuscript</a>
                     <button id="helpButtonMobile" class="app-mobile-link mobile-help-button" type="button">Help</button>
                 </div>
             </div>
@@ -116,7 +128,7 @@
             <section id="upload" class="py-2 ">
 
                 <div class="instructions-container space-y-4">
-                    <button class="close-instructions text-right">✕</button>
+                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
                     <h2 class="text-xl font-semibold">Uploading an Image</h2>
                     <p>
                         Start by uploading an <span class="span-file-type">.svs</span>, <span
@@ -185,12 +197,12 @@
 
                             </div>
                             <div id="file-info" class="hidden width-90-middle">
-                                <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
+                                <img src="./icons/image-file-icon.svg" alt="" id="file-icon" class="file-icon">
                                 <div id="file-details">
-                                    <span id="file-name">screenshot.png</span>
-                                    <span id="file-size">(2MB)</span>
+                                    <span id="file-name"></span>
+                                    <span id="file-size"></span>
                                 </div>
-                                <button type="button" id="remove-file" class="remove-button">×</button>
+                                <button type="button" id="remove-file" class="remove-button" aria-label="Remove selected file">×</button>
                             </div>
                         </div>
 
@@ -237,17 +249,17 @@
                             <input type="file" id="metadataFile" class="file-input" accept=".csv,.json,.xlsx, .xls"
                                 onchange="displayFileInfo(this)">
                             <label for="metadataFile" class="file-upload-button">Choose files</label>
-                            <button class="skip-button" id="useTemplate" onclick="">Use Template</button>
+                            <button class="skip-button" id="useTemplate" type="button">Use Template</button>
                         </div>
 
                         <div id="metadata-file-info" class="hidden width-90-middle"
                             style="width: 100%; margin-top: 20px;">
-                            <img src="./icons/image-file-icon.svg" alt="File icon" id="file-icon" class="file-icon">
+                            <img src="./icons/image-file-icon.svg" alt="" id="metadata-file-icon" class="file-icon">
                             <div id="metadata-file-details">
                                 <span id="metadata-file-name"></span>
                                 <span id="metadata-file-size"></span>
                             </div>
-                            <button type="button" id="metadata-remove-file" class="remove-button">×</button>
+                            <button type="button" id="metadata-remove-file" class="remove-button" aria-label="Remove metadata file">×</button>
                         </div>
                     </div>
                     <div id="metadataLoadStatus" class="load-status neutral-message" style="display: none;">
@@ -278,17 +290,17 @@
 
             <section id="segmentation" class="hidden py-2">
                 <div class="instructions-container space-y-4">
-                    <button class="close-instructions text-right">✕</button>
+                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
                     <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
                     <p>Adjust segmentation parameters in the left-hand menu to optimize core detection. If necessary,
                         make manual edits to ensure all cores are accurately captured.</p>
                     <p>Once you're satisfied with the segmentation, click the <span
                             class="span-button-proceed">Proceed</span>
-                        button to proceed to the Gridding tab.</p>
+                        button to continue to the Gridding tab.</p>
                 </div>
 
                 <div class="instructions-container mt-4 space-y-4">
-                    <button class="close-instructions text-right">✕</button>
+                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
                     <h2 class="text-xl font-semibold">Interactive Core Editing</h2>
                     <p><kbd>Click</kbd> on the image to add a core.</p>
                     <p><kbd>Shift-click</kbd> a core to remove it.</p>
@@ -310,7 +322,7 @@
                             <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
                                 <h2 class="title">Segmentation Parameters</h2>
                                 <div class="window-controls">
-                                    <button type="button" class="close-button" onclick="toggleSidebarSegmentation()">×</button>
+                                    <button type="button" class="close-button" onclick="toggleSidebarSegmentation()" aria-label="Close segmentation parameters">×</button>
                                 </div>
                             </div>
 
@@ -372,9 +384,9 @@
                         </aside>
                     </div>
                     <div id="ImageSegmentation" class="flex-grow sm:block sm:w-full">
-                        <img id="originalImage" src="#" alt="Original Tissue" class="hidden">
+                        <img id="originalImage" src="#" alt="Original tissue" class="hidden">
                         <div class="segmentation-viewer-stage">
-                            <canvas id="segmentationResultsCanvas" alt="Processed Tissue" class="mx-auto w-4/5"></canvas>
+                            <canvas id="segmentationResultsCanvas" class="mx-auto w-4/5" role="img" aria-label="Processed tissue segmentation result"></canvas>
                         </div>
                         <div id="segmentationStats" class="stats-strip" aria-live="polite">
                             <span>Detected: --</span>
@@ -400,7 +412,7 @@
 
                 <div class="flex justify-between items-center mt-8">
                     <button
-                        class="btn-back px-6 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg">Back</button>
+                        class="btn-back px-6 py-2 font-bold rounded focus:outline-none shadow-lg">Back</button>
                     <button id="finalizeSegmentation"
                         class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg">Proceed</button>
                 </div>
@@ -426,21 +438,21 @@
                 </div>
 
                 <div class="instructions-container mb-4">
-                    <button class="close-instructions text-right">✕</button>
-                    <h2 class="text-lg font-semibold">Gridding Instructions</h2>
+                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
+                    <h2 class="text-xl font-semibold">Gridding Instructions</h2>
                     <p>Open the menu on the left to adjust the gridding settings and key hyperparameters such as
-                        as the image's rotation. Please ensure that the image is rotated correctly. If not, adjust the
+                        the image's rotation. Please ensure that the image is rotated correctly. If not, adjust the
                         image rotation parameter.</p>
                     <p>Once you're satisfied with the gridding, click the <span
                             class="span-button-proceed">Proceed</span>
-                        button to proceed to the Virtual Grid section.</p>
+                        button to continue to the Virtual Grid section.</p>
                     <p><strong>Marker cores are now placed automatically when the surrounding row and column lattice
                             can be inferred confidently.</strong></p>
                 </div>
 
                 <div class="instructions-container mb-4">
-                    <button class="close-instructions text-right">✕</button>
-                    <h2 class="text-lg font-semibold">Editing Cores</h2>
+                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
+                    <h2 class="text-xl font-semibold">Editing Cores</h2>
                     <p>You can move the core by dragging it to the desired location.</p>
                     <p><kbd>Click</kbd> the core, then drag the corner anchor points to resize.</p>
                     <p><kbd>Double-click</kbd> the core to open the edit menu and change its metadata. </p>
@@ -448,8 +460,8 @@
                 </div>
 
                 <div class="instructions-container mb-4">
-                    <button class="close-instructions text-right">✕</button>
-                    <h2 class="text-lg font-semibold">Adding Cores</h2>
+                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
+                    <h2 class="text-xl font-semibold">Adding Cores</h2>
                     <p>Click the <span class="span-button">Add Core</span> button in the top left corner, then drag to
                         set the core's location and size.</p>
                 </div>
@@ -473,7 +485,7 @@
                             <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
                                 <h2 class="title">Configure Parameters</h2>
                                 <div class="window-controls">
-                                    <button type="button" class="close-button" onclick="toggleSidebarGridding()">×</button>
+                                    <button type="button" class="close-button" onclick="toggleSidebarGridding()" aria-label="Close gridding parameters">×</button>
                                 </div>
                             </div>
 
@@ -484,8 +496,7 @@
                                     <label for="userRadius" class="block">
                                         Core Radius: <output id="radiusValue" for="userRadius">20</output>
                                     </label>
-                                    <input type="range" id="userRadius" class="mt-2 mb-2" name="userRadius" min="1" max="100" value="20"
-                                        class="w-full">
+                                    <input type="range" id="userRadius" class="mt-2 mb-2 w-full" name="userRadius" min="1" max="100" value="20">
                                 </div>
                             </fieldset>
                             <!-- Traveling Algorithm Section -->
@@ -496,8 +507,7 @@
                                     <label for="originAngle" title="Rotation of the image in degrees">
                                         Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
                                     </label>
-                                    <input type="range" id="originAngle" class="mt-2 mb-2" name="originAngle" min="-90" max="90" value="0"
-                                        class="w-full">
+                                    <input type="range" id="originAngle" class="mt-2 mb-2 w-full" name="originAngle" min="-90" max="90" value="0">
                                 </div>
                             </fieldset>
                             <fieldset>
@@ -540,7 +550,7 @@
                                     <input type="number" id="gridWidth" name="gridWidth" step="any" value="70">
 
                                     <label for="gamma"
-                                        title="Distance after the the core with the greatest X value to stop the traveling algorithm">Stopping
+                                        title="Distance after the core with the greatest X value to stop the traveling algorithm">Stopping
                                         Distance</label>
                                     <input type="number" id="gamma" name="gamma" step="any" value="60">
 
@@ -550,7 +560,7 @@
                                     <input type="number" id="multiplier" name="multiplier" step="0.1" value="1.5">
 
                                     <label for="imageWidth"
-                                        title="Width of the entire gird used in the traveling algorithm">Image
+                                        title="Width of the entire grid used in the traveling algorithm">Image
                                         Width</label>
                                     <input type="number" id="imageWidth" name="imageWidth" step="any" value="1024">
 
@@ -623,7 +633,7 @@
                             <div class="sidebar-header draggable-area">
                                 <h2 class="title">Edit Core</h2>
                                 <div class="window-controls">
-                                    <button class="close-button" id="closeEditCoreButton">×</button>
+                                    <button class="close-button" id="closeEditCoreButton" aria-label="Close core editor">×</button>
                                 </div>
                             </div>
                             <form id="editCoreForm" class="main-content">
@@ -653,7 +663,7 @@
                                 <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
 
                                 <label for="editAnnotationsInput">Annotations:</label>
-                                <textarea type="text" id="editAnnotationsInput" name="editAnnotationsInput"></textarea>
+                                <textarea id="editAnnotationsInput" name="editAnnotationsInput"></textarea>
 
                                 <div class="radio-group">
                                     <input type="radio" id="editRealInput" name="coreType" value="real">
@@ -687,30 +697,30 @@
 
 
                 <section style="padding-top: 4px;">
-                    <h2 class="text-lg font-semibold">Core Color Legend</h2>
+                    <h2 class="text-xl font-semibold">Core Color Legend</h2>
                     <div class="flex flex-wrap justify-around">
                         <div class="flex items-center m-2">
                             <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-                            <span>Marker cores.</span>
+                            <span>Marker cores</span>
                         </div>
                         <div class="flex items-center m-2">
                             <div class="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-                            <span>Normal cores.</span>
+                            <span>Normal cores</span>
                         </div>
                         <div class="flex items-center m-2">
                             <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-                            <span>Misaligned cores.</span>
+                            <span>Misaligned cores</span>
                         </div>
                         <div class="flex items-center m-2">
                             <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
-                            <span>Imaginary cores.</span>
+                            <span>Imaginary cores</span>
                         </div>
                     </div>
                 </section>
 
                 <div class="flex justify-between items-center mt-8">
                     <button
-                        class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150">Back</button>
+                        class="btn-back px-4 py-2 font-bold rounded focus:outline-none shadow transition-colors duration-150">Back</button>
                     <button id="create-virtual-grid"
                         class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150"
                         data-defer-navigation="true">Proceed</button>
@@ -748,8 +758,8 @@
                 </script>
 
                 <div class="instructions-container space-y-4">
-                    <button class="close-instructions text-right">✕</button>
-                    <h2 class="text-xl font-semibold">Utilizing the virtual grid</h2>
+                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
+                    <h2 class="text-xl font-semibold">Using the Virtual Grid</h2>
                     <p>Select a core in the right-hand grid to edit its metadata. Remember to click <span
                             class="span-button">Update Metadata</span> to save your changes.
                     </p>
@@ -793,12 +803,12 @@
                             <div class="grid grid-cols-1 gap-4">
                                 <label for="horizontalSpacing">Horizontal Spacing:</label>
                                 <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
-                                    value="100">
+                                    value="50">
                                 <output for="horizontalSpacing" id="horizontalSpacingValue">50</output>
 
                                 <label for="verticalSpacing">Vertical Spacing:</label>
                                 <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200"
-                                    value="100">
+                                    value="50">
                                 <output for="verticalSpacing" id="verticalSpacingValue">50</output>
 
                                 <label for="startingX">Starting X:</label>
@@ -854,16 +864,16 @@
 
                 <div class="flex justify-between mt-6">
                     <button
-                        class="btn-back px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded focus:outline-none shadow-lg">
+                        class="btn-back px-4 py-2 font-bold rounded focus:outline-none shadow-lg">
                         Back
                     </button>
 
                     <div class="flex flex-col sm:flex-row gap-4 mt-4">
                         <button type="button"
-                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
+                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow text-base transition duration-150 ease-in-out"
                             id="saveResultsAsJson">Metadata JSON</button>
                         <button type="button"
-                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow px-4 py-2 text-base transition duration-150 ease-in-out"
+                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow text-base transition duration-150 ease-in-out"
                             id="saveResultsAsCsv">Metadata CSV</button>
                         <button id="downloadAllCoresButton"
                             class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Export
@@ -909,12 +919,19 @@
                 <span class="step-label">Export</span>
                 <span class="step-status"></span>
             </button>
-            <!-- ... Add more buttons if you have more steps -->
         </div>
 
 
-        <footer class="py-5">
-            <p class="text-center text-sm text-gray-500">© 2024 Tissue Microarray De-Arraying Tool</p>
+        <footer class="app-footer py-5">
+            <p class="text-center text-sm text-gray-500">© <span id="footerYear">2026</span> TMA-Grid · Tissue Microarray De-Arraying Tool</p>
+            <p class="app-footer-links text-center text-sm">
+                <a href="https://link.springer.com/article/10.1186/s12859-026-06638-2" target="_blank" rel="noopener noreferrer">Manuscript (BMC Bioinformatics, 2026)</a>
+                <span aria-hidden="true">·</span>
+                <a href="https://github.com/episphere/tma-grid" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <span aria-hidden="true">·</span>
+                <a href="https://youtu.be/miajqyw4BVk" target="_blank" rel="noopener noreferrer">Tutorial</a>
+            </p>
+            <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
         </footer>
     </div>
 

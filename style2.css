@@ -3882,3 +3882,167 @@ fieldset.p-6 {
     display: flex !important;
   }
 }
+
+/* ==========================================================================
+   TMA-Grid polish layer (2026-10-14)
+   One consistent visual system, applied last so it wins over the layered
+   rules above: 8px button radius, one primary blue, one success green,
+   neutral Back buttons, visible keyboard focus everywhere, and a real
+   footer. No layout, class, or id changes: JS hooks are untouched.
+   ========================================================================== */
+
+:root {
+  --tma-primary: #1d4ed8;
+  --tma-primary-hover: #1e40af;
+  --tma-success: #15803d;
+  --tma-success-hover: #166534;
+  --tma-ink: #1f2937;
+  --tma-border: #d1d5db;
+  --tma-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.45);
+}
+
+::selection {
+  background: #bfdbfe;
+  color: #111827;
+}
+
+/* The brand title is the page h1; keep it visually identical to the
+   former span (no browser default margin or weight shift). */
+h1.app-title {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Visible keyboard focus. Several components set focus:outline-none in
+   markup; this restores a clear ring for keyboard users only. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+label.browse-button:focus-visible {
+  outline: 2px solid var(--tma-primary);
+  outline-offset: 2px;
+  box-shadow: var(--tma-focus-ring);
+}
+
+/* Primary actions: one blue. Previously Apply appeared as blue-500,
+   blue-600, and var(--primary-color) #3c8fe7 in different panels. */
+#applySegmentation,
+#apply-hyperparameters,
+#applyVirtualGridSettings,
+#downloadAllCoresButton,
+.btn-box-connect,
+.standard-button {
+  background-color: var(--tma-primary);
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: none;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#applySegmentation:hover,
+#apply-hyperparameters:hover,
+#applyVirtualGridSettings:hover,
+#downloadAllCoresButton:hover,
+.btn-box-connect:hover,
+.standard-button:hover {
+  background-color: var(--tma-primary-hover);
+}
+
+/* Proceed and metadata export: one green, one radius. */
+.btn-proceed,
+#saveResultsAsJson,
+#saveResultsAsCsv {
+  background-color: var(--tma-success);
+  border-radius: 8px;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-proceed:hover,
+#saveResultsAsJson:hover,
+#saveResultsAsCsv:hover {
+  background-color: var(--tma-success-hover);
+}
+
+/* Back is navigation, not a destructive action: neutral white button.
+   Overrides the earlier red utilities and the late #be3a3a rule. */
+.btn-back {
+  background: #ffffff;
+  color: var(--tma-ink);
+  border: 1px solid var(--tma-border);
+  border-radius: 8px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-back:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* Icon-only close and remove buttons get a consistent hit area. */
+.close-button,
+.remove-button {
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+/* External nav links carry an arrow so leaving the app is not a surprise. */
+.app-nav-link[target="_blank"]::after,
+.app-mobile-link[target="_blank"]::after {
+  content: "↗";
+  margin-left: 0.3em;
+  font-size: 0.85em;
+  opacity: 0.6;
+}
+
+/* Footer with the paper citation and the same links as the header. */
+.app-footer {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+}
+
+.app-footer-links {
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.app-footer-links a {
+  color: var(--tma-primary);
+  font-weight: 500;
+}
+
+.app-footer-links a:hover {
+  color: var(--tma-primary-hover);
+  text-decoration: underline;
+}
+
+/* Instruction panels: one heading size, calmer body text. */
+.instructions-container h2 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.instructions-container p {
+  color: #374151;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
