@@ -3,6 +3,7 @@
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/+esm";
 
 import { visualizeSegmentationResults } from "./drawCanvas.js";
+import { refineCoreGeometry } from "./core_geometry.js";
 
 function loadOpenCV() {
   return new Promise((resolve, reject) => {
@@ -2335,7 +2336,8 @@ async function runSegmentationAndObtainCoreProperties(
     otsuGridResult.properties,
     imageElement
   );
-  const finalProperties = finalTissueFiltered.properties;
+  const geometryResult = refineCoreGeometry(imageElement, finalTissueFiltered.properties);
+  const finalProperties = geometryResult.properties;
   srcMat.delete();
 
   if (
@@ -2362,6 +2364,7 @@ async function runSegmentationAndObtainCoreProperties(
     rescued: finalProperties.filter((property) => property.detectionMethod)
       .length,
     rescueStats: window.coreDetectionRescueStats || null,
+    imageGeometry: geometryResult.diagnostics,
   };
 
   return [finalProperties, thresholdedPredictions];

@@ -1,0 +1,1368 @@
+{
+  "baseline": {
+    "fixtures": {
+      "test_incomplete_shifted_mask_uses_the_original_image_boundary": {
+        "truth": [
+          {
+            "x": 128,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 256,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 384,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 512,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 640,
+            "y": 160,
+            "radius": 20
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 133,
+              "y": 163,
+              "area": 747.8095251308404,
+              "radius": 15.42838827718412,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 156
+            },
+            {
+              "x": 261,
+              "y": 163,
+              "area": 831.0909609258993,
+              "radius": 16.2648230602334,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 389,
+              "y": 163,
+              "area": 831.0909609258993,
+              "radius": 16.2648230602334,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 517,
+              "y": 163,
+              "area": 831.0909609258993,
+              "radius": 16.2648230602334,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 645,
+              "y": 163,
+              "area": 831.0909609258993,
+              "radius": 16.2648230602334,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 168
+            }
+          ],
+          "elapsed": 251.79999999701977,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 5,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 5.830951894845301,
+            "radius": 4.571611722815881
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 3.7351769397665997
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 3.7351769397665997
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 3.7351769397665997
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 3.7351769397665997
+          }
+        ]
+      },
+      "test_individual_radii_are_preserved": {
+        "truth": [
+          {
+            "x": 128,
+            "y": 180,
+            "radius": 16
+          },
+          {
+            "x": 268,
+            "y": 180,
+            "radius": 22
+          },
+          {
+            "x": 408,
+            "y": 180,
+            "radius": 28
+          },
+          {
+            "x": 548,
+            "y": 180,
+            "radius": 18
+          },
+          {
+            "x": 688,
+            "y": 180,
+            "radius": 25
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 133,
+              "y": 183,
+              "radius": 12.90175425099138,
+              "area": 522.9346306161023,
+              "detectionMethod": "mask-component-rescue",
+              "confidence": 0.56,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 112
+            },
+            {
+              "x": 273,
+              "y": 183,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 413,
+              "y": 183,
+              "area": 1431.9325899311268,
+              "radius": 21.349433241279208,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 312
+            },
+            {
+              "x": 553,
+              "y": 183,
+              "radius": 14.227922061357857,
+              "area": 635.9644326823995,
+              "detectionMethod": "mask-component-rescue",
+              "confidence": 0.56,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 124
+            },
+            {
+              "x": 693,
+              "y": 183,
+              "area": 1133.262216195587,
+              "radius": 18.9928556845359,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 248
+            }
+          ],
+          "elapsed": 119.80000000074506,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 5,
+            "rescued": 2,
+            "rescueStats": {
+              "maskRescued": 2,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 5.830951894845301,
+            "radius": 3.098245749008621
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 6.650566758720792
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 3.772077938642143
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 6.0071443154640995
+          }
+        ]
+      },
+      "test_low_contrast_tissue": {
+        "truth": [
+          {
+            "x": 160,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 300,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 440,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 580,
+            "y": 220,
+            "radius": 22
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 165,
+              "y": 223,
+              "area": 886.3726446103155,
+              "radius": 16.797058540778355,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 188
+            },
+            {
+              "x": 305,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 445,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 585,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            }
+          ],
+          "elapsed": 122.5,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 4,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 5.830951894845301,
+            "radius": 5.202941459221645
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          }
+        ]
+      },
+      "test_nearby_cores_keep_distinct_centers": {
+        "truth": [
+          {
+            "x": 256,
+            "y": 220,
+            "radius": 20
+          },
+          {
+            "x": 298,
+            "y": 220,
+            "radius": 20
+          },
+          {
+            "x": 450,
+            "y": 220,
+            "radius": 20
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 261,
+              "y": 223,
+              "area": 831.0909609258993,
+              "radius": 16.2648230602334,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 303,
+              "y": 223,
+              "area": 775.6215622787905,
+              "radius": 15.712670403551897,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 164
+            },
+            {
+              "x": 455,
+              "y": 223,
+              "area": 775.6215622787905,
+              "radius": 15.712670403551897,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 164
+            }
+          ],
+          "elapsed": 167.89999999850988,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 3,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 3,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 5.830951894845301,
+            "radius": 3.7351769397665997
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.287329596448103
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.287329596448103
+          }
+        ]
+      },
+      "test_partial_tissue_and_internal_holes": {
+        "truth": [
+          {
+            "x": 160,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 300,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 440,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 580,
+            "y": 220,
+            "radius": 22
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 165,
+              "y": 223,
+              "area": 886.3726446103155,
+              "radius": 16.797058540778355,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 188
+            },
+            {
+              "x": 305,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 445,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 585,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            }
+          ],
+          "elapsed": 141.59999999776483,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 4,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 5.830951894845301,
+            "radius": 5.202941459221645
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          }
+        ]
+      },
+      "test_split_tissue_fragments_do_not_become_smaller_cores": {
+        "truth": [
+          {
+            "x": 160,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 300,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 440,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 580,
+            "y": 220,
+            "radius": 22
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 165,
+              "y": 223,
+              "area": 886.3726446103155,
+              "radius": 16.797058540778355,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 188
+            },
+            {
+              "x": 305,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 445,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 585,
+              "y": 223,
+              "area": 941.485570854967,
+              "radius": 17.311388300841898,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "minimum-assigned-mask-circle",
+              "circleAssignedMaskPixels": 204
+            }
+          ],
+          "elapsed": 160.89999999850988,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 4,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 5.830951894845301,
+            "radius": 5.202941459221645
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          },
+          {
+            "center": 5.830951894845301,
+            "radius": 4.688611699158102
+          }
+        ]
+      }
+    },
+    "summary": {
+      "cores": 25,
+      "centerMeanPx": 5.830951894845301,
+      "centerMaxPx": 5.830951894845301,
+      "radiusMeanPx": 4.553805269825068,
+      "radiusMaxPx": 6.650566758720792
+    }
+  },
+  "refined": {
+    "fixtures": {
+      "test_incomplete_shifted_mask_uses_the_original_image_boundary": {
+        "truth": [
+          {
+            "x": 128,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 256,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 384,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 512,
+            "y": 160,
+            "radius": 20
+          },
+          {
+            "x": 640,
+            "y": 160,
+            "radius": 20
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 127.5,
+              "y": 159.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 156
+            },
+            {
+              "x": 255.5,
+              "y": 159.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 383.5,
+              "y": 159.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 511.5,
+              "y": 159.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 639.5,
+              "y": 159.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 168
+            }
+          ],
+          "elapsed": 306.80000000074506,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 5,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            },
+            "imageGeometry": {
+              "method": "opencv-original-image",
+              "attempted": 5,
+              "fitted": 5,
+              "retained": 0,
+              "candidates": 10,
+              "contourFitted": 5,
+              "elapsedMs": 43
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          }
+        ]
+      },
+      "test_individual_radii_are_preserved": {
+        "truth": [
+          {
+            "x": 128,
+            "y": 180,
+            "radius": 16
+          },
+          {
+            "x": 268,
+            "y": 180,
+            "radius": 22
+          },
+          {
+            "x": 408,
+            "y": 180,
+            "radius": 28
+          },
+          {
+            "x": 548,
+            "y": 180,
+            "radius": 18
+          },
+          {
+            "x": 688,
+            "y": 180,
+            "radius": 25
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 127.5,
+              "y": 179.5,
+              "radius": 16.45315647125244,
+              "area": 850.4491051566381,
+              "detectionMethod": "mask-component-rescue",
+              "confidence": 0.56,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 112
+            },
+            {
+              "x": 267.5,
+              "y": 179.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 407.5,
+              "y": 179.5,
+              "area": 2546.97984969522,
+              "radius": 28.47330093383789,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 312
+            },
+            {
+              "x": 547.5,
+              "y": 179.5,
+              "radius": 18.402612686157227,
+              "area": 1063.9196844837434,
+              "detectionMethod": "mask-component-rescue",
+              "confidence": 0.56,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 124
+            },
+            {
+              "x": 687.5,
+              "y": 179.5,
+              "area": 2041.2342676474723,
+              "radius": 25.490097045898438,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 248
+            }
+          ],
+          "elapsed": 156.69999999925494,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 5,
+            "rescued": 2,
+            "rescueStats": {
+              "maskRescued": 2,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            },
+            "imageGeometry": {
+              "method": "opencv-original-image",
+              "attempted": 5,
+              "fitted": 5,
+              "retained": 0,
+              "candidates": 10,
+              "contourFitted": 5,
+              "elapsedMs": 22
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.4531564712524414
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.4733009338378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.40261268615722656
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.4900970458984375
+          }
+        ]
+      },
+      "test_low_contrast_tissue": {
+        "truth": [
+          {
+            "x": 160,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 300,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 440,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 580,
+            "y": 220,
+            "radius": 22
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 159.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 188
+            },
+            {
+              "x": 299.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 439.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 579.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 204
+            }
+          ],
+          "elapsed": 158,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 4,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            },
+            "imageGeometry": {
+              "method": "opencv-original-image",
+              "attempted": 4,
+              "fitted": 4,
+              "retained": 0,
+              "candidates": 8,
+              "contourFitted": 4,
+              "elapsedMs": 23
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          }
+        ]
+      },
+      "test_nearby_cores_keep_distinct_centers": {
+        "truth": [
+          {
+            "x": 256,
+            "y": 220,
+            "radius": 20
+          },
+          {
+            "x": 298,
+            "y": 220,
+            "radius": 20
+          },
+          {
+            "x": 450,
+            "y": 220,
+            "radius": 20
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 255.5,
+              "y": 219.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 168
+            },
+            {
+              "x": 297.5,
+              "y": 219.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 164
+            },
+            {
+              "x": 449.5,
+              "y": 219.5,
+              "area": 1315.436820523374,
+              "radius": 20.46256446838379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 164
+            }
+          ],
+          "elapsed": 164.90000000223517,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 3,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 3,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            },
+            "imageGeometry": {
+              "method": "opencv-original-image",
+              "attempted": 3,
+              "fitted": 3,
+              "retained": 0,
+              "candidates": 6,
+              "contourFitted": 3,
+              "elapsedMs": 26
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46256446838378906
+          }
+        ]
+      },
+      "test_partial_tissue_and_internal_holes": {
+        "truth": [
+          {
+            "x": 160,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 300,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 440,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 580,
+            "y": 220,
+            "radius": 22
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 159.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 188
+            },
+            {
+              "x": 299.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 439.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 579.5,
+              "y": 219.5,
+              "area": 1585.6257966621263,
+              "radius": 22.46598243713379,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-contour-circle",
+              "circleAssignedMaskPixels": 204
+            }
+          ],
+          "elapsed": 141.30000000074506,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 4,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            },
+            "imageGeometry": {
+              "method": "opencv-original-image",
+              "attempted": 4,
+              "fitted": 4,
+              "retained": 0,
+              "candidates": 8,
+              "contourFitted": 4,
+              "elapsedMs": 23
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.46598243713378906
+          }
+        ]
+      },
+      "test_split_tissue_fragments_do_not_become_smaller_cores": {
+        "truth": [
+          {
+            "x": 160,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 300,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 440,
+            "y": 220,
+            "radius": 22
+          },
+          {
+            "x": 580,
+            "y": 220,
+            "radius": 22
+          }
+        ],
+        "result": {
+          "properties": [
+            {
+              "x": 159.5,
+              "y": 219.5,
+              "area": 1534.3853209100653,
+              "radius": 22.100000381469727,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-hough-gradient",
+              "circleAssignedMaskPixels": 188
+            },
+            {
+              "x": 299.5,
+              "y": 219.5,
+              "area": 1534.3853209100653,
+              "radius": 22.100000381469727,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-hough-gradient",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 439.5,
+              "y": 219.5,
+              "area": 1534.3853209100653,
+              "radius": 22.100000381469727,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-hough-gradient",
+              "circleAssignedMaskPixels": 204
+            },
+            {
+              "x": 579.5,
+              "y": 219.5,
+              "area": 1534.3853209100653,
+              "radius": 22.100000381469727,
+              "confidence": 1,
+              "circleAdjusted": true,
+              "circleAdjustmentMethod": "original-image-hough-gradient",
+              "circleAssignedMaskPixels": 204
+            }
+          ],
+          "elapsed": 160.80000000074506,
+          "diagnostics": {
+            "mode": "fast",
+            "total": 4,
+            "rescued": 0,
+            "rescueStats": {
+              "maskRescued": 0,
+              "relaxedRescued": 0,
+              "mergedSplit": 0,
+              "recentered": 0,
+              "gridRescued": 0,
+              "bridgeRemoved": 0,
+              "isolatedRemoved": 0,
+              "circleAdjusted": 4,
+              "otsuGridRescued": 0,
+              "nonTissueRemoved": 0
+            },
+            "imageGeometry": {
+              "method": "opencv-original-image",
+              "attempted": 4,
+              "fitted": 4,
+              "retained": 0,
+              "candidates": 4,
+              "contourFitted": 0,
+              "elapsedMs": 20
+            }
+          }
+        },
+        "errors": [
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.10000038146972656
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.10000038146972656
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.10000038146972656
+          },
+          {
+            "center": 0.7071067811865476,
+            "radius": 0.10000038146972656
+          }
+        ]
+      }
+    },
+    "summary": {
+      "cores": 25,
+      "centerMeanPx": 0.7071067811865476,
+      "centerMaxPx": 0.7071067811865476,
+      "radiusMeanPx": 0.40454105377197264,
+      "radiusMaxPx": 0.4900970458984375
+    }
+  }
+}

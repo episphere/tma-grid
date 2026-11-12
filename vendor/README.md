@@ -15,3 +15,7 @@ Source: https://github.com/lucide-icons/lucide/tree/0.468.0/icons
 Selection, unchanged-baseline evidence and adaptations: `docs/design/workspace-redesign/REUSE-AUDIT.md`.
 
 The repository attributes preserve vendored bytes and line endings. Whitespace checks are disabled only for the unchanged TissUUmaps factory, which contains upstream trailing whitespace.
+
+Original-image core geometry uses the application's existing `@techstark/opencv-js@4.9.0-release.2` runtime directly. Its native Hough-gradient and minimum-enclosing-circle implementations are unchanged; the host adapter is `javascript/core_geometry.js`. The original OpenCV 4.9.0 Apache-2.0 notice is retained in `opencv/LICENSE`. No second OpenCV runtime is bundled.
+
+Source: https://github.com/opencv/opencv/tree/4.9.0/modules/imgproc/src
