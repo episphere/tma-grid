@@ -99,29 +99,18 @@ function makeElementDraggable(element) {
 
 function positionSidebarNextToCore(event) {
   const sidebar = document.getElementById("editSidebar");
-  const container = document.getElementById("main-container"); // Replace with your container ID
+  const container = sidebar.parentElement;
   sidebar.style.display = "block";
-  // Scroll the sidebar to the top
   sidebar.scrollTop = 0;
-
-  // Get the computed style of the sidebar to access its width and height
-  const sidebarStyle = window.getComputedStyle(sidebar);
-
-  // Get the container's offset from the top-left of the viewport
   const containerRect = container.getBoundingClientRect();
-
-  // Calculate the correct position within the container
-  const cursorXWithinContainer = event.clientX - containerRect.left;
-  const cursorYWithinContainer = event.clientY - containerRect.top;
-
-  // Position the sidebar at the cursor's location within the container
-  // You may want to adjust offsetX and offsetY if you don't want the sidebar to appear directly under the cursor
-  const offsetX = 55; // Horizontal offset from the cursor
-  const offsetY = 75; // Vertical offset from the cursor
-
-  // Apply the positions with the offsets
-  sidebar.style.left = cursorXWithinContainer + offsetX + "px";
-  sidebar.style.top = cursorYWithinContainer + offsetY + "px";
+  const toolbarHeight = container.querySelector(".image-toolbar")?.offsetHeight || 0;
+  sidebar.style.maxHeight = `${Math.max(160, container.clientHeight - toolbarHeight - 24)}px`;
+  const maxLeft = Math.max(12, container.clientWidth - sidebar.offsetWidth - 12);
+  const minTop = toolbarHeight + 12;
+  const maxTop = Math.max(minTop, container.clientHeight - sidebar.offsetHeight - 12);
+  sidebar.style.left = `${Math.max(12, Math.min(event.clientX - containerRect.left + 16, maxLeft))}px`;
+  sidebar.style.top = `${Math.max(minTop, Math.min(event.clientY - containerRect.top + 8, maxTop))}px`;
+  document.getElementById("closeEditCoreButton").focus({ preventScroll: true });
 }
 
 // Add this function to the mouse event listener for the container
@@ -155,15 +144,25 @@ document
     }
   });
 
+// Native full-page mode temporarily detaches these nodes from document.body.
+// Keep the existing editor state available to selection/close handlers there.
+const coreEditForm = document.getElementById("editCoreForm");
+const coreEditSidebar = document.getElementById("editSidebar");
+
+function confirmDiscardCoreEdits() {
+  const form = coreEditForm;
+  if (form.dataset.dirty !== "true") return true;
+  if (!window.confirm("Discard unsaved core edits? Choose Cancel to return and select Save.")) return false;
+  form.dataset.dirty = "false";
+  return true;
+}
+
 function hideSidebar() {
-  const sidebar = document.getElementById("editSidebar");
+  if (!confirmDiscardCoreEdits()) return false;
+  const sidebar = coreEditSidebar;
   sidebar.style.display = "none";
-
-  if (document.getElementById("editAutoUpdateRowsCheckbox").checked == false) {
-    // document.getElementById("editAutoUpdateRowsCheckbox").checked = true;
-    // toggleRowInput();
-  }
-
+  window.viewer?.canvas?.focus({ preventScroll: true });
+  return true;
 }
 
 // Pure function to update HTML element properties
@@ -327,6 +326,12 @@ function resetApplication() {
   window.boxFile = undefined;
   window.boxFileInfo = undefined;
   window.finalSaveData = undefined;
+  const metadataForm = document.getElementById("editMetadataForm");
+  metadataForm.dataset.dirty = "false";
+  metadataForm.replaceChildren(document.createTextNode("Select a core in the grid to edit its metadata."));
+  document.getElementById("metadataEditStatus").textContent = "";
+  document.getElementById("editCoreForm").dataset.dirty = "false";
+  document.getElementById("editSidebar").style.display = "none";
   window.ndpiScalingFactor = undefined;
   // Reset sliders and output elements to their default values
   // resetSlidersAndOutputs();
@@ -359,6 +364,7 @@ export {
   updateSliderUIText,
   positionSidebarNextToCore,
   hideSidebar,
+  confirmDiscardCoreEdits,
   makeElementDraggable,
   showPopup,
   closePopup,

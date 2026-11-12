@@ -1,0 +1,61 @@
+{
+  "tool": "Built-in image_gen",
+  "date": "2026-11-11",
+  "initialPrompt": "image-prompt.txt",
+  "primaryBatch": {
+    "reference": "concept.png plus the corresponding pre-refinement working screen",
+    "canvas": "1568 × 1003",
+    "commonSpecification": "A production-quality desktop UI design target for TMA-Grid. Use the initial generated concept as the visual direction and the working screenshot for real content and available controls. White/cool-gray surfaces, charcoal text, muted teal, crisp Inter typography, readable controls, 4–6px corners, thin borders. A 56px wordmark header with Tutorial and Help, four connected chevron workflow stages, compact stage heading, large task workspace, bottom actions and quiet footer. Preserve real controls and scientific values. Flat pixel surfaces; no perspective, photographic lighting, reflections, cartoon graphics, metric cards or invented capabilities.",
+    "screens": [
+      {
+        "target": "01-open-local.png",
+        "prompt": "Stage 1 active, Local file tab selected before loading an image. Heading Open a tissue microarray. Left image-source panel: Local file / Image URL / Box tabs; dashed drop area; supported formats; Choose image; H&E sample and Load Sample; readiness status; optional metadata import; image/dimension/export summary. Broad empty preview with a small image-outline glyph and No image selected. Continue to segmentation disabled."
+      },
+      {
+        "target": "04-segmentation.png",
+        "prompt": "Stage 2 active, HE_Hamamatsu.tiff. Real two-block H&E image composition and three marker cores, thin teal detection circles. Horizontal Add core / Remove core / Undo / Redo / Mask On toolbar. Right inspector: Default tissue cores preset, opacity 0.20, sensitivity 0.05, minimum area 20, maximum area 3000, Advanced segmentation, Apply segmentation, Detection updated, Manual correction. Real diagnostics Detected 190, Rescued 14, Removed artifacts 5. Back to image and Continue to grid."
+      },
+      {
+        "target": "05-grid-review.png",
+        "prompt": "Stage 3 active, HE_Hamamatsu.tiff. Real slide and scientific circular outlines, row/column labels and amber inferred positions. Toolbar: Add Core, Labels On, Lines On, Auto Row/Col, minus, plus, Fit slide, Full screen. Grid settings: core radius 21, rotation 0, Connect adjacent cores and Flag misaligned cores, Advanced settings, Apply grid settings. Same right column contains scrollable Review queue with 5 issues and monochrome resolve checks. Core-types legend, Back to segmentation, Continue to export."
+      },
+      {
+        "target": "07-export.png",
+        "prompt": "Stage 4 active, HE_Hamamatsu.tiff. Metadata and export heading. Dense real histology thumbnail grid with 16 labeled columns and 13 rows, approximately 208 positions. Right Core metadata inspector with Select a core in the grid to edit its metadata. Bottom actions Back to grid, Metadata JSON, Metadata CSV, Export core images. No fake clinical metadata or unrelated parameter controls."
+      }
+    ]
+  },
+  "variants": [
+    {
+      "screen": "Open image from URL",
+      "prompt": "Use the supplied professional TMA-Grid screen as the exact visual and layout reference. Generate the Image URL tab state of this same screen. Preserve the header, typography, connected chevron workflow bar with stage 1 active, left source-panel width, preview canvas, footer, sample dataset section, optional metadata and bottom disabled Continue button. Change only the source tab to 'Image URL' active and its input area: label 'Direct image URL', a conventional URL input with 'https://storage.googleapis.com/imagebox_test/TMAs/HE_Hamamatsu.tiff', and a neutral 'Open URL' button. The long URL may be horizontally clipped like a real text input. No image has been opened yet, so the preview still says 'No image selected'. Keep the same 1568x1003 composition. Flat pixel surfaces, readable text, no perspective, texture, light effects or invented controls.",
+      "refs": [
+        "targets\\01-open-local.png"
+      ]
+    },
+    {
+      "screen": "Open image from Box",
+      "prompt": "Use the supplied professional TMA-Grid screen as the exact visual and layout reference. Generate the Box tab state of this same screen. Preserve all header, typography, connected chevron workflow bar with stage 1 active, left source-panel width, preview canvas, footer, sample dataset section, optional metadata and bottom disabled Continue button. Change only the source tab to 'Box' active and its input area: plain explanation 'Open a slide from your Box account.' and a conventional neutral 'Connect to Box' button. This is the application's pre-connection state: do not show an invented login form, account information, file list, credentials or successful connection. The empty preview still says 'No image selected'. Same 1568x1003 composition. Flat pixel surfaces, no perspective, texture, light effects or invented controls.",
+      "refs": [
+        "targets\\01-open-local.png"
+      ]
+    },
+    {
+      "screen": "Edit an individual core",
+      "prompt": "Image 1 is the desired TMA-Grid visual system and grid-review screen; image 2 contains the actual current core editor's available fields. Produce the same screen as image 1, with one professional fully visible 320px core-editor popover inside the slide canvas near the selected first core. Preserve the full header, chevron navigation with stage 3 active, image toolbar, right Grid settings / Review queue, footer, real tissue image and bottom actions from image 1. Improve the popover from image 2 so its actions are visible without it spilling below the canvas. Title 'Edit core', small close X. Actual fields only: 'Marker core' unchecked checkbox; Row value 1 and Column value 1 side by side; 'Auto assign column' checkbox; X position 245 and Y position 119 side by side; Radius value '20.10107523773827' full-width field; empty Annotations textarea; 'Normal' selected and 'Missing' unselected radio choices. Bottom buttons 'Save' in muted teal and 'Remove' as restrained neutral outline with dark red text. Readable 14-16px labels, 36px fields, consistent 4px corners and fine borders. A small subtle popup shadow is acceptable. All form contents and both bottom buttons must fit inside this popover and inside the canvas. No dimmed whole-screen overlay. Same 1568x1003 composition; flat crisp pixel UI, no photographic lighting or blur.",
+      "refs": [
+        "targets\\05-grid-review.png",
+        "evidence\\integrated-core-editor-1568.png"
+      ]
+    },
+    {
+      "screen": "Edit core metadata before export",
+      "prompt": "Image 1 is the desired professional TMA-Grid export screen. Image 2 shows the current selected-core metadata inspector, whose content must become usable. Produce the same screen as image 1, with the first core thumbnail selected using a thin teal outline and its metadata editor visible in the right inspector. Preserve header, four chevron steps with Export active, all actual tissue preview tiles, workspace layout, footer and bottom JSON / CSV / Export core images actions from image 1. Right inspector heading 'Core metadata', small selection context 'Core 1, 1'. Show Row 1 and Column 1 fields side by side, and an empty full-width Annotations field. Show two compact closed native disclosure rows: 'Source geometry' (retains x=20580, y=9996, currentRadius=1688.490319970015 inside when opened) and 'Core flags' (retains the existing isImaginary, isMisaligned, isMarker, offGridMarker and needsReview boolean fields inside when opened). Do not invent medical or patient metadata. Below, a neutral full-width 'Add Field' button and muted-teal full-width 'Update Metadata' button, both visible. Keep the inspector clear, 14-16px readable labels, 4px corners and fine gray dividers, consistent with image 1. Same 1568x1003 composition. Flat pixel surfaces, no texture, photographic effects, perspective or blur.",
+      "refs": [
+        "targets\\07-export.png",
+        "evidence\\integrated-export-selected-1568.png"
+      ]
+    }
+  ],
+  "note": "The primary-batch fields above preserve the prompt specification in readable form; the secondary-batch prompts are retained verbatim. Scientific pixels, aspect ratio and enabled/disabled states in the application remain grounded in real data."
+}

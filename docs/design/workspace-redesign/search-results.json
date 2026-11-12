@@ -1,0 +1,42 @@
+[
+  {
+    "query": "scientific image viewer in:name,description,readme stars:>100 pushed:>2025-11-11 topic:microscopy language:JavaScript license:MIT archived:false",
+    "sort": "stars",
+    "count": 0,
+    "items": []
+  },
+  {
+    "query": "whole slide image in:name,description,readme stars:>100 pushed:>2025-11-11 topic:openseadragon language:JavaScript license:BSD-3-Clause archived:false",
+    "sort": "stars",
+    "count": 0,
+    "items": []
+  },
+  {
+    "query": "tissue viewer in:name,description,readme stars:>100 pushed:>2025-11-11 topic:bioimage language:JavaScript license:MIT archived:false",
+    "sort": "stars",
+    "count": 0,
+    "items": []
+  },
+  {
+    "query": "openseadragon in:name,description,readme stars:>0 archived:false",
+    "sort": "stars",
+    "count": 606,
+    "items": [
+      "openseadragon/openseadragon",
+      "simonw/til",
+      "uhub/awesome-javascript",
+      "SmilyOrg/photofield"
+    ]
+  },
+  {
+    "query": "openseadragon in:name,description,readme stars:>0 archived:false",
+    "sort": "updated",
+    "count": 606,
+    "items": [
+      "nirmallab/plexora",
+      "SmilyOrg/photofield",
+      "ryushin01/ryushin01",
+      "Heliumrich/literae"
+    ]
+  }
+]

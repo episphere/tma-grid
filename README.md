@@ -25,6 +25,16 @@ python3 -m http.server 8000
 
 Then open http://localhost:8000/ in a browser.
 
+The workspace has four stages: Open image, Segment cores, Review grid, and Export. The generated screen targets and matching application captures are available in [the screen comparison](docs/design/workspace-redesign/comparison.html). [Source provenance](docs/design/workspace-redesign/REUSE-AUDIT.md) and [validation details](docs/design/workspace-redesign/VALIDATION.md) and the [Nielsen usability audit](docs/design/workspace-redesign/NIELSEN-AUDIT.md) accompany the redesign.
+
+For browser regression checks, install `requirements-dev.txt`, keep the local server running, and run:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+The tests use Microsoft Edge on Windows and load the public Hamamatsu demo over the network. Set `TMA_BASE_URL` for a different local server or `TMA_BROWSER_CHANNEL` for another installed Playwright Chromium channel. Set `TMA_EVIDENCE_DIR` to save screenshots from the browser journeys.
+
 ## Citation
 
 If you use TMA-Grid in your work, please cite the manuscript:

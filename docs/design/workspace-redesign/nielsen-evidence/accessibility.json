@@ -1,0 +1,1471 @@
+{
+  "open-local": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ]
+        ]
+      }
+    ],
+    "passes": 27
+  },
+  "open-url": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ]
+        ]
+      }
+    ],
+    "passes": 29
+  },
+  "open-box": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ]
+        ]
+      }
+    ],
+    "passes": 27
+  },
+  "segment": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ]
+        ]
+      }
+    ],
+    "passes": 27
+  },
+  "core-editor": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ],
+          [
+            "#gridViewerToolbar"
+          ]
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "#minimizeReviewPanelButton"
+          ],
+          [
+            "button[data-resolve-index=\"0\"]"
+          ],
+          [
+            "button[data-resolve-index=\"1\"]"
+          ],
+          [
+            "button[data-resolve-index=\"2\"]"
+          ],
+          [
+            "#gridZoomOut"
+          ],
+          [
+            "#core_overlay_0 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_1 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_2 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_3 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_4 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_5 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_6 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_7 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_8 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_9 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_10 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_11 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_12 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_13 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_14 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_15 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_16 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_17 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_18 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_19 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_20 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_21 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_22 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_23 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_24 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_25 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_26 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_27 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_28 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_29 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_30 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_31 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_32 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_33 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_34 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_35 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_36 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_37 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_38 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_39 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_40 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_41 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_42 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_43 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_44 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_45 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_46 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_47 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_48 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_49 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_50 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_51 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_52 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_53 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_54 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_55 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_56 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_57 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_58 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_59 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_60 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_61 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_62 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_63 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_64 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_65 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_66 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_67 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_68 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_69 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_70 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_71 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_72 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_73 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_74 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_75 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_76 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_77 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_78 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_79 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_80 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_81 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_82 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_83 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_84 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_85 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_86 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_87 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_88 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_89 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_90 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_91 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_92 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_93 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_94 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_95 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_96 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_97 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_98 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_99 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_100 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_101 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_102 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_103 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_104 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_105 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_106 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_107 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_108 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_109 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_110 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_111 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_112 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_113 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_114 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_115 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_116 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_117 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_118 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_119 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_120 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_121 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_122 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_123 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_124 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_125 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_126 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_127 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_128 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_129 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_130 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_131 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_132 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_133 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_134 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_135 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_136 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_137 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_138 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_139 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_140 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_141 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_142 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_143 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_144 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_145 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_146 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_147 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_148 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_149 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_150 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_151 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_152 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_153 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_154 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_155 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_156 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_157 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_158 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_159 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_160 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_161 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_162 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_163 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_164 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_165 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_166 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_167 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_168 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_169 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_170 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_171 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_172 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_173 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_174 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_175 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_176 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_177 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_178 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_179 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_180 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_181 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_182 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_183 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_184 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_185 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_186 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_187 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_188 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_189 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_190 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_191 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_192 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_193 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_194 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_195 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_196 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_197 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_198 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_199 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_200 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_201 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_202 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_203 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_204 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_205 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_206 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_207 > .core-overlay-title-div"
+          ]
+        ]
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "nodes": [
+          [
+            "#minimizeReviewPanelButton"
+          ],
+          [
+            "button[data-resolve-index=\"0\"]"
+          ],
+          [
+            "button[data-resolve-index=\"1\"]"
+          ],
+          [
+            "button[data-resolve-index=\"2\"]"
+          ],
+          [
+            "button[data-resolve-index=\"3\"]"
+          ],
+          [
+            "#gridZoomOut"
+          ],
+          [
+            "#gridZoomIn"
+          ],
+          [
+            "#closeEditCoreButton"
+          ]
+        ]
+      }
+    ],
+    "passes": 30
+  },
+  "grid": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ],
+          [
+            "#gridViewerToolbar"
+          ]
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "nodes": [
+          [
+            "#minimizeReviewPanelButton"
+          ],
+          [
+            "button[data-resolve-index=\"0\"]"
+          ],
+          [
+            "button[data-resolve-index=\"1\"]"
+          ],
+          [
+            "button[data-resolve-index=\"2\"]"
+          ],
+          [
+            "#gridZoomOut"
+          ],
+          [
+            "#core_overlay_0 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_1 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_2 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_3 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_4 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_5 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_6 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_7 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_8 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_9 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_10 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_11 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_12 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_13 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_14 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_15 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_16 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_17 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_18 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_19 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_20 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_21 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_22 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_23 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_24 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_25 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_26 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_27 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_28 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_29 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_30 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_31 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_32 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_33 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_34 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_35 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_36 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_37 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_38 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_39 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_40 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_41 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_42 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_43 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_44 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_45 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_46 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_47 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_48 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_49 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_50 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_51 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_52 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_53 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_54 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_55 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_56 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_57 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_58 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_59 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_60 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_61 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_62 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_63 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_64 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_65 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_66 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_67 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_68 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_69 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_70 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_71 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_72 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_73 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_74 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_75 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_76 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_77 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_78 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_79 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_80 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_81 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_82 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_83 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_84 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_85 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_86 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_87 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_88 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_89 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_90 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_91 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_92 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_93 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_94 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_95 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_96 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_97 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_98 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_99 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_100 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_101 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_102 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_103 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_104 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_105 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_106 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_107 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_108 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_109 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_110 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_111 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_112 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_113 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_114 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_115 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_116 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_117 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_118 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_119 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_120 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_121 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_122 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_123 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_124 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_125 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_126 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_127 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_128 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_129 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_130 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_131 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_132 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_133 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_134 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_135 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_136 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_137 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_138 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_139 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_140 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_141 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_142 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_143 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_144 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_145 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_146 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_147 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_148 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_149 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_150 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_151 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_152 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_153 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_154 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_155 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_156 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_157 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_158 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_159 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_160 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_161 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_162 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_163 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_164 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_165 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_166 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_167 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_168 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_169 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_170 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_171 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_172 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_173 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_174 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_175 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_176 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_177 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_178 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_179 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_180 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_181 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_182 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_183 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_184 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_185 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_186 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_187 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_188 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_189 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_190 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_191 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_192 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_193 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_194 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_195 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_196 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_197 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_198 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_199 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_200 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_201 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_202 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_203 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_204 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_205 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_206 > .core-overlay-title-div"
+          ],
+          [
+            "#core_overlay_207 > .core-overlay-title-div"
+          ]
+        ]
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "nodes": [
+          [
+            "#minimizeReviewPanelButton"
+          ],
+          [
+            "button[data-resolve-index=\"0\"]"
+          ],
+          [
+            "button[data-resolve-index=\"1\"]"
+          ],
+          [
+            "button[data-resolve-index=\"2\"]"
+          ],
+          [
+            "button[data-resolve-index=\"3\"]"
+          ],
+          [
+            "#gridZoomOut"
+          ],
+          [
+            "#gridZoomIn"
+          ]
+        ]
+      }
+    ],
+    "passes": 29
+  },
+  "export": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ]
+        ]
+      }
+    ],
+    "passes": 20
+  },
+  "export-selected": {
+    "version": "4.14.0",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": [
+          [
+            ".carousel-controls"
+          ]
+        ]
+      }
+    ],
+    "passes": 28
+  }
+}

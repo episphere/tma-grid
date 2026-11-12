@@ -1,0 +1,5 @@
+# Preserve licensed upstream files exactly, including their original line endings.
+vendor/** -text
+vendor/README.md text eol=lf
+# The unchanged upstream factory contains intentional existing trailing whitespace.
+vendor/tissuumaps/HTMLElementUtils.js -whitespace

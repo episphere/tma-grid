@@ -1,5 +1,10 @@
 
 *.png
+!docs/design/workspace-redesign/*.png
+!docs/design/workspace-redesign/evidence/*.png
+!docs/design/workspace-redesign/targets/*.png
+!docs/design/workspace-redesign/nielsen-evidence/*.png
+docs/design/workspace-redesign/nielsen-evidence/page@*.webm
 augmented_labels/
 augmented_labels_masks/
 augmented_images/

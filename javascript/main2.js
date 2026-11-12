@@ -5,6 +5,8 @@ import {
   makeElementDraggable,
   getHyperparametersFromUI,
   updateImagePreview,
+  hideSidebar,
+  confirmDiscardCoreEdits,
 } from "./UI.js";
 
 import {
@@ -22,6 +24,7 @@ import {
   obtainHyperparametersAndDrawVirtualGrid,
   undo,
   redo,
+  resetSegmentationHistory,
 } from "./drawCanvas.js";
 
 import {
@@ -400,12 +403,23 @@ function updateUploadSummary(fileType = window.uploadedImageFileType) {
   const nameEl = getElement("uploadSummaryName");
   const dimensionsEl = getElement("uploadSummaryDimensions");
   const capabilityEl = getElement("uploadSummaryCapability");
+  const imageReady = Boolean(window.loadedImg);
+  const imageName = imageReady ? getUploadedFileName() : "No image selected";
+  document.querySelectorAll(".stage-file-context").forEach((context) => {
+    context.textContent = imageName;
+    context.title = imageName;
+    context.hidden = !imageReady;
+  });
+  const continueButton = document.querySelector("#upload .btn-proceed");
+  if (continueButton) continueButton.disabled = !imageReady;
+  const formatLabel = document.querySelector(".preview-format");
+  if (formatLabel) formatLabel.textContent = imageReady ? (fileType || "Image").toUpperCase() : "Whole-slide image";
 
   if (!nameEl || !dimensionsEl || !capabilityEl) {
     return;
   }
 
-  if (!image?.src || image.src.endsWith("#")) {
+  if (!imageReady || !image?.src || image.src.endsWith("#")) {
     nameEl.textContent = "None selected";
     dimensionsEl.textContent = "--";
     capabilityEl.textContent = "Load an image to check support";
@@ -471,12 +485,11 @@ function updateSegmentationStats() {
     createTextElement("span", `Rescued: ${diagnostics.rescued ?? "--"}`),
     createTextElement(
       "span",
-      `Otsu/grid: ${rescueStats.otsuGridRescued || 0}`
-    ),
-    createTextElement(
-      "span",
       `Removed artifacts: ${getRemovedArtifactCount(rescueStats)}`
-    ),
+    )
+  );
+  getElement("segmentationDiagnostics")?.replaceChildren(
+    createTextElement("span", `Otsu/grid: ${rescueStats.otsuGridRescued || 0}`),
     createTextElement("span", `Recentered: ${rescueStats.recentered || 0}`),
     createTextElement("span", `Circle fit: ${rescueStats.circleAdjusted || 0}`)
   );
@@ -537,7 +550,7 @@ function collectReviewIssues() {
       matchedReviewCoreIndexes.add(closestIndex);
       issues.push({
         type: "core",
-        title: `Otsu/grid candidate ${core.row + 1 || "?"},${core.col + 1 || "?"}`,
+        title: `Inferred core ${core.row + 1 || "?"},${core.col + 1 || "?"}`,
         detail: "Inferred from tissue evidence at a missing grid position. Select to inspect it.",
         core,
         property,
@@ -555,7 +568,7 @@ function collectReviewIssues() {
       issues.push({
         type: "core",
         title: isOtsuGridRescue
-          ? `Otsu/grid candidate ${core.row + 1 || "?"},${core.col + 1 || "?"}`
+          ? `Inferred core ${core.row + 1 || "?"},${core.col + 1 || "?"}`
           : core.offGridMarker
             ? `Off-grid marker ${core.row + 1 || "?"},${core.col + 1 || "?"}`
             : `Review core ${core.row + 1 || "?"},${core.col + 1 || "?"}`,
@@ -578,7 +591,7 @@ function collectReviewIssues() {
       ) {
         issues.push({
           type: "property",
-          title: `Otsu/grid candidate ${issues.length + 1}`,
+          title: `Inferred core ${issues.length + 1}`,
           detail: `Inferred near image position (${Math.round(property.x)}, ${Math.round(property.y)}). Select to inspect it.`,
           property,
           index,
@@ -655,6 +668,7 @@ function renderReviewPanel() {
 
     focusButton.type = "button";
     focusButton.className = "review-issue-focus";
+    focusButton.title = issue.detail;
     focusButton.dataset.reviewIndex = `${index}`;
     issueText.append(
       createTextElement("strong", issue.title),
@@ -665,7 +679,7 @@ function renderReviewPanel() {
     resolveButton.type = "button";
     resolveButton.className = "review-issue-resolve";
     resolveButton.dataset.resolveIndex = `${index}`;
-    resolveButton.textContent = "✅";
+    resolveButton.textContent = "✓";
     resolveButton.setAttribute("aria-label", `Resolve ${issue.title}`);
     resolveButton.title = `Resolve ${issue.title}`;
 
@@ -764,6 +778,7 @@ function resolveReviewIssue(index = currentReviewIssueIndex) {
   clearCoreReviewFlag(issue);
   renderReviewPanel();
   focusReviewIssue(Math.min(index, currentReviewIssues.length - 1));
+  getElement("reviewIssueList")?.querySelector(".review-issue-item.active .review-issue-focus")?.focus({ preventScroll: true });
 }
 
 function resolveAllReviewIssues() {
@@ -1132,6 +1147,17 @@ const getInputParameters = () => {
 
 // Event handler for load image from URL
 const handleLoadImageUrlClick = async () => {
+  const urlInput = document.getElementById("imageUrlInput");
+  let parsedUrl;
+  try { parsedUrl = new URL(urlInput.value.trim()); } catch { /* Show the same actionable validation below. */ }
+  if (!parsedUrl || !["https:", "http:"].includes(parsedUrl.protocol)) {
+    urlInput.setAttribute("aria-invalid", "true");
+    urlInput.setAttribute("aria-describedby", "imageLoadStatus");
+    updateStatusMessage("imageLoadStatus", "Enter a complete http:// or https:// image URL, then choose Load image.", "error-message");
+    urlInput.focus();
+    return;
+  }
+  urlInput.removeAttribute("aria-invalid");
   resetApplication();
   resolvedReviewIssueKeys = new Set();
   document.getElementById("fileInput").value = null;
@@ -1394,6 +1420,7 @@ async function segmentImage(initializeParams = false) {
       setApplyStatus("Detection failed. Check parameters and try again.", "error");
     } finally {
       if (thresholdedPredictions && preprocessedCores) {
+        resetSegmentationHistory();
         // Visualize the predictions with the mask overlay and centroids
         await visualizeSegmentationResults(
           originalImageContainer,
@@ -1404,6 +1431,7 @@ async function segmentImage(initializeParams = false) {
         );
         updateSegmentationStats();
         renderReviewPanel();
+        getElement("imageSegmentationTabButton").disabled = false;
         setApplyStatus("Detection updated.", "success");
       }
       // Hide loading spinner
@@ -1435,70 +1463,8 @@ async function redrawSegmentationPreviewOnly() {
   );
 }
 
-function setupWorkspaceSidebarHeightSync() {
-  if (window.workspaceSidebarHeightSyncInitialized) {
-    return;
-  }
-  window.workspaceSidebarHeightSyncInitialized = true;
-
-  const desktopQuery = window.matchMedia("(min-width: 901px)");
-  const sidebarPairs = [
-    ["segmentation-sidebar", "segmentationResultsCanvas"],
-    ["gridding-sidebar", "osdViewer"],
-    ["virtual-grid-sidebar", "virtualGridCanvas"],
-  ];
-
-  const syncHeights = () => {
-    sidebarPairs.forEach(([sidebarId, imageId]) => {
-      const sidebar = getElement(sidebarId);
-      const image = getElement(imageId);
-      const column = sidebar?.parentElement;
-      const toggle = column?.querySelector(".workspace-sidebar-trigger");
-
-      if (!sidebar || !image || !column) {
-        return;
-      }
-
-      if (!desktopQuery.matches) {
-        column.style.removeProperty("height");
-        column.style.removeProperty("max-height");
-        sidebar.style.removeProperty("height");
-        sidebar.style.removeProperty("max-height");
-        return;
-      }
-
-      const imageHeight = Math.round(image.getBoundingClientRect().height);
-      if (imageHeight <= 0) {
-        return;
-      }
-
-      const columnStyles = window.getComputedStyle(column);
-      const gap = parseFloat(columnStyles.rowGap || columnStyles.gap) || 0;
-      const toggleHeight = toggle?.getBoundingClientRect().height || 0;
-      const sidebarHeight = Math.max(0, imageHeight - toggleHeight - gap);
-
-      column.style.height = `${imageHeight}px`;
-      column.style.maxHeight = `${imageHeight}px`;
-      sidebar.style.height = `${sidebarHeight}px`;
-      sidebar.style.maxHeight = `${sidebarHeight}px`;
-    });
-  };
-
-  const resizeObserver = new ResizeObserver(syncHeights);
-  sidebarPairs.forEach(([, imageId]) => {
-    const image = getElement(imageId);
-    if (image) {
-      resizeObserver.observe(image);
-    }
-  });
-  desktopQuery.addEventListener("change", syncHeights);
-  window.addEventListener("resize", syncHeights);
-  requestAnimationFrame(syncHeights);
-}
-
 function setupUiEnhancements() {
   setupMobileWorkspaceControls();
-  setupWorkspaceSidebarHeightSync();
 
   document.querySelectorAll("[data-segmentation-mode]").forEach((button) => {
     bindOnce(button, "click", () => {
@@ -1596,6 +1562,12 @@ function setupUiEnhancements() {
   updateUploadSummary();
   updateSegmentationStats();
   renderReviewPanel();
+  ["fileInput", "metadataFile", "loadImageUrlBtn", "loadSampleImageBtn", "boxLoginBtn"].forEach((id) => {
+    getElement(id).disabled = false;
+  });
+  if (!window.loadedImg) {
+    updateStatusMessage("imageLoadStatus", "Ready to open an image.", "neutral-message");
+  }
 }
 
 function setupMobileWorkspaceControls() {
@@ -2046,11 +2018,26 @@ function bindEventListeners() {
 
   makeElementDraggable(document.getElementById("editSidebar"));
 
+  document.addEventListener("click", (event) => {
+    if (event.target.closest(".carousel-control, .btn-back, #apply-hyperparameters, #create-virtual-grid") &&
+        !confirmDiscardCoreEdits()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && document.getElementById("editSidebar")?.offsetParent) {
+      document.getElementById("closeEditCoreButton").click();
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
   // Close the sidebar
   document.querySelectorAll("#closeEditCoreButton").forEach((button) => {
     button.addEventListener("click", function () {
-      const sidebar = this.closest(".edit-sidebar");
-      sidebar.style.display = "none"; // You can toggle visibility or minimize the sidebar as required
+      if (!hideSidebar()) return;
       window.viewer.currentOverlays.forEach((o) => {
         o.element.classList.remove("selected");
       });
@@ -2087,6 +2074,10 @@ const initSegmentation = async () => {
   document
     .getElementById("loadImageUrlBtn")
     .addEventListener("click", () => handleLoadImageUrlClick(state));
+  bindOnce(getElement("remove-file"), "click", () => {
+    resetApplication();
+    updateUploadSummary();
+  });
 
   ["input", "change"].forEach((event) => {
     document
@@ -2106,7 +2097,6 @@ const initSegmentation = async () => {
         return;
       }
 
-      window.actionHistory = [];
       resolvedReviewIssueKeys = new Set();
       setApplyStatus("Updating detection...", "neutral");
       await segmentImage();
@@ -2217,16 +2207,28 @@ const initSegmentation = async () => {
         visibilityRatio: 0.4,
         minZoomImageRatio: 0.4,
         tileSources,
+        toolbar: "gridViewerToolbar",
+        zoomInButton: "gridZoomIn",
+        zoomOutButton: "gridZoomOut",
+        homeButton: "gridFit",
+        fullPageButton: "gridFullScreen",
         // prefixUrl: "https://episphere.github.io/svs/openseadragon/images/images_new/",
         gestureSettingsMouse: {
           clickToZoom: false,
         },
         crossOriginPolicy: "Anonymous",
         showNavigator: false,
-        showZoomControl: false,
-        showHomeControl: false,
-        showFullPageControl: false,
+        showZoomControl: true,
+        showHomeControl: true,
+        showFullPageControl: true,
         timeout: 120 * 1000
+      });
+      window.viewer.addHandler("full-screen", (event) => {
+        // A pending browser fullscreen request can settle after a core opens.
+        // Keep that native state aligned with the restored editing workspace.
+        if (event.fullScreen && !event.eventSource.isFullPage()) {
+          event.eventSource.setFullScreen(false);
+        }
       });
       // viewer.open(tileSources)
       const addCoreDiv = document.createElement("div");
@@ -2323,13 +2325,7 @@ const initSegmentation = async () => {
         }
       }
 
-      window.viewer.addControl(
-        addCoreDiv,
-        {
-          anchor: OpenSeadragon.ControlAnchor["TOP_RIGHT"],
-        },
-        window.viewer.controls.topRight
-      );
+      document.getElementById("gridEditTools").replaceChildren(addCoreDiv);
       addCoreDiv.style.display = "flex";
 
       window.viewer.addOnceHandler("open", () => {
@@ -2390,9 +2386,13 @@ document.querySelectorAll("input[type='number']").forEach((e) => {
   };
 
   document.getElementById("drop-area").ondrop = (e) => {
-    resetApplication();
     e.preventDefault();
     e.stopPropagation();
+    if (getElement("fileInput").disabled) {
+      updateStatusMessage("imageLoadStatus", "Image tools are still loading. Try again in a moment.", "neutral-message");
+      return;
+    }
+    resetApplication();
     const dt = e.dataTransfer;
     const files = dt.files;
     document.getElementById("imageUrlInput").value = null;

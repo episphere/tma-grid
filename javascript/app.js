@@ -557,14 +557,33 @@ document.querySelectorAll(".upload-option-tab").forEach((tab) => {
   tab.addEventListener("click", function () {
     document
       .querySelectorAll(".upload-option-tab")
-      .forEach((t) =>
-        t.classList.remove("border-blue-500", "font-semibold", "active")
-      );
+      .forEach((t) => {
+        t.classList.remove("border-blue-500", "font-semibold", "active");
+        t.setAttribute("aria-selected", "false");
+        t.tabIndex = -1;
+      });
     this.classList.add("border-blue-500", "font-semibold", "active");
+    this.setAttribute("aria-selected", "true");
+    this.tabIndex = 0;
     document
       .querySelectorAll(".tab-content")
       .forEach((c) => c.classList.add("hidden"));
     document.getElementById(this.dataset.target).classList.remove("hidden");
+  });
+  tab.tabIndex = tab.classList.contains("active") ? 0 : -1;
+  tab.addEventListener("keydown", (event) => {
+    const tabs = Array.from(document.querySelectorAll(".upload-option-tab"));
+    const index = tabs.indexOf(tab);
+    const target = {
+      ArrowRight: (index + 1) % tabs.length,
+      ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+      Home: 0,
+      End: tabs.length - 1,
+    }[event.key];
+    if (target === undefined) return;
+    event.preventDefault();
+    tabs[target].focus();
+    tabs[target].click();
   });
 });
 
@@ -727,7 +746,7 @@ function updateCurrentStep(step) {
         status.textContent = "Complete";
       }
       if (indexLabel) {
-        indexLabel.textContent = "✓";
+        indexLabel.textContent = `${index + 1}`;
       }
     } else if (index === currentStep - 1) {
       // Highlight the current step
@@ -872,7 +891,58 @@ function openInstructions() {
   for (var j = 0; j < instructionElements.length; j++) {
     instructionElements[j].style.display = "block";
   }
+  instructionElements[0]?.querySelector(".close-instructions")?.focus();
 }
+
+function closeInstructions() {
+  document.querySelectorAll(".instructions-container").forEach((panel) => {
+    panel.style.display = "none";
+  });
+  const help = document.getElementById(window.innerWidth <= 900 ? "helpButtonMobile" : "helpButton");
+  (help?.offsetParent ? help : document.getElementById("menuBtn"))?.focus();
+}
+document.querySelectorAll(".close-instructions").forEach((button) => button.addEventListener("click", closeInstructions));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && [...document.querySelectorAll(".instructions-container")].some((panel) => panel.offsetParent)) {
+    closeInstructions();
+    event.preventDefault();
+  }
+});
+
+// Protect the existing metadata controller when another surface would discard its form.
+window.confirmDiscardMetadataEdits = () => {
+  const form = document.getElementById("editMetadataForm");
+  if (form?.dataset.dirty !== "true") return true;
+  if (!window.confirm("Discard unsaved metadata changes? Choose Cancel to return and select Update Metadata to save them.")) {
+    form.querySelector('[type="submit"]')?.focus();
+    return false;
+  }
+  form.dataset.dirty = "false";
+  document.getElementById("metadataEditStatus").textContent = "";
+  return true;
+};
+document.addEventListener("click", (event) => {
+  const form = document.getElementById("editMetadataForm");
+  if (form?.dataset.dirty !== "true") return;
+  const exportButton = event.target.closest("#saveResultsAsJson, #saveResultsAsCsv");
+  const navigation = event.target.closest(".carousel-control, .btn-back");
+  if (exportButton) {
+    const status = document.getElementById("metadataEditStatus");
+    status.textContent = "Choose Update Metadata before downloading so your edits are included.";
+    status.dataset.tone = "error";
+    form.querySelector('[type="submit"]')?.focus();
+  } else if (!navigation || navigation.getAttribute("aria-current") === "step" || window.confirmDiscardMetadataEdits()) {
+    return;
+  }
+  event.preventDefault();
+  event.stopImmediatePropagation();
+}, true);
+window.addEventListener("beforeunload", (event) => {
+  if (document.getElementById("editMetadataForm")?.dataset.dirty === "true" || document.getElementById("editCoreForm")?.dataset.dirty === "true") {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+});
 
 // Get the help displays to work
 document

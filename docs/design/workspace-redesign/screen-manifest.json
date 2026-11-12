@@ -1,0 +1,56 @@
+{
+  "viewport": {
+    "width": 1568,
+    "height": 1003
+  },
+  "screens": [
+    {
+      "id": "01-open-local",
+      "title": "Open image: local file",
+      "target": "targets/01-open-local.png",
+      "actual": "evidence/integrated-open-1568.png"
+    },
+    {
+      "id": "02-open-url",
+      "title": "Open image: URL",
+      "target": "targets/02-open-url.png",
+      "actual": "evidence/integrated-open-url-1568.png"
+    },
+    {
+      "id": "03-open-box",
+      "title": "Open image: Box",
+      "target": "targets/03-open-box.png",
+      "actual": "evidence/integrated-open-box-1568.png"
+    },
+    {
+      "id": "04-segmentation",
+      "title": "Segment cores",
+      "target": "targets/04-segmentation.png",
+      "actual": "evidence/integrated-segment-1568.png"
+    },
+    {
+      "id": "05-grid-review",
+      "title": "Review grid",
+      "target": "targets/05-grid-review.png",
+      "actual": "evidence/integrated-grid-1568.png"
+    },
+    {
+      "id": "06-core-editor",
+      "title": "Edit a core",
+      "target": "targets/06-core-editor.png",
+      "actual": "evidence/integrated-core-editor-1568.png"
+    },
+    {
+      "id": "07-export",
+      "title": "Export",
+      "target": "targets/07-export.png",
+      "actual": "evidence/integrated-export-1568.png"
+    },
+    {
+      "id": "08-export-selected",
+      "title": "Edit core metadata",
+      "target": "targets/08-export-selected.png",
+      "actual": "evidence/integrated-export-selected-1568.png"
+    }
+  ]
+}

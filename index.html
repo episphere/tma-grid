@@ -1,84 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TMA-Grid | Tissue Microarray De-Arraying Tool</title>
-    <meta name="description"
-        content="TMA-Grid is a free, serverless web application for tissue microarray de-arraying: segment cores, build the virtual grid, edit metadata, and export cores from whole-slide images in your browser.">
-    <meta name="theme-color" content="#1d4ed8">
-    <link rel="icon" type="image/webp" href="./icons/Logo.webp">
-    <meta property="og:title" content="TMA-Grid | Tissue Microarray De-Arraying Tool">
-    <meta property="og:description"
-        content="Segment, grid, and export tissue microarray cores from whole-slide images, entirely in your browser.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://episphere.github.io/tma-grid/">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
-    <link href="./style2.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-
-    <!-- Include Box CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.css" />
-
-</head>
-
-<body class="bg-gray-100">
-    <div class="body-container mx-auto">
-
-        <header class="app-header relative">
-            <div class="app-header-inner">
-                <a href="./" class="brand-link" aria-label="TMA-Grid home">
-                    <span class="brand-mark">
-                        <img src="./icons/Logo.webp" alt="" class="brand-logo">
-                    </span>
-                    <span class="brand-copy">
-                        <h1 class="app-title">TMA-Grid</h1>
-                        <span class="app-subtitle">Tissue microarray de-arraying</span>
-                    </span>
-                </a>
-                <!-- Desktop Navigation Menu -->
-                <nav class="app-nav hidden md:flex" aria-label="Primary navigation">
-                    <a href="./" class="app-nav-link active">Home</a>
-                    <a href="https://github.com/episphere/tma-grid" class="app-nav-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-                    <a href="https://github.com/episphere/tma-grid/issues" class="app-nav-link" target="_blank" rel="noopener noreferrer">Issues</a>
-                    <a href="https://youtu.be/miajqyw4BVk" class="app-nav-link" target="_blank" rel="noopener noreferrer">Tutorial</a>
-                    <a href="https://link.springer.com/article/10.1186/s12859-026-06638-2" class="app-nav-link" target="_blank" rel="noopener noreferrer">Manuscript</a>
-                </nav>
-                <div class="app-actions">
-                    <button id="helpButton" class="help-button hidden md:inline-flex" type="button">Help</button>
-                    <span class="app-status-pill hidden lg:inline-flex">Ready</span>
-                    <!-- Mobile Menu Button -->
-                    <button id="menuBtn" class="mobile-menu-button md:hidden" type="button"
-                        aria-label="Open navigation menu" aria-controls="navMenuMobile" aria-expanded="false">
-                        <span class="menu-button-text">Menu</span>
-                        <span class="menu-button-icon" aria-hidden="true">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </span>
-                    </button>
-                </div>
-                <!-- Mobile Dropdown Menu -->
-                <div id="navMenuMobile" class="app-mobile-menu hidden">
-                    <a href="./" class="app-mobile-link">Home</a>
-                    <a href="https://github.com/episphere/tma-grid" class="app-mobile-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-                    <a href="https://github.com/episphere/tma-grid/issues" class="app-mobile-link" target="_blank" rel="noopener noreferrer">Issues</a>
-                    <a href="https://youtu.be/miajqyw4BVk" class="app-mobile-link" target="_blank" rel="noopener noreferrer">Tutorial</a>
-                    <a href="https://link.springer.com/article/10.1186/s12859-026-06638-2" class="app-mobile-link" target="_blank" rel="noopener noreferrer">Manuscript</a>
-                    <button id="helpButtonMobile" class="app-mobile-link mobile-help-button" type="button">Help</button>
-                </div>
-            </div>
-            <div id="mobileMenuBackdrop" class="mobile-menu-backdrop hidden" aria-hidden="true"></div>
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   TMA-Grid | Tissue Microarray De-Arraying Tool
+  </title>
+  <meta content="TMA-Grid is a free, serverless web application for tissue microarray de-arraying: segment cores, build the virtual grid, edit metadata, and export cores from whole-slide images in your browser." name="description"/>
+  <meta content="#126c6a" name="theme-color"/>
+  <link href="./icons/Logo.webp" rel="icon" type="image/webp"/>
+  <meta content="TMA-Grid | Tissue Microarray De-Arraying Tool" property="og:title"/>
+  <meta content="Segment, grid, and export tissue microarray cores from whole-slide images, entirely in your browser." property="og:description"/>
+  <meta content="website" property="og:type"/>
+  <meta content="https://episphere.github.io/tma-grid/" property="og:url"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet"/>
+  <link href="./workspace.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js">
+  </script>
+  <!-- Include Box CSS -->
+  <link href="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.css" rel="stylesheet" type="text/css"/>
+ </head>
+ <body class="workspace-app">
+  <a class="skip-link" href="#app">Skip to workspace</a>
+  <div class="body-container mx-auto">
+   <header class="app-header relative">
+    <div class="app-header-inner">
+     <a class="brand-link" href="./">
+      <span class="brand-mark">
+       <img alt="" class="brand-logo" src="./icons/Logo.webp"/>
+      </span>
+      <span class="brand-copy">
+       <h1 class="app-title">
+        TMA-Grid
+       </h1>
+       <span class="app-subtitle">
+        Tissue microarray de-arraying
+       </span>
+      </span>
+     </a>
+     <!-- Desktop Navigation Menu -->
+     <nav aria-label="Primary navigation" class="app-nav">
+      <a class="app-nav-link" href="https://youtu.be/miajqyw4BVk" rel="noopener noreferrer" target="_blank">
+       <img alt="" src="./vendor/lucide/book-open.svg"/>
+       Tutorial
+      </a>
+     </nav>
+     <div class="app-actions">
+      <button class="help-button" id="helpButton" type="button">
+       <img alt="" src="./vendor/lucide/circle-help.svg"/>
+       Help
+      </button>
+      <span class="local-processing-note">
+       Images stay in your browser
+      </span>
+      <!-- Mobile Menu Button -->
+      <button aria-controls="navMenuMobile" aria-expanded="false" aria-label="Open navigation menu" class="mobile-menu-button md:hidden" id="menuBtn" type="button">
+       <span class="menu-button-text">
+        Menu
+       </span>
+       <span aria-hidden="true" class="menu-button-icon">
+        <span>
+        </span>
+        <span>
+        </span>
+        <span>
+        </span>
+       </span>
+      </button>
+     </div>
+     <!-- Mobile Dropdown Menu -->
+     <div class="app-mobile-menu hidden" id="navMenuMobile">
+      <a class="app-mobile-link" href="./">
+       Home
+      </a>
+      <a class="app-mobile-link" href="https://github.com/episphere/tma-grid" rel="noopener noreferrer" target="_blank">
+       GitHub
+      </a>
+      <a class="app-mobile-link" href="https://github.com/episphere/tma-grid/issues" rel="noopener noreferrer" target="_blank">
+       Issues
+      </a>
+      <a class="app-mobile-link" href="https://youtu.be/miajqyw4BVk" rel="noopener noreferrer" target="_blank">
+       Tutorial
+      </a>
+      <a class="app-mobile-link" href="https://link.springer.com/article/10.1186/s12859-026-06638-2" rel="noopener noreferrer" target="_blank">
+       Manuscript
+      </a>
+      <button class="app-mobile-link mobile-help-button" id="helpButtonMobile" type="button">
+       Help
+      </button>
+     </div>
+    </div>
+    <div aria-hidden="true" class="mobile-menu-backdrop hidden" id="mobileMenuBackdrop">
+    </div>
+    <script>
+     document.addEventListener('DOMContentLoaded', () => {
                     const menuBtn = document.getElementById('menuBtn');
                     const navMenuMobile = document.getElementById('navMenuMobile');
                     const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
@@ -121,154 +144,169 @@
                         }
                     });
                 });
-            </script>
-        </header>
-        <div id="app">
-
-            <section id="upload" class="py-2 ">
-
-                <div class="instructions-container space-y-4">
-                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
-                    <h2 class="text-xl font-semibold">Uploading an Image</h2>
-                    <p>
-                        Start by uploading an <span class="span-file-type">.svs</span>, <span
-                            class="span-file-type">.tif/.tiff</span>, or <span class="span-file-type">.ndpi</span> image for
-                        optimal results. While
-                        you can use <span class="span-file-type">.png</span> or <span class="span-file-type">.jpg</span>
-                        files, please note that virtual
-                        gridding functionality may be limited with these formats.
-
-                    </p>
-                    <p>Once the image has been successfully uploaded, click the <span
-                            class="span-button-proceed">Proceed</span>
-                        button to continue to image segmentation.</p>
-                </div>
-
-                <div class="tool-panel bg-white rounded-lg">
-
-                    <nav class="upload-tabs flex mb-5 border-b justify-center" aria-label="Upload method">
-                        <button
-                            class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
-                            data-target="direct-upload">Direct Upload</button>
-                        <button
-                            class="active upload-option-tab px-6 py-2 text-gray-800 border-b-2 border-blue-500 hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
-                            data-target="url-upload">Image URL</button>
-                        <button
-                            class="upload-option-tab px-6 py-2 text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:border-blue-500 focus:outline-none focus:text-gray-800 focus:border-blue-500"
-                            data-target="box-upload">Box Integration</button>
-                    </nav>
-                    <div class="preview-image">
-                        <img src="./icons/Placeholder_view_vector.svg" alt="Uploaded Image"
-                            class="mx-auto w-96 h-64 mb-6" id="previewImage">
-                        <div id="loadingSpinner" style="display: none;">
-                            <div class="spinner"></div>
-                        </div>
-                    </div>
-                    <div id="imageLoadStatus" class="load-status neutral-message">
-                        No image uploaded.
-                    </div>
-                    <div id="uploadSummary" class="upload-summary" aria-live="polite">
-                        <div>
-                            <span class="summary-label">Image</span>
-                            <strong id="uploadSummaryName">None selected</strong>
-                        </div>
-                        <div>
-                            <span class="summary-label">Dimensions</span>
-                            <strong id="uploadSummaryDimensions">--</strong>
-                        </div>
-                        <div>
-                            <span class="summary-label">Export</span>
-                            <strong id="uploadSummaryCapability">Load an image to check support</strong>
-                        </div>
-                    </div>
-
-
-
-                    <div id="tab-contents" class="mb-20">
-                        <div id="direct-upload" class="tab-content hidden">
-                            <div id="drop-area">
-                                <form class="my-form">
-                                    <p>Drag and drop files here</p>
-                                    <p>or</p>
-                                    <label class="browse-button" for="fileInput">Browse Files</label>
-                                    <input type="file" id="fileInput" accept="image/*,.svs,.ndpi,.tif,.tiff"
-                                        style="display: none;">
-                                </form>
-
-                            </div>
-                            <div id="file-info" class="hidden width-90-middle">
-                                <img src="./icons/image-file-icon.svg" alt="" id="file-icon" class="file-icon">
-                                <div id="file-details">
-                                    <span id="file-name"></span>
-                                    <span id="file-size"></span>
-                                </div>
-                                <button type="button" id="remove-file" class="remove-button" aria-label="Remove selected file">×</button>
-                            </div>
-                        </div>
-
-                        <div id="url-upload" class="tab-content active url-upload-panel">
-                            <div class="sample-image-card">
-                                <div>
-                                    <span class="summary-label">Demo image</span>
-                                    <strong>HE Hamamatsu tissue microarray</strong>
-                                </div>
-                                <button id="loadSampleImageBtn" type="button" class="sample-image-button">Load Sample</button>
-                            </div>
-
-                            <div class="url-upload-row">
-                                <input type="text" id="imageUrlInput" class="form-input"
-                                    placeholder="Enter Image URL"
-                                    value="https://storage.googleapis.com/imagebox_test/TMAs/HE_Hamamatsu.tiff">
-
-                                <button id="loadImageUrlBtn" type="button" class="standard-button">Load URL</button>
-                            </div>
-
-                        </div>
-
-
-
-
-                        <div id="box-upload" class="tab-content hidden">
-
-                            <button id="boxLoginBtn"
-                                class="btn-box-connect flex justify-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-auto">Connect
-                                to Box</button>
-
-                            <div id="boxFilesContainer" class="box-files-container width-90-middle">
-                                <!-- Dynamically loaded Box files will go here -->
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="mt-6 width-90-middle" style="display: none;">
-                        <label class="block text-sm font-semibold text-gray-700">Optional Metadata File:</label>
-                        <div class="file-upload-wrapper">
-                            <input type="file" id="metadataFile" class="file-input" accept=".csv,.json,.xlsx, .xls"
-                                onchange="displayFileInfo(this)">
-                            <label for="metadataFile" class="file-upload-button">Choose files</label>
-                            <button class="skip-button" id="useTemplate" type="button">Use Template</button>
-                        </div>
-
-                        <div id="metadata-file-info" class="hidden width-90-middle"
-                            style="width: 100%; margin-top: 20px;">
-                            <img src="./icons/image-file-icon.svg" alt="" id="metadata-file-icon" class="file-icon">
-                            <div id="metadata-file-details">
-                                <span id="metadata-file-name"></span>
-                                <span id="metadata-file-size"></span>
-                            </div>
-                            <button type="button" id="metadata-remove-file" class="remove-button" aria-label="Remove metadata file">×</button>
-                        </div>
-                    </div>
-                    <div id="metadataLoadStatus" class="load-status neutral-message" style="display: none;">
-                        No metadata uploaded.
-                    </div>
-
-
-                    <script>
-                        function displayFileInfo(input) {
+    </script>
+   </header>
+   <div aria-label="Workflow steps" class="carousel-controls workflow-steps">
+    <button class="carousel-control workflow-step active" data-label="Open image" data-step="1" id="imageUploadTabButton">
+     <span class="step-index">
+      1
+     </span>
+     <span class="step-label">
+      Open image
+     </span>
+     <span class="step-status">
+     </span>
+    </button>
+    <button class="carousel-control workflow-step" data-label="Segment cores" data-step="2" disabled="" id="imageSegmentationTabButton">
+     <span class="step-index">
+      2
+     </span>
+     <span class="step-label">
+      Segment cores
+     </span>
+     <span class="step-status">
+     </span>
+    </button>
+    <button class="carousel-control workflow-step" data-label="Review grid" data-step="3" disabled="" id="rawDataTabButton">
+     <span class="step-index">
+      3
+     </span>
+     <span class="step-label">
+      Review grid
+     </span>
+     <span class="step-status">
+     </span>
+    </button>
+    <button class="carousel-control workflow-step" data-label="Export" data-step="4" disabled="" id="virtualGridTabButton">
+     <span class="step-index">
+      4
+     </span>
+     <span class="step-label">
+      Export
+     </span>
+     <span class="step-status">
+     </span>
+    </button>
+   </div>
+   <div id="app" tabindex="-1">
+    <section class="workflow-section" id="upload">
+     <div class="stage-heading">
+      <div>
+       <h2>
+        Open a tissue microarray
+       </h2>
+       <p>
+        Choose a slide image or explore the sample dataset.
+       </p>
+      </div>
+      <span class="stage-file-context" title="Current image">
+       No image selected
+      </span>
+     </div>
+     <div class="instructions-container">
+      <button aria-label="Dismiss instructions" class="close-instructions text-right" type="button">
+       ✕
+      </button>
+      <h2 class="text-xl font-semibold">
+       Uploading an Image
+      </h2>
+      <p>
+       Open an SVS, TIFF, or NDPI slide for whole-slide workflows. PNG and JPEG images support segmentation and metadata export, with limited virtual gridding.
+      </p>
+      <p>
+       After the image loads, choose Continue to segmentation.
+      </p>
+     </div>
+     <div class="tool-panel upload-workspace">
+      <div class="upload-source-panel">
+       <h3 class="panel-heading">
+        Image source
+       </h3>
+       <nav aria-label="Upload method" class="upload-tabs" role="tablist">
+        <button aria-controls="direct-upload" aria-selected="true" class="upload-option-tab active" data-target="direct-upload" id="source-tab-direct-upload" role="tab">
+         Local file
+        </button>
+        <button aria-controls="url-upload" aria-selected="false" class="upload-option-tab" data-target="url-upload" id="source-tab-url-upload" role="tab">
+         Image URL
+        </button>
+        <button aria-controls="box-upload" aria-selected="false" class="upload-option-tab" data-target="box-upload" id="source-tab-box-upload" role="tab">
+         Box
+        </button>
+       </nav>
+       <div class="source-options" id="tab-contents">
+        <div aria-labelledby="source-tab-direct-upload" class="tab-content" id="direct-upload" role="tabpanel">
+         <div class="file-drop-zone" id="drop-area">
+          <form class="my-form">
+           <p class="drop-title">
+            Drop a slide image here
+           </p>
+           <p class="drop-formats">
+            SVS, TIFF, NDPI, PNG or JPEG
+           </p>
+           <label class="browse-button" for="fileInput">
+            Choose image
+           </label>
+           <input accept="image/*,.svs,.ndpi,.tif,.tiff" aria-label="Choose a tissue microarray image" class="accessible-file-input" disabled="" id="fileInput" style="" type="file"/>
+          </form>
+         </div>
+         <div class="hidden width-90-middle" id="file-info">
+          <img alt="" class="file-icon" id="file-icon" src="./icons/image-file-icon.svg"/>
+          <div id="file-details">
+           <span id="file-name">
+           </span>
+           <span id="file-size">
+           </span>
+          </div>
+          <button aria-label="Remove selected file" class="remove-button" id="remove-file" type="button">
+           ×
+          </button>
+         </div>
+        </div>
+        <div aria-labelledby="source-tab-url-upload" class="tab-content hidden" id="url-upload" role="tabpanel">
+         <label class="input-label" for="imageUrlInput">
+          Direct image URL
+         </label>
+         <div class="url-upload-row">
+          <input aria-label="Image URL" class="form-input" id="imageUrlInput" placeholder="https://example.org/slide.tiff" type="url" value="https://storage.googleapis.com/imagebox_test/TMAs/HE_Hamamatsu.tiff"/>
+          <button class="standard-button" disabled="" id="loadImageUrlBtn" type="button">
+           Open URL
+          </button>
+         </div>
+        </div>
+        <div aria-labelledby="source-tab-box-upload" class="tab-content hidden" id="box-upload" role="tabpanel">
+         <p class="field-description">
+          Open a slide from your Box account.
+         </p>
+         <button class="btn-box-connect flex justify-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-auto" disabled="" id="boxLoginBtn">
+          Connect
+                                to Box
+         </button>
+         <div class="box-files-container width-90-middle" id="boxFilesContainer">
+          <!-- Dynamically loaded Box files will go here -->
+         </div>
+        </div>
+       </div>
+       <div class="sample-image-card">
+        <div>
+         <span class="summary-label">
+          Sample dataset
+         </span>
+         <strong>
+          H&amp;E tissue microarray
+         </strong>
+        </div>
+        <button class="sample-image-button" disabled="" id="loadSampleImageBtn" type="button">
+         Load Sample
+        </button>
+       </div>
+       <div aria-live="polite" class="load-status neutral-message" id="imageLoadStatus" role="status">
+        Preparing image tools…
+       </div>
+       <div class="load-status neutral-message" id="metadataLoadStatus" style="display: none;">
+        No metadata uploaded.
+       </div>
+       <script>
+        function displayFileInfo(input) {
                             if (input.files && input.files[0]) {
                                 var size = (input.files[0].size / 1024).toFixed(2); // size in KB
                                 var name = input.files[0].name;
@@ -277,148 +315,320 @@
                                 document.getElementById('metadata-file-info').classList.remove('hidden');
                             }
                         }
-
-
-                    </script>
-
-                </div>
-                <div class="flex justify-end mt-6">
-                    <button
-                        class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow-lg">Proceed</button>
-                </div>
-            </section>
-
-            <section id="segmentation" class="hidden py-2">
-                <div class="instructions-container space-y-4">
-                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
-                    <h2 class="text-xl font-semibold">Completing Core Segmentation</h2>
-                    <p>Adjust segmentation parameters in the left-hand menu to optimize core detection. If necessary,
-                        make manual edits to ensure all cores are accurately captured.</p>
-                    <p>Once you're satisfied with the segmentation, click the <span
-                            class="span-button-proceed">Proceed</span>
-                        button to continue to the Gridding tab.</p>
-                </div>
-
-                <div class="instructions-container mt-4 space-y-4">
-                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
-                    <h2 class="text-xl font-semibold">Interactive Core Editing</h2>
-                    <p><kbd>Click</kbd> on the image to add a core.</p>
-                    <p><kbd>Shift-click</kbd> a core to remove it.</p>
-                </div>
-                <div class="workspace-layout segmentation-workspace">
-                    <div class="workspace-sidebar-column">
-                        <button type="button" id="segmentationSidebarIcon"
-                            class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle"
-                            onclick="toggleSidebarSegmentation()" aria-controls="segmentation-sidebar"
-                            aria-expanded="false" aria-label="Show segmentation parameters" title="Parameters">
-                            <span class="panel-toggle-icon" aria-hidden="true">
-                                <span></span><span></span><span></span>
-                            </span>
-                        </button>
-                        <aside id="segmentation-sidebar"
-                        class="bg-gray-50 rounded-lg shadow-lg p-1 transition-all duration-300 transform md:translate-x-0 sm:block collapsed">
-                        <fieldset>
-
-                            <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
-                                <h2 class="title">Segmentation Parameters</h2>
-                                <div class="window-controls">
-                                    <button type="button" class="close-button" onclick="toggleSidebarSegmentation()" aria-label="Close segmentation parameters">×</button>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3">
-                                <label for="segmentationPresetSelect"
-                                    class="text-sm font-medium text-gray-700 block">Preset</label>
-                                <select id="segmentationPresetSelect" class="w-full border-gray-300 rounded-md shadow-sm">
-                                    <option value="default">Default tissue cores</option>
-                                    <option value="dense">Dense cores</option>
-                                    <option value="sparse">Sparse cores</option>
-                                    <option value="damaged">Damaged or torn cores</option>
-                                    <option value="noisy">Noisy background</option>
-                                </select>
-
-                                <label for="maskAlphaSlider" class="text-sm font-medium text-gray-700 block">Mask
-                                    Alpha: <span id="maskAlphaValue">0.2</span></label>
-                                <input type="range" id="maskAlphaSlider" min="0" max="1" step="0.025" value="0.2"
-                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-
-                                <label for="thresholdSlider"
-                                    class="text-sm font-medium text-gray-700 block">Sensitivity:
-                                    <span id="thresholdValue">0.05</span></label>
-                                <input type="range" id="thresholdSlider" min="0.01" max="0.99" step="0.0025" value="0.05"
-                                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-
-                                <label for="minAreaInput" class="text-sm font-medium text-gray-700 block">Min
-                                    Area:</label>
-                                <input type="number" id="minAreaInput" value="20" step="1" min="1"
-                                    class="w-full border-gray-300 rounded-md shadow-sm">
-
-                                <label for="maxAreaInput" class="text-sm font-medium text-gray-700 block">Max
-                                    Area:</label>
-                                <input type="number" id="maxAreaInput" value="3000" step="1" min="1"
-                                    class="w-full border-gray-300 rounded-md shadow-sm">
-
-                                <details class="advanced-control-group">
-                                    <summary>Advanced segmentation</summary>
-                                    <label for="disTransformMultiplierInput"
-                                        class="text-sm font-medium text-gray-700 block">Distance
+       </script>
+       <details class="metadata-import">
+        <summary>
+         Import metadata (optional)
+        </summary>
+        <div class="metadata-import-fields" style="">
+         <label class="block text-sm font-semibold text-gray-700">
+          Optional Metadata File:
+         </label>
+         <div class="file-upload-wrapper">
+          <input accept=".csv,.json,.xlsx, .xls" aria-label="Import metadata" class="file-input" disabled="" id="metadataFile" onchange="displayFileInfo(this)" type="file"/>
+          <label class="file-upload-button" for="metadataFile">
+           Choose files
+          </label>
+          <button class="skip-button hidden" id="useTemplate" type="button">
+           Use Template
+          </button>
+         </div>
+         <div class="hidden width-90-middle" id="metadata-file-info" style="width: 100%; margin-top: 20px;">
+          <img alt="" class="file-icon" id="metadata-file-icon" src="./icons/image-file-icon.svg"/>
+          <div id="metadata-file-details">
+           <span id="metadata-file-name">
+           </span>
+           <span id="metadata-file-size">
+           </span>
+          </div>
+          <button aria-label="Remove metadata file" class="remove-button" id="metadata-remove-file" type="button">
+           ×
+          </button>
+         </div>
+        </div>
+       </details>
+       <div aria-live="polite" class="upload-summary" id="uploadSummary">
+        <div>
+         <span class="summary-label">
+          Image
+         </span>
+         <strong id="uploadSummaryName">
+          None selected
+         </strong>
+        </div>
+        <div>
+         <span class="summary-label">
+          Dimensions
+         </span>
+         <strong id="uploadSummaryDimensions">
+          --
+         </strong>
+        </div>
+        <div>
+         <span class="summary-label">
+          Export
+         </span>
+         <strong id="uploadSummaryCapability">
+          Load an image to check support
+         </strong>
+        </div>
+       </div>
+      </div>
+      <div class="preview-image">
+       <div class="preview-heading">
+        <span>
+         Slide preview
+        </span>
+        <span class="preview-format">
+         Whole-slide image
+        </span>
+       </div>
+       <img alt="Preview of the selected tissue microarray" class="slide-preview-image" id="previewImage" src="./icons/Placeholder_view_vector.svg"/>
+       <div id="loadingSpinner" style="display: none;">
+        <div class="spinner">
+        </div>
+       </div>
+       <div class="preview-empty">
+        <svg aria-hidden="true" fill="none" height="40" stroke="currentColor" stroke-width="1.2" viewbox="0 0 24 24" width="40">
+         <rect height="18" rx="2" width="18" x="3" y="3">
+         </rect>
+         <circle cx="8.5" cy="8.5" r="1.5">
+         </circle>
+         <path d="m21 15-5-5L5 21">
+         </path>
+        </svg>
+        <strong>
+         No image selected
+        </strong>
+        <p>
+         Open an image to inspect your tissue microarray.
+        </p>
+       </div>
+      </div>
+     </div>
+     <div class="stage-actions">
+      <button class="btn-proceed" disabled="">
+       Continue to segmentation
+      </button>
+     </div>
+    </section>
+    <section class="workflow-section hidden" id="segmentation">
+     <div class="stage-heading">
+      <div>
+       <h2>
+        Segment cores
+       </h2>
+       <p>
+        Refine the detected tissue cores before building the grid.
+       </p>
+      </div>
+      <span class="stage-file-context" title="Current image">
+       No image selected
+      </span>
+     </div>
+     <div class="instructions-container">
+      <button aria-label="Dismiss instructions" class="close-instructions text-right" type="button">
+       ✕
+      </button>
+      <h2 class="text-xl font-semibold">
+       Completing Core Segmentation
+      </h2>
+      <p>
+       Use the Segmentation panel to adjust detection settings. Choose Apply segmentation to rerun detection.
+      </p>
+      <p>
+       Click to add a core, or Shift-click to remove one. Use Undo or Redo to revise an edit. Choose Continue to grid when the detections are ready.
+      </p>
+     </div>
+     <div class="instructions-container">
+      <button aria-label="Dismiss instructions" class="close-instructions text-right" type="button">
+       ✕
+      </button>
+      <h2 class="text-xl font-semibold">
+       Interactive Core Editing
+      </h2>
+      <p>
+       <kbd>
+        Click
+       </kbd>
+       on the image to add a core.
+      </p>
+      <p>
+       <kbd>
+        Shift-click
+       </kbd>
+       a core to remove it.
+      </p>
+     </div>
+     <div class="workspace-layout segmentation-workspace">
+      <div class="workspace-sidebar-column">
+       <button aria-controls="segmentation-sidebar" aria-expanded="true" aria-label="Show segmentation parameters" class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle" id="segmentationSidebarIcon" onclick="toggleSidebarSegmentation()" title="Parameters" type="button">
+        <span aria-hidden="true" class="panel-toggle-icon">
+         <span>
+         </span>
+         <span>
+         </span>
+         <span>
+         </span>
+        </span>
+        Parameters
+       </button>
+       <aside class="parameter-inspector" id="segmentation-sidebar">
+        <fieldset>
+         <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
+          <h2 class="title">
+           Segmentation
+          </h2>
+          <div class="window-controls">
+           <button aria-label="Close segmentation parameters" class="close-button inspector-close-button" onclick="toggleSidebarSegmentation()" type="button">
+            ×
+           </button>
+          </div>
+         </div>
+         <div class="space-y-3">
+          <div class="control-field">
+           <label class="text-sm font-medium text-gray-700 block" for="segmentationPresetSelect">
+            Preset
+           </label>
+           <select class="w-full border-gray-300 rounded-md shadow-sm" id="segmentationPresetSelect">
+            <option value="default">
+             Default tissue cores
+            </option>
+            <option value="dense">
+             Dense cores
+            </option>
+            <option value="sparse">
+             Sparse cores
+            </option>
+            <option value="damaged">
+             Damaged or torn cores
+            </option>
+            <option value="noisy">
+             Noisy background
+            </option>
+           </select>
+          </div>
+          <div class="control-field">
+           <label class="text-sm font-medium text-gray-700 block" for="maskAlphaSlider">
+            Mask opacity
+           </label>
+           <div class="range-input-row">
+            <input class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" id="maskAlphaSlider" max="1" min="0" step="0.025" type="range" value="0.2"/>
+            <output for="maskAlphaSlider" id="maskAlphaValue">
+             0.2
+            </output>
+           </div>
+          </div>
+          <div class="control-field">
+           <label class="text-sm font-medium text-gray-700 block" for="thresholdSlider">
+            Sensitivity
+           </label>
+           <div class="range-input-row">
+            <input class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" id="thresholdSlider" max="0.99" min="0.01" step="0.0025" type="range" value="0.05"/>
+            <output for="thresholdSlider" id="thresholdValue">
+             0.05
+            </output>
+           </div>
+          </div>
+          <div class="control-field inline-field">
+           <label class="text-sm font-medium text-gray-700 block" for="minAreaInput">
+            Minimum core area
+           </label>
+           <input class="w-full border-gray-300 rounded-md shadow-sm" id="minAreaInput" min="1" step="1" type="number" value="20"/>
+          </div>
+          <div class="control-field inline-field">
+           <label class="text-sm font-medium text-gray-700 block" for="maxAreaInput">
+            Maximum core area
+           </label>
+           <input class="w-full border-gray-300 rounded-md shadow-sm" id="maxAreaInput" min="1" step="1" type="number" value="3000"/>
+          </div>
+          <details class="advanced-control-group">
+           <summary>
+            Advanced segmentation
+           </summary>
+           <label class="text-sm font-medium text-gray-700 block" for="disTransformMultiplierInput">
+            Distance
                                         Transform
-                                        Multiplier:</label>
-                                    <input type="number" id="disTransformMultiplierInput" value="0.5" step="0.025"
-                                        min="0.025" max="1" class="w-full border-gray-300 rounded-md shadow-sm">
-
-                                    <label for="probabilityHeatmapToggle"
-                                        class="text-sm font-medium text-gray-700 block">
-                                        <input type="checkbox" id="probabilityHeatmapToggle">
-                                        Show raw probability heatmap
-                                    </label>
-                                </details>
-                            </div>
-
-                            <button type="button" id="applySegmentation"
-                                class="mt-4 w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out">
-                                Apply
-                            </button>
-                            <p id="segmentationApplyStatus" class="apply-status" aria-live="polite">Parameters are current.</p>
-                        </fieldset>
-                        </aside>
-                    </div>
-                    <div id="ImageSegmentation" class="flex-grow sm:block sm:w-full">
-                        <img id="originalImage" src="#" alt="Original tissue" class="hidden">
-                        <div class="segmentation-viewer-stage">
-                            <canvas id="segmentationResultsCanvas" class="mx-auto w-4/5" role="img" aria-label="Processed tissue segmentation result"></canvas>
-                        </div>
-                        <div id="segmentationStats" class="stats-strip" aria-live="polite">
-                            <span>Detected: --</span>
-                            <span>Rescued: --</span>
-                            <span>Removed artifacts: --</span>
-                            <span>Recentered: --</span>
-                        </div>
-                    </div>
-                    <aside id="segmentationToolbar" class="segmentation-tools-sidebar"
-                        aria-label="Segmentation tools">
-                        <div class="segmented-control" role="group" aria-label="Edit mode">
-                            <button type="button" class="toolbar-button active" data-segmentation-mode="add"
-                                aria-pressed="true">Add</button>
-                            <button type="button" class="toolbar-button" data-segmentation-mode="remove"
-                                aria-pressed="false">Remove</button>
-                        </div>
-                        <button type="button" id="segmentationUndoButton" class="toolbar-button">Undo</button>
-                        <button type="button" id="segmentationRedoButton" class="toolbar-button">Redo</button>
-                        <button type="button" id="toggleSegmentationMaskButton" class="toolbar-button"
-                            aria-pressed="true">Mask On</button>
-                    </aside>
-                </div>
-
-                <div class="flex justify-between items-center mt-8">
-                    <button
-                        class="btn-back px-6 py-2 font-bold rounded focus:outline-none shadow-lg">Back</button>
-                    <button id="finalizeSegmentation"
-                        class="btn-proceed px-6 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg">Proceed</button>
-                </div>
-            </section>
-            <script>
-                // Function to toggle the sidebar
+                                        Multiplier:
+           </label>
+           <input class="w-full border-gray-300 rounded-md shadow-sm" id="disTransformMultiplierInput" max="1" min="0.025" step="0.025" type="number" value="0.5"/>
+           <label class="text-sm font-medium text-gray-700 block" for="probabilityHeatmapToggle">
+            <input id="probabilityHeatmapToggle" type="checkbox"/>
+            Show raw probability heatmap
+           </label>
+           <div class="diagnostic-details" id="segmentationDiagnostics">
+           </div>
+          </details>
+         </div>
+         <button class="mt-4 w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out" id="applySegmentation" type="button">
+          Apply segmentation
+         </button>
+         <p aria-live="polite" class="apply-status" id="segmentationApplyStatus">
+          Parameters are current.
+         </p>
+        </fieldset>
+        <div class="inspector-note">
+         <strong>
+          Manual correction
+         </strong>
+         <p>
+          Click to add a core. Shift-click a core to remove it. Use Undo to restore an edit.
+         </p>
+        </div>
+       </aside>
+      </div>
+      <div class="segmentation-image-panel" id="ImageSegmentation">
+       <aside aria-label="Segmentation tools" class="image-toolbar segmentation-tools-sidebar" id="segmentationToolbar">
+        <div aria-label="Edit mode" class="segmented-control" role="group">
+         <button aria-pressed="true" class="toolbar-button active" data-segmentation-mode="add" type="button">
+          Add core
+         </button>
+         <button aria-pressed="false" class="toolbar-button" data-segmentation-mode="remove" type="button">
+          Remove core
+         </button>
+        </div>
+        <button class="toolbar-button" id="segmentationUndoButton" type="button">
+         Undo
+        </button>
+        <button class="toolbar-button" id="segmentationRedoButton" type="button">
+         Redo
+        </button>
+        <button aria-pressed="true" class="toolbar-button" id="toggleSegmentationMaskButton" type="button">
+         Mask On
+        </button>
+       </aside>
+       <img alt="Original tissue" class="hidden" id="originalImage" src="#"/>
+       <div class="segmentation-viewer-stage">
+        <canvas aria-label="Processed tissue segmentation result" class="mx-auto w-4/5" id="segmentationResultsCanvas" role="img">
+        </canvas>
+       </div>
+       <div aria-live="polite" class="stats-strip" id="segmentationStats">
+        <span>
+         Detected: --
+        </span>
+        <span>
+         Rescued: --
+        </span>
+        <span>
+         Removed artifacts: --
+        </span>
+        <span>
+         Recentered: --
+        </span>
+       </div>
+      </div>
+     </div>
+     <div class="stage-actions">
+      <button class="btn-back">
+       Back to image
+      </button>
+      <button class="btn-proceed" id="finalizeSegmentation">
+       Continue to grid
+      </button>
+     </div>
+    </section>
+    <script>
+     // Function to toggle the sidebar
                 function toggleSidebarSegmentation() {
                     var sidebar = document.getElementById('segmentation-sidebar');
                     var segmentationSidebarIcon = document.getElementById('segmentationSidebarIcon');
@@ -427,310 +637,442 @@
                     var isOpen = !sidebar.classList.contains('collapsed');
                     segmentationSidebarIcon.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 }
-            </script>
-
-
-            <section id="gridding" class="hidden">
-
-
-                <div id="rawDataLoadingSpinner" style="display: none;">
-                    <div class="spinner"></div>
-                </div>
-
-                <div class="instructions-container mb-4">
-                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
-                    <h2 class="text-xl font-semibold">Gridding Instructions</h2>
-                    <p>Open the menu on the left to adjust the gridding settings and key hyperparameters such as
-                        the image's rotation. Please ensure that the image is rotated correctly. If not, adjust the
-                        image rotation parameter.</p>
-                    <p>Once you're satisfied with the gridding, click the <span
-                            class="span-button-proceed">Proceed</span>
-                        button to continue to the Virtual Grid section.</p>
-                    <p><strong>Marker cores are now placed automatically when the surrounding row and column lattice
-                            can be inferred confidently.</strong></p>
-                </div>
-
-                <div class="instructions-container mb-4">
-                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
-                    <h2 class="text-xl font-semibold">Editing Cores</h2>
-                    <p>You can move the core by dragging it to the desired location.</p>
-                    <p><kbd>Click</kbd> the core, then drag the corner anchor points to resize.</p>
-                    <p><kbd>Double-click</kbd> the core to open the edit menu and change its metadata. </p>
-                    <p><kbd>Shift-click</kbd> the core to toggle its status as real/imaginary. </p>
-                </div>
-
-                <div class="instructions-container mb-4">
-                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
-                    <h2 class="text-xl font-semibold">Adding Cores</h2>
-                    <p>Click the <span class="span-button">Add Core</span> button in the top left corner, then drag to
-                        set the core's location and size.</p>
-                </div>
-
-                <div id="markerAutoStatus" class="marker-auto-status" aria-live="polite">
-                    Marker core placement will be checked after gridding runs.
-                </div>
-                <div class="workspace-layout gridding-workspace">
-                    <div class="workspace-sidebar-column">
-                        <button type="button" id="griddingSidebarIcon"
-                            class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle"
-                            onclick="toggleSidebarGridding()" aria-controls="gridding-sidebar"
-                            aria-expanded="false" aria-label="Show gridding parameters" title="Parameters">
-                            <span class="panel-toggle-icon" aria-hidden="true">
-                                <span></span><span></span><span></span>
-                            </span>
-                        </button>
-                        <aside id="gridding-sidebar"
-                        class="w-1/3 sm:w-full md:w-1/4 lg:w-1/3 bg-white p-2 rounded-lg shadow transition-all duration-300 collapsed">
-                        <form id="hyperparameters-form" class="space-y-2 gridding-sidebar-content" novalidate>
-                            <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
-                                <h2 class="title">Configure Parameters</h2>
-                                <div class="window-controls">
-                                    <button type="button" class="close-button" onclick="toggleSidebarGridding()" aria-label="Close gridding parameters">×</button>
-                                </div>
-                            </div>
-
-                            <!-- Image Parameters Section -->
-                            <fieldset class="p-2 bg-gray-100 rounded-lg shadow-sm">
-                                <legend class="font-semibold text-l text-gray-900">Image Parameters</legend>
-                                <div class="flex-col space-y-4 mb-2">
-                                    <label for="userRadius" class="block">
-                                        Core Radius: <output id="radiusValue" for="userRadius">20</output>
-                                    </label>
-                                    <input type="range" id="userRadius" class="mt-2 mb-2 w-full" name="userRadius" min="1" max="100" value="20">
-                                </div>
-                            </fieldset>
-                            <!-- Traveling Algorithm Section -->
-                            <fieldset class="p-2 bg-gray-100 rounded-lg shadow-sm">
-                                <legend class="font-semibold text-l text-gray-900">Traveling Algorithm Parameters
-                                </legend>
-                                <div class="flex-col space-y-4 mb-2">
-                                    <label for="originAngle" title="Rotation of the image in degrees">
-                                        Image Rotation: <output id="originAngleValue" for="originAngle">0</output>
-                                    </label>
-                                    <input type="range" id="originAngle" class="mt-2 mb-2 w-full" name="originAngle" min="-90" max="90" value="0">
-                                </div>
-                            </fieldset>
-                            <fieldset>
-                                <legend class="font-semibold text-l text-gray-900 mb-2">Display Parameters</legend>
-                                <!-- Check box for whether adjacent cores should be connected by lines -->
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="connectCoresCheckbox" name="connectCores" checked>
-                                    <label for="connectCoresCheckbox">Connect Cores</label>
-                                </div>
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="flagMisalignmentCheckbox" name="flagMisalignmentCheckbox"
-                                        checked>
-                                    <label for="flagMisalignmentCheckbox">Flag Misaligned Cores</label>
-                                </div>
-                            </fieldset>
-
-                            <!-- Advanced Settings Toggle -->
-                            <div class="mt-4">
-                                <label for="advanced-settings" class="items-center cursor-pointer">
-                                    <input type="checkbox" id="advanced-settings" class="toggle-checkbox">
-                                    <span class="text-gray-700">Advanced Settings</span>
-                                </label>
-                            </div>
-                            <!-- Advanced Settings Content -->
-                            <!-- Wrap hidden fieldsets in a div -->
-                            <div id="advanced-settings-content" class="hidden">
-                                <!-- More Traveling Algorithm Parameters -->
-                                <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                    <legend class="font-semibold text-l text-gray-900 mb-4">Traveling Algorithm
-                                        Parameters</legend>
-                                    <label for="radiusMultiplier"
-                                        title="Multiplier for the radius used in the traveling algorithm">Radius
-                                        Multiplier</label>
-                                    <input type="number" id="radiusMultiplier" name="radiusMultiplier" step="0.1"
-                                        value="0.6">
-
-                                    <label for="gridWidth"
-                                        title="Width of one square in the grid used in the traveling algorithm">Grid
-                                        Width</label>
-                                    <input type="number" id="gridWidth" name="gridWidth" step="any" value="70">
-
-                                    <label for="gamma"
-                                        title="Distance after the core with the greatest X value to stop the traveling algorithm">Stopping
-                                        Distance</label>
-                                    <input type="number" id="gamma" name="gamma" step="any" value="60">
-
-                                    <label for="multiplier"
-                                        title="Multiplier for the grid width calculation in the traveling algorithm">Multiplier
-                                        for Grid Width</label>
-                                    <input type="number" id="multiplier" name="multiplier" step="0.1" value="1.5">
-
-                                    <label for="imageWidth"
-                                        title="Width of the entire grid used in the traveling algorithm">Image
-                                        Width</label>
-                                    <input type="number" id="imageWidth" name="imageWidth" step="any" value="1024">
-
-                                    <label for="searchAngle" title="Angle to search in the traveling algorithm">Search
-                                        Angle</label>
-                                    <input type="number" id="searchAngle" name="searchAngle" step="1" value="5">
-                                </fieldset>
-
-                                <!-- Edge Detection Section -->
-                                <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                    <legend class="font-semibold text-l text-gray-900 mb-4">Edge Detection Parameters
-                                    </legend>
-
-                                    <label for="thresholdMultiplier"
-                                        title="Multiplier for the median absolute deviation to filter edges by length">Length
-                                        Threshold Multiplier</label>
-                                    <input type="number" id="thresholdMultiplier" name="thresholdMultiplier" step="0.1"
-                                        value="1.2">
-
-                                    <label for="thresholdAngle"
-                                        title="The angle within which edges are considered valid">Threshold
-                                        Angle</label>
-                                    <input type="number" id="thresholdAngle" name="thresholdAngle" step="1" value="10">
-                                </fieldset>
-
-                                <!-- Image Rotation Section -->
-                                <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
-                                    <legend class="font-semibold text-l text-gray-900 mb-4">Image Rotation Parameters
-                                    </legend>
-
-                                    <label for="minAngle" title="Minimum angle to test for image rotation">Minimum
-                                        Angle</label>
-                                    <input type="number" id="minAngle" name="minAngle" step="1" value="0">
-
-                                    <label for="maxAngle" title="Maximum angle to test for image rotation">Maximum
-                                        Angle</label>
-                                    <input type="number" id="maxAngle" name="maxAngle" step="1" value="5">
-
-                                    <label for="angleStepSize"
-                                        title="Incremental step size for testing angles during image rotation">Angle
-                                        Step Size</label>
-                                    <input type="number" id="angleStepSize" name="angleStepSize" step="1" value="5">
-
-                                    <label for="angleThreshold"
-                                        title="Angle threshold used when filtering edges by angle for image rotation">Angle
-                                        Threshold</label>
-                                    <input type="number" id="angleThreshold" name="angleThreshold" step="1" value="20">
-                                </fieldset>
-                            </div>
-                            <button type="button" id="apply-hyperparameters"
-                                class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Apply</button>
-                        </form>
-                        </aside>
-                    </div>
-
-                    <!-- Main Content -->
-                    <main class="viewer-panel mx-auto w-full">
-                        <!-- Main content goes here -->
-                        <div class="viewer-scroll" id="main-container">
-                            <!-- Image Viewer or other main content -->
-                            <div id="griddingStatus" class="workspace-status-panel" role="status"
-                                aria-live="polite" aria-busy="false">
-                                <span class="workspace-status-spinner" aria-hidden="true"></span>
-                                <strong data-status-title>Grid markers are not ready yet</strong>
-                                <span data-status-detail>Apply gridding parameters to place cores on the image.</span>
-                            </div>
-                            <div id="osdViewer" style="margin:auto"></div>
-                        </div>
-                        <div class="edit-sidebar" id="editSidebar">
-                            <div class="sidebar-header draggable-area">
-                                <h2 class="title">Edit Core</h2>
-                                <div class="window-controls">
-                                    <button class="close-button" id="closeEditCoreButton" aria-label="Close core editor">×</button>
-                                </div>
-                            </div>
-                            <form id="editCoreForm" class="main-content">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="editIsMarkerInput" name="editIsMarkerInput">
-                                    <label for="editIsMarkerInput">Is a Marker</label>
-                                </div>
-                                <label for="editRowInput">Row:</label>
-                                <input type="number" id="editRowInput" name="editRowInput" disabled>
-
-                                <label for="editColumnInput">Column:</label>
-                                <input type="number" id="editColumnInput" name="editColumnInput" disabled>
-
-                                <div class="checkbox-group" style="display: none;">
-                                    <input type="checkbox" id="editAutoUpdateColumnsCheckbox"
-                                        name="editAutoUpdateColumnsCheckbox" checked>
-                                    <label for="editAutoUpdateColumnsCheckbox">Auto Assign Columns</label>
-                                </div>
-
-                                <label for="editXInput">X Position:</label>
-                                <input type="number" id="editXInput" name="editXInput">
-
-                                <label for="editYInput">Y Position:</label>
-                                <input type="number" id="editYInput" name="editYInput">
-
-                                <label for="editRadiusInput">Radius:</label>
-                                <input type="number" id="editRadiusInput" name="editRadiusInput" step="0.1">
-
-                                <label for="editAnnotationsInput">Annotations:</label>
-                                <textarea id="editAnnotationsInput" name="editAnnotationsInput"></textarea>
-
-                                <div class="radio-group">
-                                    <input type="radio" id="editRealInput" name="coreType" value="real">
-                                    <label for="editRealInput" class="radio-button">Normal</label>
-                                    <input type="radio" id="editImaginaryInput" name="coreType" value="imaginary">
-                                    <label for="editImaginaryInput" class="radio-button">Missing</label>
-                                </div>
-
-                                <div class="button-group">
-                                    <button type="button" id="saveCoreEdits">Save</button>
-                                    <button type="button" id="removeCoreButton">Remove</button>
-                                </div>
-                            </form>
-                        </div>
-                    </main>
-
-                    <aside id="reviewPanel" class="review-panel review-sidebar" aria-live="polite">
-                        <div class="review-panel-header">
-                            <div class="review-panel-title">
-                                <h2>Review Queue <span id="reviewIssueCount" class="review-count-badge">0</span></h2>
-                                <p id="reviewSummary">No issues detected yet.</p>
-                            </div>
-                            <button type="button" id="minimizeReviewPanelButton" class="review-minimize-button"
-                                aria-expanded="true" aria-label="Minimize review panel" title="Minimize review panel">−</button>
-                        </div>
-                        <div id="reviewIssueDrawer" class="review-issue-drawer">
-                            <ul id="reviewIssueList" class="review-issue-list"></ul>
-                        </div>
-                    </aside>
-                </div>
-
-
-                <section style="padding-top: 4px;">
-                    <h2 class="text-xl font-semibold">Core Color Legend</h2>
-                    <div class="flex flex-wrap justify-around">
-                        <div class="flex items-center m-2">
-                            <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-                            <span>Marker cores</span>
-                        </div>
-                        <div class="flex items-center m-2">
-                            <div class="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-                            <span>Normal cores</span>
-                        </div>
-                        <div class="flex items-center m-2">
-                            <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-                            <span>Misaligned cores</span>
-                        </div>
-                        <div class="flex items-center m-2">
-                            <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
-                            <span>Imaginary cores</span>
-                        </div>
-                    </div>
-                </section>
-
-                <div class="flex justify-between items-center mt-8">
-                    <button
-                        class="btn-back px-4 py-2 font-bold rounded focus:outline-none shadow transition-colors duration-150">Back</button>
-                    <button id="create-virtual-grid"
-                        class="btn-proceed px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded focus:outline-none shadow transition-colors duration-150"
-                        data-defer-navigation="true">Proceed</button>
-                </div>
-
-            </section>
-
-
-            <script>
-                // Function to toggle the sidebar
+    </script>
+    <section class="workflow-section hidden" id="gridding">
+     <div class="stage-heading">
+      <div>
+       <h2>
+        Review the grid
+       </h2>
+       <p>
+        Check core positions, resolve flagged items, and adjust the layout.
+       </p>
+      </div>
+      <span class="stage-file-context" title="Current image">
+       No image selected
+      </span>
+     </div>
+     <div id="rawDataLoadingSpinner" style="display: none;">
+      <div class="spinner">
+      </div>
+     </div>
+     <div class="instructions-container">
+      <button aria-label="Dismiss instructions" class="close-instructions text-right" type="button">
+       ✕
+      </button>
+      <h2 class="text-xl font-semibold">
+       Gridding Instructions
+      </h2>
+      <p>
+       Use Grid settings to adjust the core radius and image orientation. Choose Apply grid settings after changing parameters.
+      </p>
+      <p>
+       Review flagged items in the review queue. Drag cores to correct their positions, then choose Continue to export.
+      </p>
+      <p>
+       Marker cores are placed automatically when their surrounding row and column lattice can be inferred.
+      </p>
+     </div>
+     <div class="instructions-container">
+      <button aria-label="Dismiss instructions" class="close-instructions text-right" type="button">
+       ✕
+      </button>
+      <h2 class="text-xl font-semibold">
+       Editing Cores
+      </h2>
+      <p>
+       You can move the core by dragging it to the desired location.
+      </p>
+      <p>
+       <kbd>
+        Click
+       </kbd>
+       the core, then drag the corner anchor points to resize.
+      </p>
+      <p>
+       <kbd>
+        Double-click
+       </kbd>
+       the core to open the edit menu and change its metadata.
+      </p>
+      <p>
+       <kbd>
+        Shift-click
+       </kbd>
+       the core to switch between a tissue core and a missing-core placeholder.
+      </p>
+     </div>
+     <div class="instructions-container">
+      <button aria-label="Dismiss instructions" class="close-instructions text-right" type="button">
+       ✕
+      </button>
+      <h2 class="text-xl font-semibold">
+       Adding Cores
+      </h2>
+      <p>
+       Click the
+       <span class="span-button">
+        Add Core
+       </span>
+       button in the top left corner, then drag to
+                        set the core's location and size.
+      </p>
+     </div>
+     <div class="workspace-layout gridding-workspace">
+      <div class="workspace-sidebar-column">
+       <button aria-controls="gridding-sidebar" aria-expanded="true" aria-label="Show gridding parameters" class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle" id="griddingSidebarIcon" onclick="toggleSidebarGridding()" title="Parameters" type="button">
+        <span aria-hidden="true" class="panel-toggle-icon">
+         <span>
+         </span>
+         <span>
+         </span>
+         <span>
+         </span>
+        </span>
+        Parameters
+       </button>
+       <aside class="parameter-inspector" id="gridding-sidebar">
+        <form class="gridding-sidebar-content" id="hyperparameters-form" novalidate="">
+         <div class="workspace-sidebar-header text-xl font-semibold parameters-header">
+          <h2 class="title">
+           Grid settings
+          </h2>
+          <div class="window-controls">
+           <button aria-label="Close gridding parameters" class="close-button inspector-close-button" onclick="toggleSidebarGridding()" type="button">
+            ×
+           </button>
+          </div>
+         </div>
+         <!-- Image Parameters Section -->
+         <fieldset class="p-2 bg-gray-100 rounded-lg shadow-sm">
+          <legend class="font-semibold text-l text-gray-900">
+           Core geometry
+          </legend>
+          <div class="grid-range-field">
+           <div class="control-field">
+            <label class="block" for="userRadius">
+             Core radius:
+            </label>
+            <div class="range-input-row">
+             <input class="mt-2 mb-2 w-full" id="userRadius" max="100" min="1" name="userRadius" type="range" value="20"/>
+             <output for="userRadius" id="radiusValue">
+              20
+             </output>
+            </div>
+           </div>
+          </div>
+         </fieldset>
+         <!-- Traveling Algorithm Section -->
+         <fieldset class="p-2 bg-gray-100 rounded-lg shadow-sm">
+          <legend class="font-semibold text-l text-gray-900">
+           Orientation
+          </legend>
+          <div class="grid-range-field">
+           <div class="control-field">
+            <label for="originAngle" title="Rotation of the image in degrees">
+             Image rotation:
+            </label>
+            <div class="range-input-row">
+             <input class="mt-2 mb-2 w-full" id="originAngle" max="90" min="-90" name="originAngle" type="range" value="0"/>
+             <output for="originAngle" id="originAngleValue">
+              0
+             </output>
+            </div>
+           </div>
+          </div>
+         </fieldset>
+         <fieldset>
+          <legend class="font-semibold text-l text-gray-900 mb-2">
+           Display
+          </legend>
+          <!-- Check box for whether adjacent cores should be connected by lines -->
+          <div class="checkbox-group">
+           <input checked="" id="connectCoresCheckbox" name="connectCores" type="checkbox"/>
+           <label for="connectCoresCheckbox">
+            Connect adjacent cores
+           </label>
+          </div>
+          <div class="checkbox-group">
+           <input checked="" id="flagMisalignmentCheckbox" name="flagMisalignmentCheckbox" type="checkbox"/>
+           <label for="flagMisalignmentCheckbox">
+            Flag misaligned cores
+           </label>
+          </div>
+         </fieldset>
+         <!-- Advanced Settings Toggle -->
+         <div class="advanced-settings-toggle">
+          <label class="items-center cursor-pointer" for="advanced-settings">
+           <input class="toggle-checkbox" id="advanced-settings" type="checkbox"/>
+           <span class="text-gray-700">
+            Advanced settings
+           </span>
+          </label>
+         </div>
+         <!-- Advanced Settings Content -->
+         <!-- Wrap hidden fieldsets in a div -->
+         <div class="hidden" id="advanced-settings-content">
+          <!-- More Traveling Algorithm Parameters -->
+          <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
+           <legend class="font-semibold text-l text-gray-900 mb-4">
+            Traveling Algorithm
+                                        Parameters
+           </legend>
+           <label for="radiusMultiplier" title="Multiplier for the radius used in the traveling algorithm">
+            Radius
+                                        Multiplier
+           </label>
+           <input id="radiusMultiplier" name="radiusMultiplier" step="0.1" type="number" value="0.6"/>
+           <label for="gridWidth" title="Width of one square in the grid used in the traveling algorithm">
+            Grid
+                                        Width
+           </label>
+           <input id="gridWidth" name="gridWidth" step="any" type="number" value="70"/>
+           <label for="gamma" title="Distance after the core with the greatest X value to stop the traveling algorithm">
+            Stopping
+                                        Distance
+           </label>
+           <input id="gamma" name="gamma" step="any" type="number" value="60"/>
+           <label for="multiplier" title="Multiplier for the grid width calculation in the traveling algorithm">
+            Multiplier
+                                        for Grid Width
+           </label>
+           <input id="multiplier" name="multiplier" step="0.1" type="number" value="1.5"/>
+           <label for="imageWidth" title="Width of the entire grid used in the traveling algorithm">
+            Image
+                                        Width
+           </label>
+           <input id="imageWidth" name="imageWidth" step="any" type="number" value="1024"/>
+           <label for="searchAngle" title="Angle to search in the traveling algorithm">
+            Search
+                                        Angle
+           </label>
+           <input id="searchAngle" name="searchAngle" step="1" type="number" value="5"/>
+          </fieldset>
+          <!-- Edge Detection Section -->
+          <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
+           <legend class="font-semibold text-l text-gray-900 mb-4">
+            Edge Detection Parameters
+           </legend>
+           <label for="thresholdMultiplier" title="Multiplier for the median absolute deviation to filter edges by length">
+            Length
+                                        Threshold Multiplier
+           </label>
+           <input id="thresholdMultiplier" name="thresholdMultiplier" step="0.1" type="number" value="1.2"/>
+           <label for="thresholdAngle" title="The angle within which edges are considered valid">
+            Threshold
+                                        Angle
+           </label>
+           <input id="thresholdAngle" name="thresholdAngle" step="1" type="number" value="10"/>
+          </fieldset>
+          <!-- Image Rotation Section -->
+          <fieldset class="p-6 bg-gray-100 rounded-lg shadow-sm">
+           <legend class="font-semibold text-l text-gray-900 mb-4">
+            Image Rotation Parameters
+           </legend>
+           <label for="minAngle" title="Minimum angle to test for image rotation">
+            Minimum
+                                        Angle
+           </label>
+           <input id="minAngle" name="minAngle" step="1" type="number" value="0"/>
+           <label for="maxAngle" title="Maximum angle to test for image rotation">
+            Maximum
+                                        Angle
+           </label>
+           <input id="maxAngle" name="maxAngle" step="1" type="number" value="5"/>
+           <label for="angleStepSize" title="Incremental step size for testing angles during image rotation">
+            Angle
+                                        Step Size
+           </label>
+           <input id="angleStepSize" name="angleStepSize" step="1" type="number" value="5"/>
+           <label for="angleThreshold" title="Angle threshold used when filtering edges by angle for image rotation">
+            Angle
+                                        Threshold
+           </label>
+           <input id="angleThreshold" name="angleThreshold" step="1" type="number" value="20"/>
+          </fieldset>
+          <div aria-live="polite" class="marker-auto-status" id="markerAutoStatus">
+           Marker core placement will be checked after gridding runs.
+          </div>
+         </div>
+         <button class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded" id="apply-hyperparameters" type="button">
+          Apply grid settings
+         </button>
+        </form>
+       </aside>
+       <aside aria-live="polite" class="review-panel review-sidebar" id="reviewPanel">
+        <div class="review-panel-header">
+         <div class="review-panel-title">
+          <h2>
+           Review queue
+           <span class="review-count-badge" id="reviewIssueCount">
+            0
+           </span>
+          </h2>
+          <p aria-live="polite" id="reviewSummary" role="status">
+           No issues detected yet.
+          </p>
+         </div>
+         <button aria-expanded="true" aria-label="Minimize review panel" class="review-minimize-button" id="minimizeReviewPanelButton" title="Minimize review panel" type="button">
+          −
+         </button>
+        </div>
+        <div class="review-issue-drawer" id="reviewIssueDrawer">
+         <ul class="review-issue-list" id="reviewIssueList">
+         </ul>
+        </div>
+       </aside>
+      </div>
+      <!-- Main Content -->
+      <main class="viewer-panel">
+       <!-- Main content goes here -->
+       <div class="viewer-scroll" id="main-container">
+        <!-- Image Viewer or other main content -->
+        <div aria-busy="false" aria-live="polite" class="workspace-status-panel" id="griddingStatus" role="status">
+         <span aria-hidden="true" class="workspace-status-spinner">
+         </span>
+         <strong data-status-title="">
+          Grid markers are not ready yet
+         </strong>
+         <span data-status-detail="">
+          Apply gridding parameters to place cores on the image.
+         </span>
+        </div>
+        <div id="osdViewer" style="margin:auto">
+        </div>
+       </div>
+       <div aria-label="Edit core" class="edit-sidebar" id="editSidebar" role="region">
+        <div class="sidebar-header draggable-area">
+         <h2 class="title">
+          Edit core
+         </h2>
+         <div class="window-controls">
+          <button aria-label="Close core editor" class="close-button" id="closeEditCoreButton">
+           ×
+          </button>
+         </div>
+        </div>
+        <form class="main-content" id="editCoreForm" novalidate="">
+         <div class="checkbox-group core-marker-field">
+          <input id="editIsMarkerInput" name="editIsMarkerInput" type="checkbox"/>
+          <label class="core-marker-field" for="editIsMarkerInput">
+           Marker core
+          </label>
+         </div>
+         <div class="core-field">
+          <label for="editRowInput">
+           Row
+          </label>
+          <input disabled="" id="editRowInput" name="editRowInput" type="number"/>
+         </div>
+         <div class="core-field">
+          <label for="editColumnInput">
+           Column
+          </label>
+          <input disabled="" id="editColumnInput" name="editColumnInput" type="number"/>
+         </div>
+         <div class="checkbox-group core-marker-field">
+          <input checked="" id="editAutoUpdateColumnsCheckbox" name="editAutoUpdateColumnsCheckbox" type="checkbox"/>
+          <label class="core-marker-field" for="editAutoUpdateColumnsCheckbox">
+           Auto assign column
+          </label>
+         </div>
+         <div class="core-field">
+          <label for="editXInput">
+           X position
+          </label>
+          <input id="editXInput" name="editXInput" type="number"/>
+         </div>
+         <div class="core-field">
+          <label for="editYInput">
+           Y position
+          </label>
+          <input id="editYInput" name="editYInput" type="number"/>
+         </div>
+         <div class="core-field core-field-full">
+          <label for="editRadiusInput">
+           Radius
+          </label>
+          <input id="editRadiusInput" name="editRadiusInput" step="0.1" type="number"/>
+         </div>
+         <div class="core-field core-field-full">
+          <label for="editAnnotationsInput">
+           Annotations
+          </label>
+          <textarea id="editAnnotationsInput" name="editAnnotationsInput"></textarea>
+         </div>
+         <div class="radio-group core-status-field">
+          <div class="radio-choice">
+           <input id="editRealInput" name="coreType" type="radio" value="real"/>
+           <label class="radio-button" for="editRealInput">
+            Normal
+           </label>
+          </div>
+          <div class="radio-choice">
+           <input id="editImaginaryInput" name="coreType" type="radio" value="imaginary"/>
+           <label class="radio-button" for="editImaginaryInput">
+            Missing
+           </label>
+          </div>
+         </div>
+         <p aria-live="polite" class="metadata-edit-status core-field-full" id="editCoreStatus" role="status"></p>
+         <div class="button-group">
+          <button id="saveCoreEdits" type="submit">
+           Save
+          </button>
+          <button id="removeCoreButton" type="button">
+           Remove
+          </button>
+         </div>
+        </form>
+       </div>
+      </main>
+     </div>
+     <section class="core-legend" style="">
+      <h2 class="text-xl font-semibold">
+       Core types
+      </h2>
+      <div class="flex flex-wrap justify-around">
+       <div class="flex items-center m-2">
+        <div class="w-4 h-4 rounded-full bg-green-500 mr-2">
+        </div>
+        <span>
+         Marker cores
+        </span>
+       </div>
+       <div class="flex items-center m-2">
+        <div class="w-4 h-4 rounded-full bg-blue-500 mr-2">
+        </div>
+        <span>
+         Normal cores
+        </span>
+       </div>
+       <div class="flex items-center m-2">
+        <div class="w-4 h-4 rounded-full bg-red-500 mr-2">
+        </div>
+        <span>
+         Misaligned cores
+        </span>
+       </div>
+       <div class="flex items-center m-2">
+        <div class="w-4 h-4 rounded-full bg-yellow-500 mr-2">
+        </div>
+        <span>
+         Missing cores
+        </span>
+       </div>
+      </div>
+     </section>
+     <div class="stage-actions">
+      <button class="btn-back">
+       Back to segmentation
+      </button>
+      <button class="btn-proceed" data-defer-navigation="true" id="create-virtual-grid">
+       Continue to export
+      </button>
+     </div>
+    </section>
+    <script>
+     // Function to toggle the sidebar
                 function toggleSidebarGridding() {
                     var sidebar = document.getElementById('gridding-sidebar');
                     var griddingSidebarIcon = document.getElementById('griddingSidebarIcon');
@@ -739,13 +1081,23 @@
                     var isOpen = !sidebar.classList.contains('collapsed');
                     griddingSidebarIcon.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 }
-
-            </script>
-
-
-            <section id="virtual-grid" class="py-5 hidden">
-                <script>
-                    // Function to toggle the sidebar
+    </script>
+    <section class="workflow-section hidden" id="virtual-grid">
+     <div class="stage-heading">
+      <div>
+       <h2>
+        Metadata and export
+       </h2>
+       <p>
+        Select a core to edit its metadata, then export your results.
+       </p>
+      </div>
+      <span class="stage-file-context" title="Current image">
+       No image selected
+      </span>
+     </div>
+     <script>
+      // Function to toggle the sidebar
                     function toggleSidebarVirtual() {
                         var sidebar = document.getElementById('virtual-grid-sidebar');
                         var virtualSidebarIcon = document.getElementById('virtualGridSidebarIcon');
@@ -754,205 +1106,201 @@
                         var isOpen = !sidebar.classList.contains('collapsed');
                         virtualSidebarIcon.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                     }
-
-                </script>
-
-                <div class="instructions-container space-y-4">
-                    <button class="close-instructions text-right" type="button" aria-label="Dismiss instructions">✕</button>
-                    <h2 class="text-xl font-semibold">Using the Virtual Grid</h2>
-                    <p>Select a core in the right-hand grid to edit its metadata. Remember to click <span
-                            class="span-button">Update Metadata</span> to save your changes.
-                    </p>
-                    <p>Click the <span class="span-button-green">Add Field</span> button to add a column to your
-                        associated metadata file.
-                    </p>
-
-                    <p>To export a single core at full resolution, <kbd>Double-click</kbd> it. To export all cores,
-                        click
-                        the <span class="span-button">Export Grid</span> button. Note that core exporting is only
-                        enabled for
-                        <span class="span-file-type">.svs</span> files
-                    </p>
-                </div>
-
-
-                <div class="virtual-grid-layout">
-                    <div class="virtual-grid-sidebar-column">
-                        <button type="button" id="virtualGridSidebarIcon"
-                            class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle"
-                            onclick="toggleSidebarVirtual()" aria-controls="virtual-grid-sidebar"
-                            aria-expanded="true" aria-label="Toggle metadata editor" title="Metadata">
-                            <span class="panel-toggle-icon" aria-hidden="true">
-                                <span></span><span></span><span></span>
-                            </span>
-                            <span>Metadata</span>
-                        </button>
-                        <aside id="virtual-grid-sidebar"
-                        class="w-full md:w-2/3 lg:w-1/3 bg-gray-50 p-4 rounded-lg shadow-lg mr-2 overflow-y-auto"
-                        >
-                        <div class="workspace-sidebar-header flex justify-between items-center">
-                            <h2 class="text-lg md:text-xl font-semibold">Edit Metadata</h2>
-                            <button type="button" class="close-button metadata-sidebar-close"
-                                onclick="toggleSidebarVirtual()" aria-label="Close metadata editor">×</button>
-                        </div>
-                        <form id="editMetadataForm" class="mt-4" novalidate>
-                            Please select a core to begin editing.
-                        </form>
-
-                        <fieldset class="mt-4 hidden">
-                            <div class="grid grid-cols-1 gap-4">
-                                <label for="horizontalSpacing">Horizontal Spacing:</label>
-                                <input type="range" id="horizontalSpacing" name="horizontalSpacing" min="1" max="200"
-                                    value="50">
-                                <output for="horizontalSpacing" id="horizontalSpacingValue">50</output>
-
-                                <label for="verticalSpacing">Vertical Spacing:</label>
-                                <input type="range" id="verticalSpacing" name="verticalSpacing" min="1" max="200"
-                                    value="50">
-                                <output for="verticalSpacing" id="verticalSpacingValue">50</output>
-
-                                <label for="startingX">Starting X:</label>
-                                <input type="range" id="startingX" name="startingX" min="0" max="200" value="0">
-                                <output for="startingX" id="startingXValue">0</output>
-
-                                <label for="startingY">Starting Y:</label>
-                                <input type="range" id="startingY" name="startingY" min="0" max="200" value="0">
-                                <output for="startingY" id="startingYValue">0</output>
-                            </div>
-                            <button type="button" id="applyVirtualGridSettings"
-                                class="mt-4 w-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 transition duration-150 ease-in-out">Apply</button>
-                        </fieldset>
-                        </aside>
-                    </div>
-
-
-                    <!-- Virtual Grid Display and Interaction -->
-                    <main class="virtual-grid-main flex-1 w-full mx-auto">
-                        <div id="VirtualGrid" class="tabcontent">
-
-                            <div class="virtual-grid-stage">
-                                <div id="virtualGridStatus" class="workspace-status-panel" role="status"
-                                    aria-live="polite" aria-busy="false">
-                                    <span class="workspace-status-spinner" aria-hidden="true"></span>
-                                    <strong data-status-title>Virtual grid is not ready yet</strong>
-                                    <span data-status-detail>Proceed from gridding to build the core preview grid.</span>
-                                </div>
-                                <canvas id="virtualGridCanvas" width="1024" height="1024" style="border:none;"
-                                    class="w-full"></canvas>
-                                <!-- Put other virtual grid related content here -->
-
-                                <div id="VirtualGridSVSContainer"></div>
-                            </div>
-
-                        </div>
-                    </main>
-
-                    <!-- Progress Overlay -->
-                    <div id="progressOverlay">
-                        <div class="progress-dialog">
-                            <h2 class="progress-title">Export Progress</h2>
-                            <div id="progressBarContainer">
-                                <div id="progressBar"></div>
-                            </div>
-                            <p id="progressText">Initializing...</p>
-                        </div>
-                    </div>
-
-
-
-                </div>
-
-                <div class="flex justify-between mt-6">
-                    <button
-                        class="btn-back px-4 py-2 font-bold rounded focus:outline-none shadow-lg">
-                        Back
-                    </button>
-
-                    <div class="flex flex-col sm:flex-row gap-4 mt-4">
-                        <button type="button"
-                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow text-base transition duration-150 ease-in-out"
-                            id="saveResultsAsJson">Metadata JSON</button>
-                        <button type="button"
-                            class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow text-base transition duration-150 ease-in-out"
-                            id="saveResultsAsCsv">Metadata CSV</button>
-                        <button id="downloadAllCoresButton"
-                            class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg">Export
-                            Grid</button>
-                    </div>
-                </div>
-                <div id="exportGridWarning" class="export-grid-warning hidden" role="alert" aria-live="assertive">
-                    Export Grid requires an empty folder. Choose or create an empty folder before continuing.
-                </div>
-            </section>
-
+     </script>
+     <div class="instructions-container">
+      <button aria-label="Dismiss instructions" class="close-instructions text-right" type="button">
+       ✕
+      </button>
+      <h2 class="text-xl font-semibold">
+       Using the Virtual Grid
+      </h2>
+      <p>
+       Select a core to edit its metadata, then choose Update Metadata to save changes. Use Add Field to add a metadata column.
+      </p>
+      <p>
+       Download metadata as JSON or CSV. Core image export depends on the source format, readable image tiles, and browser support.
+      </p>
+     </div>
+     <div class="virtual-grid-layout">
+      <div class="virtual-grid-sidebar-column">
+       <button aria-controls="virtual-grid-sidebar" aria-expanded="true" aria-label="Toggle metadata editor" class="workspace-sidebar-trigger parameterSidebar workspace-panel-toggle" id="virtualGridSidebarIcon" onclick="toggleSidebarVirtual()" title="Metadata" type="button">
+        <span aria-hidden="true" class="panel-toggle-icon">
+         <span>
+         </span>
+         <span>
+         </span>
+         <span>
+         </span>
+        </span>
+        <span>
+         Metadata
+        </span>
+       </button>
+       <aside class="parameter-inspector" id="virtual-grid-sidebar">
+        <div class="workspace-sidebar-header flex justify-between items-center">
+         <h2 class="text-lg md:text-xl font-semibold">
+          Core metadata
+         </h2>
+         <button aria-label="Close metadata editor" class="close-button metadata-sidebar-close" onclick="toggleSidebarVirtual()" type="button">
+          ×
+         </button>
         </div>
-
-
-        <!-- Carousel controls for the sections -->
-        <div class="carousel-controls workflow-steps flex justify-center space-x-1 md:space-x-3 p-4 mb-10"
-            aria-label="Workflow steps">
-            <button id="imageUploadTabButton"
-                class="carousel-control workflow-step active bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="1" data-label="Upload">
-                <span class="step-index">1</span>
-                <span class="step-label">Upload</span>
-                <span class="step-status"></span>
-            </button>
-            <button id="imageSegmentationTabButton"
-                class="carousel-control workflow-step bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="2" data-label="Segment" disabled>
-                <span class="step-index">2</span>
-                <span class="step-label">Segment</span>
-                <span class="step-status"></span>
-            </button>
-            <button id="rawDataTabButton"
-                class="carousel-control workflow-step bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="3" data-label="Grid" disabled>
-                <span class="step-index">3</span>
-                <span class="step-label">Grid</span>
-                <span class="step-status"></span>
-            </button>
-            <button id="virtualGridTabButton"
-                class="carousel-control workflow-step bg-gray-300 hover:bg-gray-400 focus:outline-none transition duration-150 ease-in-out"
-                data-step="4" data-label="Export" disabled>
-                <span class="step-index">4</span>
-                <span class="step-label">Export</span>
-                <span class="step-status"></span>
-            </button>
+        <p aria-live="polite" class="metadata-edit-status" id="metadataEditStatus" role="status"></p>
+        <form class="metadata-form" id="editMetadataForm" novalidate="">
+         Select a core in the grid to edit its metadata.
+        </form>
+        <fieldset class="mt-4 hidden">
+         <div class="grid grid-cols-1 gap-4">
+          <label for="horizontalSpacing">
+           Horizontal Spacing:
+          </label>
+          <input id="horizontalSpacing" max="200" min="1" name="horizontalSpacing" type="range" value="50"/>
+          <output for="horizontalSpacing" id="horizontalSpacingValue">
+           50
+          </output>
+          <label for="verticalSpacing">
+           Vertical Spacing:
+          </label>
+          <input id="verticalSpacing" max="200" min="1" name="verticalSpacing" type="range" value="50"/>
+          <output for="verticalSpacing" id="verticalSpacingValue">
+           50
+          </output>
+          <label for="startingX">
+           Starting X:
+          </label>
+          <input id="startingX" max="200" min="0" name="startingX" type="range" value="0"/>
+          <output for="startingX" id="startingXValue">
+           0
+          </output>
+          <label for="startingY">
+           Starting Y:
+          </label>
+          <input id="startingY" max="200" min="0" name="startingY" type="range" value="0"/>
+          <output for="startingY" id="startingYValue">
+           0
+          </output>
+         </div>
+         <button class="mt-4 w-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-base px-5 py-2.5 transition duration-150 ease-in-out" id="applyVirtualGridSettings" type="button">
+          Apply
+         </button>
+        </fieldset>
+       </aside>
+      </div>
+      <!-- Virtual Grid Display and Interaction -->
+      <main class="virtual-grid-main">
+       <div class="image-toolbar">
+        <strong>
+         Core previews
+        </strong>
+        <span class="toolbar-hint">
+         Select to edit metadata
+        </span>
+       </div>
+       <div class="tabcontent" id="VirtualGrid">
+        <div class="virtual-grid-stage">
+         <div aria-busy="false" aria-live="polite" class="workspace-status-panel" id="virtualGridStatus" role="status">
+          <span aria-hidden="true" class="workspace-status-spinner">
+          </span>
+          <strong data-status-title="">
+           Virtual grid is not ready yet
+          </strong>
+          <span data-status-detail="">
+           Proceed from gridding to build the core preview grid.
+          </span>
+         </div>
+         <canvas class="w-full" height="1024" id="virtualGridCanvas" style="border:none;" width="1024">
+         </canvas>
+         <!-- Put other virtual grid related content here -->
+         <div id="VirtualGridSVSContainer">
+         </div>
         </div>
-
-
-        <footer class="app-footer py-5">
-            <p class="text-center text-sm text-gray-500">© <span id="footerYear">2026</span> TMA-Grid · Tissue Microarray De-Arraying Tool</p>
-            <p class="app-footer-links text-center text-sm">
-                <a href="https://link.springer.com/article/10.1186/s12859-026-06638-2" target="_blank" rel="noopener noreferrer">Manuscript (BMC Bioinformatics, 2026)</a>
-                <span aria-hidden="true">·</span>
-                <a href="https://github.com/episphere/tma-grid" target="_blank" rel="noopener noreferrer">GitHub</a>
-                <span aria-hidden="true">·</span>
-                <a href="https://youtu.be/miajqyw4BVk" target="_blank" rel="noopener noreferrer">Tutorial</a>
-            </p>
-            <script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
-        </footer>
-    </div>
-
-    </div>
-    <script src="./javascript/app.js"></script>
-
-    <!-- MAIN.JS -->
-    <script type="module" src="./javascript/main2.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.js" crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js"
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-
-
-    <!-- Box Content Picker Script -->
-    <script src="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.js"></script>
-</body>
-
+       </div>
+      </main>
+      <!-- Progress Overlay -->
+      <div id="progressOverlay">
+       <div class="progress-dialog">
+        <h2 class="progress-title">
+         Export Progress
+        </h2>
+        <div id="progressBarContainer">
+         <div id="progressBar">
+         </div>
+        </div>
+        <p id="progressText">
+         Initializing...
+        </p>
+       </div>
+      </div>
+     </div>
+     <div class="stage-actions">
+      <button class="btn-back">
+       Back to grid
+      </button>
+      <div class="export-actions">
+       <button class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow text-base transition duration-150 ease-in-out" id="saveResultsAsJson" type="button">
+        Metadata JSON
+       </button>
+       <button class="px-6 py-2 inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-md focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 shadow text-base transition duration-150 ease-in-out" id="saveResultsAsCsv" type="button">
+        Metadata CSV
+       </button>
+       <button class="px-6 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded focus:outline-none shadow-lg" id="downloadAllCoresButton">
+        Export core images
+       </button>
+      </div>
+     </div>
+     <div aria-live="assertive" class="export-grid-warning hidden" id="exportGridWarning" role="alert">
+      Export Grid requires an empty folder. Choose or create an empty folder before continuing.
+     </div>
+    </section>
+   </div>
+   <!-- Carousel controls for the sections -->
+   <footer class="app-footer">
+    <p class="">
+     TMA-Grid
+     <span>
+      Open-source tissue microarray analysis
+     </span>
+    </p>
+    <p class="app-footer-links">
+     <a href="https://link.springer.com/article/10.1186/s12859-026-06638-2" rel="noopener noreferrer" target="_blank">
+      Manuscript
+     </a>
+     <span aria-hidden="true">
+      ·
+     </span>
+     <a href="https://github.com/episphere/tma-grid" rel="noopener noreferrer" target="_blank">
+      GitHub
+     </a>
+     <span aria-hidden="true">
+      ·
+     </span>
+     <a href="https://youtu.be/miajqyw4BVk" rel="noopener noreferrer" target="_blank">
+      Tutorial
+     </a>
+    </p>
+   </footer>
+  </div>
+  <script src="./javascript/app.js">
+  </script>
+  <script src="./vendor/tissuumaps/HTMLElementUtils.js">
+  </script>
+  <script src="./javascript/workspace.js">
+  </script>
+  <!-- MAIN.JS -->
+  <script src="./javascript/main2.js" type="module">
+  </script>
+  <script crossorigin="anonymous" referrerpolicy="no-referrer" src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.js">
+  </script>
+  <script crossorigin="anonymous" referrerpolicy="no-referrer" src="https://cdn.jsdelivr.net/gh/openseadragon/svg-overlay/openseadragon-svg-overlay.js">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.9.0-release.2/dist/opencv.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js">
+  </script>
+  <!-- Box Content Picker Script -->
+  <script src="https://cdn01.boxcdn.net/platform/elements/19.0.0/en-US/picker.js">
+  </script>
+ </body>
 </html>

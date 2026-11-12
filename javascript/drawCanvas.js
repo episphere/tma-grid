@@ -11,7 +11,7 @@ import {
   preprocessCores,
 } from "./delaunay_triangulation.js";
 
-import { positionSidebarNextToCore, hideSidebar, showPopup } from "./UI.js";
+import { positionSidebarNextToCore, hideSidebar, showPopup, confirmDiscardCoreEdits } from "./UI.js";
 
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/+esm";
 
@@ -111,6 +111,7 @@ const setVirtualGridStatus = (state, title, detail = "") =>
 const clearVirtualGridStatus = () => clearWorkspaceStatus("virtualGridStatus");
 
 const INTERNAL_METADATA_FIELDS = new Set([
+  "isSelected",
   "markerGridRow",
   "markerGridSide",
   "assignmentResidual",
@@ -241,6 +242,18 @@ function applyElementTooltip(element, text, options = {}) {
 // Global variables to hold the history for undo and redo
 window.actionHistory = [];
 let currentActionIndex = -1;
+
+function updateHistoryControls() {
+  document.getElementById("segmentationUndoButton").disabled = currentActionIndex < 0;
+  document.getElementById("segmentationRedoButton").disabled = currentActionIndex >= window.actionHistory.length - 1;
+}
+
+function resetSegmentationHistory() {
+  window.actionHistory = [];
+  currentActionIndex = -1;
+  updateHistoryControls();
+}
+updateHistoryControls();
 
 let MIN_CORE_WIDTH_PROPORTION = 0.01;
 let temporaryOverlayCounter = 0;
@@ -405,6 +418,7 @@ function recordAction(action) {
   }
   window.actionHistory.push(action);
   currentActionIndex++;
+  updateHistoryControls();
 }
 
 // Undo and Redo Functions
@@ -413,8 +427,10 @@ function undo() {
     const action = window.actionHistory[currentActionIndex];
     revertAction(action);
     currentActionIndex--;
+    window.preprocessedCores = preprocessCores(window.properties);
     redrawCanvas();
   }
+  updateHistoryControls();
 }
 
 function redo() {
@@ -422,8 +438,10 @@ function redo() {
     currentActionIndex++;
     const action = window.actionHistory[currentActionIndex];
     applyAction(action);
+    window.preprocessedCores = preprocessCores(window.properties);
     redrawCanvas();
   }
+  updateHistoryControls();
 }
 
 // Helper functions to revert or apply actions
@@ -454,8 +472,13 @@ function drawProperties(ctx, properties) {
 
   properties.forEach((prop) => {
     ctx.beginPath();
-    ctx.arc(prop.x, prop.y, 5, 0, 2 * Math.PI);
-    ctx.fillStyle = "blue";
+    ctx.arc(prop.x, prop.y, prop.radius || 7, 0, 2 * Math.PI);
+    ctx.strokeStyle = "#126c6a";
+    ctx.lineWidth = 1.25;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(prop.x, prop.y, 2, 0, 2 * Math.PI);
+    ctx.fillStyle = "#126c6a";
     ctx.fill();
 
     if (prop === window.focusedSegmentationReviewProperty) {
@@ -1236,6 +1259,8 @@ function drawCore(core, index = -1) {
 }
 
 const keyPressHandler = (e) => {
+  // Viewer shortcuts must never consume text-editing keys.
+  if (e.target.closest("input, textarea, select, [contenteditable='true']")) return;
   if (e.key === "Delete" || e.key === "Backspace") {
     const overlay = window.viewer.currentOverlays.find((overlay) =>
       overlay.element.classList.contains("selected")
@@ -1274,11 +1299,11 @@ const zoomHandlerForResizeHandles = (e) => {
 };
 
 const deselectOverlay = (overlay) => {
+  if (!hideSidebar()) return;
   overlay.element.classList.remove("selected");
   window.viewer.removeHandler("canvas-click", overlayClickHandler);
   window.viewer.removeHandler("zoom", zoomHandlerForResizeHandles);
   document.removeEventListener("keydown", keyPressHandler);
-  hideSidebar();
   drawResizeHandles(overlay, false);
 };
 
@@ -1313,6 +1338,14 @@ const overlayClickHandler = (e) => {
 
 // Modified updateSidebar function to handle add mode
 function updateSidebar(core) {
+  // OpenSeadragon temporarily detaches surrounding controls in full-page mode.
+  // Restore the workspace before opening the existing editor and its settings.
+  if (window.viewer?.isFullPage()) {
+    window.viewer.setFullScreen(false);
+    window.viewer.setFullPage(false);
+  }
+  if (!confirmDiscardCoreEdits()) return false;
+  document.getElementById("editCoreStatus").textContent = "";
   // const sidebarPrefix = currentMode === "edit" ? "edit" : "add";
   const sidebarPrefix = "edit";
 
@@ -1347,16 +1380,22 @@ function updateSidebar(core) {
 
   const saveHandler = (e) => {
     if (saveCore(core)) {
+      document.getElementById("editCoreForm").dataset.dirty = "false";
       document
         .getElementById("saveCoreEdits")
         .removeEventListener("click", saveHandler);
       hideSidebar();
     }
   };
-  document.getElementById("saveCoreEdits").onclick = saveHandler;
+  document.getElementById("saveCoreEdits").onclick = null;
+  document.getElementById("editCoreForm").onsubmit = (event) => {
+    event.preventDefault();
+    saveHandler(event);
+  };
 
   const removeHandler = (e) => {
-    removeCoreFromGrid(core);
+    if (!removeCoreFromGrid(core)) return;
+    document.getElementById("editCoreForm").dataset.dirty = "false";
     document
       .getElementById("removeCoreButton")
       .removeEventListener("click", removeHandler);
@@ -1364,9 +1403,22 @@ function updateSidebar(core) {
   };
 
   document.getElementById("removeCoreButton").onclick = removeHandler;
+  document.getElementById("editCoreForm").oninput = () => {
+    document.getElementById("editCoreForm").dataset.dirty = "true";
+  };
 }
 
 function saveCore(core) {
+  for (const [id, label, minimum] of [["editXInput", "X position", 0], ["editYInput", "Y position", 0], ["editRadiusInput", "Radius", Number.MIN_VALUE]]) {
+    const input = document.getElementById(id);
+    if (!input.value.trim() || !Number.isFinite(Number(input.value)) || Number(input.value) < minimum) {
+      const status = document.getElementById("editCoreStatus");
+      status.textContent = `${label}: enter a ${minimum === 0 ? "non-negative" : "positive"} number before saving.`;
+      status.dataset.tone = "error";
+      input.focus();
+      return false;
+    }
+  }
   const oldRow = core?.row;
   const wasMarker = core?.isMarker || core?.offGridMarker;
   if (
@@ -1458,6 +1510,9 @@ function saveCore(core) {
 
   // Find the core index within the sorted cores data
   const coreIndex = window.sortedCoresData.indexOf(core);
+  // Validated form values are now committed; refreshing auto-assigned indices
+  // must not ask to discard the same edits that are being saved.
+  document.getElementById("editCoreForm").dataset.dirty = "false";
 
   if (
     document.getElementById("editAutoUpdateRowsCheckbox").checked &&
@@ -1582,6 +1637,11 @@ function updateRowsInGridAfterMovement(oldRow, newRow) {
 }
 
 function removeCoreFromGrid(core) {
+  if (window.viewer?.isFullPage()) {
+    window.viewer.setFullScreen(false);
+    window.viewer.setFullPage(false);
+  }
+  if (!core) return false;
   let coreIndex = window.sortedCoresData.indexOf(core);
 
   if (coreIndex === -1) {
@@ -1594,6 +1654,8 @@ function removeCoreFromGrid(core) {
     console.warn("Core not found in sortedCoresData");
     return;
   }
+
+  if (!window.confirm("Remove this core from the grid? This cannot be undone. Choose Cancel to keep it.")) return false;
 
   if (!core.isMarker) {
     const modifiedRow = window.sortedCoresData[coreIndex].row;
@@ -1613,6 +1675,7 @@ function removeCoreFromGrid(core) {
   }
 
   drawCores(); // Redraw the cores
+  return true;
 }
 
 // document
@@ -3542,6 +3605,10 @@ function adjustSidebarHeight() {
 
 // Populate the editMetadataForm form with the uploaded metadata's fields
 function populateAndEditMetadataForm(rowValue, colValue) {
+  const currentForm = document.getElementById("editMetadataForm");
+  if (currentForm.dataset.dirty === "true" &&
+      currentForm.dataset.selection === JSON.stringify([rowValue, colValue])) return true;
+  if (!window.confirmDiscardMetadataEdits()) return false;
   // Retrieve the row and column key names from the window object
   const rowKeyName = window.metadataRowName || "row";
   const colKeyName = window.metadataColName || "col";
@@ -3565,7 +3632,44 @@ function populateAndEditMetadataForm(rowValue, colValue) {
 
     // Clear existing form contents
     form.replaceChildren();
-    form.className = "space-y-4";
+    form.className = "metadata-form";
+    form.dataset.selection = JSON.stringify([rowValue, colValue]);
+    form.dataset.dirty = "false";
+    const editStatus = document.getElementById("metadataEditStatus");
+    editStatus.textContent = "";
+    editStatus.dataset.tone = "neutral";
+    form.oninput = () => {
+      form.dataset.dirty = "true";
+      editStatus.textContent = "Unsaved changes. Choose Update Metadata to save.";
+      editStatus.dataset.tone = "neutral";
+    };
+    const factory = window.HTMLElementUtils;
+    const selection = factory.createElement({ kind: "p", innerText: `Core ${rowValue}, ${colValue}`, extraAttributes: { class: "metadata-selection-context" } });
+    const indexFields = factory.createElement({ kind: "div", extraAttributes: { class: "metadata-index-fields" } });
+    const primaryFields = factory.createElement({ kind: "div", extraAttributes: { class: "metadata-primary-fields" } });
+    const makeDetails = (title) => {
+      const details = factory.createElement({ kind: "details", extraAttributes: { class: "metadata-details" } });
+      const body = factory.createElement({ kind: "div", extraAttributes: { class: "metadata-details-body" } });
+      details.append(factory.createElement({ kind: "summary", innerText: title }), body);
+      return { details, body };
+    };
+    const geometry = makeDetails("Source geometry");
+    const flags = makeDetails("Core flags");
+    const geometryFields = new Set(["x", "y", "radius", "currentRadius"]);
+    const coreFlagFields = new Set(["isImaginary", "isMisaligned", "isMarker", "offGridMarker", "needsReview"]);
+    const appendField = (key, element) => {
+      if (key === rowKeyName || key === colKeyName) indexFields.append(element);
+      else if (geometryFields.has(key)) geometry.body.append(element);
+      else if (coreFlagFields.has(key)) flags.body.append(element);
+      else primaryFields.append(element);
+    };
+    form.append(selection, indexFields, primaryFields);
+    const fieldLabel = (key) => ({
+      [rowKeyName]: "Row", [colKeyName]: "Column", annotations: "Annotations",
+      x: "X position", y: "Y position", currentRadius: "Core radius", radius: "Radius",
+      isImaginary: "Missing core", isMisaligned: "Misaligned", isMarker: "Marker core",
+      offGridMarker: "Off-grid marker", needsReview: "Needs review",
+    })[key] || key;
 
     // Dynamically create form elements for each metadata property
     for (const key in metadataObj) {
@@ -3597,7 +3701,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         const label = document.createElement("label");
         label.setAttribute("for", key);
         label.className = "custom-checkbox-label";
-        label.textContent = `${key}: `;
+        label.textContent = fieldLabel(key);
         applyElementTooltip(label, tooltipText);
 
         // Create the custom checkmark span
@@ -3612,18 +3716,19 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         label.appendChild(checkboxContainer);
 
         // Append the label to the form
-        form.appendChild(label);
+        appendField(key, label);
       } else {
         // Create a label for non-checkbox inputs
         const label = document.createElement("label");
         label.setAttribute("for", key);
-        label.textContent = key + ": ";
+        label.textContent = fieldLabel(key);
         label.className = "mb-2 text-sm font-medium text-gray-900";
         applyElementTooltip(label, tooltipText);
 
         // Create the text or number input
         const input = document.createElement("input");
         input.type = inputType;
+        if (inputType === "number") input.step = "any";
         input.name = key;
         input.id = key;
         input.value = value;
@@ -3633,16 +3738,18 @@ function populateAndEditMetadataForm(rowValue, colValue) {
 
         // Create a wrapper div for non-checkbox inputs
         const inputDiv = document.createElement("div");
-        inputDiv.className = "flex flex-col mb-4";
+        inputDiv.className = "metadata-primary-field";
 
         // Append the label and input to the wrapper div
         inputDiv.appendChild(label);
         inputDiv.appendChild(input);
 
         // Append the wrapper div to the form
-        form.appendChild(inputDiv);
+        appendField(key, inputDiv);
       }
     }
+    if (geometry.body.childElementCount) form.append(geometry.details);
+    if (flags.body.childElementCount) form.append(flags.details);
 
     // Create a submit button
     const submitButton = document.createElement("input");
@@ -3670,11 +3777,14 @@ function populateAndEditMetadataForm(rowValue, colValue) {
 
     // Handle adding custom properties
     addPropertyButton.onclick = function () {
+      form.oninput();
       const customPropertyDiv = document.createElement("div");
       customPropertyDiv.className = "flex flex-col mb-4";
 
       const customPropertyLabel = document.createElement("span");
       customPropertyLabel.contentEditable = true;
+      customPropertyLabel.setAttribute("role", "textbox");
+      customPropertyLabel.setAttribute("aria-label", "Metadata field name");
       customPropertyLabel.dataset.placeholder = "Enter custom field name";
       customPropertyLabel.className =
         "mb-2 text-sm font-medium text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
@@ -3712,6 +3822,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       customPropertyValueInput.type = "text";
       customPropertyValueInput.name = "customPropertyValue";
       customPropertyValueInput.placeholder = "Enter custom field value";
+      customPropertyValueInput.setAttribute("aria-label", "Metadata field value");
       customPropertyValueInput.className =
         "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5";
       applyElementTooltip(
@@ -3736,19 +3847,46 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       const newRowValue = Number(form.elements.namedItem(rowKeyName).value);
       const newColValue = Number(form.elements.namedItem(colKeyName).value);
 
+      const fail = (message, input) => {
+        editStatus.textContent = message;
+        editStatus.dataset.tone = "error";
+        if (input) {
+          input.closest("details")?.setAttribute("open", "");
+          input.focus();
+        }
+      };
+      for (const input of form.querySelectorAll('input[type="number"]')) {
+        if (input.value.trim() === "" || !Number.isFinite(Number(input.value))) {
+          fail("Enter a number for each numeric field before saving.", input);
+          return;
+        }
+      }
+      const customLabels = [...form.querySelectorAll('span[contenteditable="true"]')];
+      const fieldNames = new Set(Object.keys(metadataObj));
+      for (const label of customLabels) {
+        const key = label.textContent.trim();
+        if (!key || key === "Enter custom field name" || fieldNames.has(key) ||
+            INTERNAL_METADATA_FIELDS.has(key) || ["__proto__", "constructor", "prototype"].includes(key)) {
+          fail("Give each new field a unique name. Existing and internal field names cannot be replaced.", label);
+          return;
+        }
+        fieldNames.add(key);
+      }
+
       if (
         (newRowValue !== rowValue || newColValue !== colValue) &&
         window.finalSaveData.some(
           (core) =>
+            core !== metadataObj &&
             core[rowKeyName] === newRowValue && core[colKeyName] === newColValue
         )
       ) {
-        alert("A core with the same row and column values already exists.");
+        fail("Another core already uses this row and column. Choose a different position.", form.elements.namedItem(rowKeyName));
         return;
       }
       // Update the metadata object with new form values
       for (const key in metadataObj) {
-        if (metadataObj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(metadataObj, key)) {
           const input = form.elements.namedItem(key);
           if (input.type === "checkbox") {
             metadataObj[key] = input.checked;
@@ -3774,7 +3912,7 @@ function populateAndEditMetadataForm(rowValue, colValue) {
         if (key !== "") {
           // Add the custom property to all cores if it doesn't exist
           window.finalSaveData.forEach((core) => {
-            if (!core.hasOwnProperty(key)) {
+            if (!Object.prototype.hasOwnProperty.call(core, key)) {
               core[key] = "";
             }
           });
@@ -3791,10 +3929,23 @@ function populateAndEditMetadataForm(rowValue, colValue) {
       if (newRowValue !== rowValue || newColValue !== colValue) {
         updateVirtualGridSpacing();
       }
-
+      form.dataset.dirty = "false";
+      rowValue = newRowValue;
+      colValue = newColValue;
+      form.dataset.selection = JSON.stringify([rowValue, colValue]);
+      selection.textContent = `Core ${rowValue}, ${colValue}`;
+      editStatus.textContent = "Metadata saved. Download JSON or CSV to keep a copy.";
+      editStatus.dataset.tone = "success";
+      // Re-render added fields so subsequent saves use the same canonical inputs.
+      if (customPropertyLabels.length) {
+        populateAndEditMetadataForm(newRowValue, newColValue);
+        editStatus.textContent = "Metadata saved. Download JSON or CSV to keep a copy.";
+        editStatus.dataset.tone = "success";
+      }
     };
 
     adjustSidebarHeight();
+    return true;
   } else {
     console.error("No matching metadata found for the given row and column.");
   }
@@ -3806,7 +3957,10 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
   const tileParams = getCoreRegionParams(core, coreSize);
 
   // Create container div to hold the image and overlay
-  const container = document.createElement("div");
+  const container = document.createElement("button");
+  container.type = "button";
+  container.setAttribute("aria-label", `Edit metadata for core ${core.row}, ${core.col}`);
+  container.setAttribute("aria-pressed", "false");
   container.classList.add("image-container");
 
   // Create overlay div for displaying row and column
@@ -3823,15 +3977,17 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
 
   container.onclick = () => {
     // Select the core
-    populateAndEditMetadataForm(core.row, core.col);
+    if (!populateAndEditMetadataForm(core.row, core.col)) return;
 
     // Remove the active class from all cores
     coreContainers.forEach((container) => {
       container.classList.remove("active");
+      container.setAttribute("aria-pressed", "false");
     });
 
     // Add the active class to the selected core
     container.classList.add("active");
+    container.setAttribute("aria-pressed", "true");
   };
 
   // Append children to the container
@@ -3844,6 +4000,7 @@ async function createImageForCore(svsImageURL, core, coreSize = 64) {
     const imageResp = await getRegionFromWSI(svsImageURL, tileParams, 1);
     const blob = await coerceImageResponseToBlob(imageResp);
     const img = new Image(coreSize, coreSize);
+    img.alt = `Tissue preview for core ${core.row}, ${core.col}`;
 
     // Set the width and height of the image to fill the container
     img.style.width = "100%";
@@ -4221,4 +4378,5 @@ export {
   obtainHyperparametersAndDrawVirtualGrid,
   undo,
   redo,
+  resetSegmentationHistory,
 };
